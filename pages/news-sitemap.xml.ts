@@ -13,7 +13,7 @@ const NewsSitemap = () => null;
 const PUBLICATION_NAME = "Dalimss News";
 
 function isPublicSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  return /^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(slug);
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {

@@ -1,13 +1,16 @@
 import Head from "next/head";
 import Link from "next/link";
 import { GetServerSideProps } from "next";
+import { articleIdsForAuthorVariants } from "@/lib/authorMatch";
 import prisma from "@/lib/prisma";
 import {
   DEFAULT_OG_IMAGE,
+  INDEX_AUTHOR_SLUGS,
   ORGANIZATION_ID,
   SITE_NAME,
   SITE_URL,
   WEBSITE_ID,
+  authorNameVariants,
   authorSlug,
   canonicalAuthorName,
 } from "@/lib/seo";
@@ -21,30 +24,10 @@ interface AuthorsProps {
   authors: Author[];
 }
 
-const HIDDEN_AUTHOR_SLUGS = new Set([
-  "singham-singh",
-  "singham-sing",
-  "dalimss-news-desk",
-  "dalimss-new-desk",
-  "dalimss-news-education-desk",
-  "sushant",
-  "sushant-gaurav",
-  "sushant-gauarav",
-  "priyanka-kapoor",
-  "priyanak-kapoor",
-  "gaurav-singh",
-  "dalimss-editorial-team",
-  "siddhart-srivastava",
-  "siddharth-srivastava",
-  "sidharth-srivastava",
-  "aishwarya-jaiswal",
-  "pranav-rari",
-  "ajay-singh",
-  "sonal-sharma",
-  "sanya-kapoor-technology-correspondent-dalimss-news",
-  "saura-yadav",
-  "khushi-singh",
-]);
+function prefersMixedCase(current: string, next: string): boolean {
+  const mixed = (name: string) => /[A-Z]/.test(name) && /[a-z]/.test(name);
+  return mixed(next) && !mixed(current);
+}
 
 export default function Authors({ authors }: AuthorsProps) {
   const pageTitle = `Newsroom & Published Contributors | ${SITE_NAME}`;
@@ -149,20 +132,27 @@ export const getServerSideProps: GetServerSideProps = async () => {
     },
   });
 
-  const authorCounts: Record<string, number> = {};
-  articles.forEach((a) => {
-    if (a.customAuthor && a.customAuthor.trim()) {
-      const name = canonicalAuthorName(a.customAuthor);
-      authorCounts[name] = (authorCounts[name] || 0) + 1;
+  const namesBySlug = new Map<string, string>();
+  articles.forEach((article) => {
+    if (!article.customAuthor || !article.customAuthor.trim()) return;
+    const name = canonicalAuthorName(article.customAuthor);
+    const slug = authorSlug(name);
+    if (!INDEX_AUTHOR_SLUGS.has(slug)) return;
+    const current = namesBySlug.get(slug);
+    if (!current || prefersMixedCase(current, name)) {
+      namesBySlug.set(slug, name);
     }
   });
 
-  const authorsList = Object.entries(authorCounts)
-    .filter(([name]) => !HIDDEN_AUTHOR_SLUGS.has(authorSlug(name)))
-    .map(([name, count]) => ({
-      name,
-      articleCount: count,
-    }))
+  const authorsList = (
+    await Promise.all(
+      Array.from(namesBySlug.values()).map(async (name) => {
+        const ids = await articleIdsForAuthorVariants(authorNameVariants(name));
+        return { name, articleCount: ids.length };
+      })
+    )
+  )
+    .filter((author) => author.articleCount > 0)
     .sort((a, b) => b.articleCount - a.articleCount);
 
   return {

@@ -17,20 +17,61 @@ export const ARTICLE_SLUG_REDIRECTS: Record<string, string> = {
 const AUTHOR_NAME_CORRECTIONS: Record<string, string> = {
   "dalimss news desk": "Dalimss News Desk",
   "dalimss news desks": "Dalimss News Desk",
+  "dalimss news education desk": "Dalimss News Education Desk",
   "maahr madhok": "Maahir Madhok",
   "priyanak kapoor": "Priyanka Kapoor",
   "saura yadav": "Saurav Yadav",
   "siddhart srivastava": "Siddharth Srivastava",
   "sidharth srivastava": "Siddharth Srivastava",
   "sushant gauarav": "Sushant Gaurav",
+  "pankaj yadav": "Pankaj Yadav",
+  "sushant": "Sushant",
+  "surbhi singh": "Surbhi Singh",
+  "aishwarya jaiswal": "Aishwarya Jaiswal",
+  "singham singh": "Singham Singh",
+  "gaurav singh": "Gaurav Singh",
+  "ajay singh": "Ajay Singh",
+  "sanjay singh": "Sanjay Singh",
+  "sanjeev singh": "Sanjeev Singh",
+  "akash singh": "Akash Singh",
+  "pranav rari": "Pranav Rari",
+  "sonal sharma": "Sonal Sharma",
+  "priya kapoor": "Priya Kapoor",
+  "sandeep pathak": "Sandeep Pathak",
+  "rudraksh sehgal": "Aditya Rudraksh Sehgal",
+  "sanya kapoor, technology correspondent, dalimss news": "Sanya Kapoor",
+  "sanya kapoor technology correspondent dalimss news": "Sanya Kapoor",
 };
 
-function knownAuthorSpelling(normalizedName: string): string | undefined {
-  const key = normalizedName.toLowerCase();
+/**
+ * Author slugs shown on /authors. Other real bylines keep their own
+ * /author/<slug> page and are omitted from this index.
+ */
+export const INDEX_AUTHOR_SLUGS = new Set([
+  "jhinuk-barman",
+  "appurva-singh",
+  "pankaj-yadav",
+  "tanishka-upadhyay",
+  "harsh-mehra",
+  "aditya-rudraksh-sehgal",
+  "ansh-sisodia",
+  "kiara-kapoor",
+  "sumit-arora",
+  "anahita-desai",
+  "fizaa-madhok",
+]);
+
+function authorLookupKey(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function knownAuthorSpelling(name: string): string | undefined {
+  const key = authorLookupKey(name);
+  if (!key) return undefined;
   const corrected = AUTHOR_NAME_CORRECTIONS[key];
   if (corrected) return corrected;
   return Object.values(AUTHOR_NAME_CORRECTIONS).find(
-    (correctedName) => correctedName.toLowerCase() === key
+    (correctedName) => authorLookupKey(correctedName) === key
   );
 }
 

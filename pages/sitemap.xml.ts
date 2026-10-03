@@ -50,24 +50,27 @@ function slugToName(slug: string): string {
 }
 
 /**
- * Slug of the public author page that lists this byline with HTTP 200.
- * Match the author route: case-insensitive equality on the raw byline.
- * Do not trim or collapse whitespace first — Prisma `equals` does not,
- * so "Pooja Kapoor " and " Dalimss Editorial Team" are not that page.
+ * Slug of the public author page that lists this byline.
+ * Case and stray whitespace resolve to the canonical name. A byline the
+ * author route would not match, such as one with extra punctuation, stays out.
  */
 function authorPageSlug(name: string): string | null {
-  const slug = authorSlug(name);
+  const normalized = name.trim().replace(/\s+/g, " ");
+  if (!normalized) return null;
+  const slug = authorSlug(normalized);
   if (!slug) return null;
   const lookup = canonicalAuthorName(slugToName(slug));
   const accepted = new Set(
-    authorNameVariants(lookup).map((variant) => variant.toLowerCase())
+    authorNameVariants(lookup).map((variant) =>
+      variant.trim().replace(/\s+/g, " ").toLowerCase()
+    )
   );
-  if (!accepted.has(name.toLowerCase())) return null;
+  if (!accepted.has(normalized.toLowerCase())) return null;
   return slug;
 }
 
 function isPublicSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  return /^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(slug);
 }
 
 function absoluteUrl(path: string): string {
