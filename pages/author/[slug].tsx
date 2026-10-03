@@ -452,9 +452,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: { customAuthor: true },
     });
-    const displayName = canonicalAuthorName(
+    const fromArticle = canonicalAuthorName(
       displaySample?.customAuthor || authorName
     );
+    const displayName =
+      fromArticle.toLowerCase() === authorName.toLowerCase()
+        ? authorName
+        : fromArticle;
     const authorSlugStr = authorSlug(displayName);
     if (slug !== authorSlugStr) {
       return {
