@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getCategoriesByDbValue } from "@/lib/categories";
+import { normalizedAuthorMatchKeys } from "@/lib/authorMatch";
 import { authorNameVariants } from "@/lib/seo";
 
 export interface AuthorPublicationStats {
@@ -21,22 +22,15 @@ export async function getAuthorPublicationStats(
   name: string,
   language: string | null | undefined
 ): Promise<AuthorPublicationStats | null> {
-  const variants = Array.from(
-    new Set(
-      authorNameVariants(name)
-        .map((variant) => variant.toLowerCase())
-        .filter(Boolean)
-    )
-  );
+  const variants = normalizedAuthorMatchKeys(authorNameVariants(name));
   if (variants.length === 0) return null;
 
   const rows = await prisma.$queryRaw<CategoryCountRow[]>(
     Prisma.sql`
       SELECT category, COUNT(*)::int AS count
       FROM "Article"
-      WHERE lower(
-        regexp_replace(btrim(coalesce("customAuthor", '')), '[[:space:]]+', ' ', 'g')
-      ) IN (${Prisma.join(variants)})
+      WHERE lower(btrim(regexp_replace(coalesce("customAuthor", ''), '[[:space:]]+', ' ', 'g')))
+        IN (${Prisma.join(variants)})
       GROUP BY category
     `
   );

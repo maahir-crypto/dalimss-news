@@ -25,7 +25,7 @@ const facts = [
     icon: CalendarDaysIcon,
   },
   {
-    label: "Editorial bases",
+    label: "Reports from",
     value: "Varanasi and Gurugram",
     icon: MapPinIcon,
   },
@@ -104,8 +104,7 @@ export default function AboutPage() {
           <div className="space-y-4 text-lg md:text-xl text-gray-300 leading-relaxed max-w-3xl">
             <p>
               Dalimss News has been publishing since February 2024 and is a
-              digital news publication with editorial operations in Varanasi
-              and Gurugram.
+              digital news publication reporting from Varanasi and Gurugram.
             </p>
             <p>
               We publish original reporting from Varanasi, Eastern Uttar Pradesh,
@@ -150,20 +149,14 @@ export default function AboutPage() {
                 How we work
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed mb-5">
+                <p>Our articles carry a named byline and a publication date.</p>
                 <p>
-                  Dalimss News prioritises accuracy, attribution, fairness and
-                  public interest. Our articles carry identifiable bylines and
-                  clear publication or update dates.
+                  We start from official primary sources and do not copy from
+                  other publishers. Many articles list their sources at the end.
                 </p>
                 <p>
-                  Where appropriate, we explain the basis of our reporting,
-                  consult documentary or primary material, seek responses from
-                  individuals and organisations named in a story, and distinguish
-                  clearly between news, analysis, opinion and sponsored content.
-                </p>
-                <p>
-                  Material factual errors are corrected transparently in
-                  accordance with our corrections policy.
+                  If you find a mistake, write to editor@dalimss.news and we
+                  will correct it.
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
@@ -216,35 +209,25 @@ export default function AboutPage() {
               </div>
               <div className="border border-gray-200 rounded-xl p-6">
                 <p className="text-sm text-gray-500 mb-1">
-                  Editor-in-Chief
+                  Chief Executive Officer
                 </p>
-                <p className="font-semibold text-gray-900">Saurav Yadav</p>
+                <p className="font-semibold text-gray-900">Maahir Madhok</p>
               </div>
             </div>
             <p className="text-gray-600 leading-relaxed max-w-4xl">
-              Editorial decisions are taken by the Dalimss News editorial team.
-              Advertising, partnerships and sponsored material are identified
-              separately and do not determine the conclusions of independent
-              news reports.
+              Dalimss News is run by PAMF Digimedia Private Limited. Write to
+              editor@dalimss.news with story tips, questions or correction
+              requests.
             </p>
           </div>
         </section>
 
-        <section id="our-team" aria-labelledby="our-team-heading" className="py-14 bg-gray-50">
+        <section id="contributors" aria-labelledby="contributors-heading" className="py-14 bg-gray-50">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 id="our-team-heading" className="text-3xl font-bold text-gray-900 mb-8">
-              Our Team
+            <h2 id="contributors-heading" className="text-3xl font-bold text-gray-900 mb-8">
+              Contributors
             </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white border border-gray-200 rounded-xl p-7">
-                <div aria-hidden="true" className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-700 font-bold text-lg mb-5">
-                  SY
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Saurav Yadav
-                </h3>
-                <p className="text-gray-600">Editor-in-Chief</p>
-              </div>
+            <div className="max-w-xl">
               <div className="bg-white border border-gray-200 rounded-xl p-7">
                 <UserGroupIcon aria-hidden="true" className="h-9 w-9 text-red-600 mb-5" />
                 <h3 className="text-xl font-bold text-gray-900 mb-3">
@@ -288,14 +271,14 @@ export default function AboutPage() {
               <div>
                 <MapPinIcon className="h-6 w-6 text-red-500 mb-3" />
                 <h3 className="text-white font-semibold mb-1">
-                  Varanasi newsroom
+                  Varanasi
                 </h3>
                 <p>Varanasi, Uttar Pradesh, India</p>
               </div>
               <div>
                 <MapPinIcon className="h-6 w-6 text-red-500 mb-3" />
                 <h3 className="text-white font-semibold mb-1">
-                  Gurugram editorial office
+                  Gurugram
                 </h3>
                 <p>Gurugram, Haryana, India</p>
               </div>

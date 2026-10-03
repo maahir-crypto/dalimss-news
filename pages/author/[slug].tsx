@@ -16,6 +16,7 @@ import {
   formatDateIST,
 } from "@/lib/seo";
 import { getCategoriesByDbValue } from "@/lib/categories";
+import { articleIdsForAuthorVariants } from "@/lib/authorMatch";
 import prisma from "@/lib/prisma";
 import { getAuthorPortrait } from "@/lib/author-portraits";
 import { getAuthorBox } from "@/lib/authorBoxes";
@@ -434,16 +435,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
   const authorVariants = authorNameVariants(authorName);
-  const where = {
-    OR: authorVariants.map((name) => ({
-      customAuthor: {
-        equals: name,
-        mode: "insensitive" as const,
-      },
-    })),
-  };
 
   try {
+    const ids = await articleIdsForAuthorVariants(authorVariants);
+    if (ids.length === 0) return { notFound: true };
+    const where = { id: { in: ids } };
+
     const totalCount = await prisma.article.count({ where });
     if (totalCount === 0) return { notFound: true };
 
@@ -455,9 +452,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       select: { customAuthor: true },
     });
-    const displayName = canonicalAuthorName(
+    const fromArticle = canonicalAuthorName(
       displaySample?.customAuthor || authorName
     );
+    const displayName =
+      fromArticle.toLowerCase() === authorName.toLowerCase()
+        ? authorName
+        : fromArticle;
     const authorSlugStr = authorSlug(displayName);
     if (slug !== authorSlugStr) {
       return {
