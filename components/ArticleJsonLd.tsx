@@ -1,6 +1,7 @@
 // components/ArticleJsonLd.tsx
 // Reusable NewsArticle JSON-LD structured data component
 
+import React from "react";
 import {
   SITE_URL,
   SITE_NAME,
@@ -17,6 +18,8 @@ import {
 } from "@/lib/seo";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import type { AuthorBoxProfile } from "@/lib/authorBoxes";
+import { decodeEntities } from "@/lib/decodeEntities";
+import { normalizeImageCaption } from "@/lib/imageCaption";
 
 interface ArticleJsonLdProps {
   article: {
@@ -26,6 +29,7 @@ interface ArticleJsonLdProps {
     excerpt?: string;
     mediaUrl?: string | null;
     createdAt: string;
+    publishedAt?: string | null;
     updatedAt?: string | null;
     customAuthor?: string | null;
     category?: string | null;
@@ -35,6 +39,7 @@ interface ArticleJsonLdProps {
     metaDescription?: string | null;
     tags?: string | null;
     language?: string | null;
+    imageCaption?: string | null;
   };
   authorUrl?: string;
   authorProfile?: AuthorBoxProfile | null;
@@ -66,6 +71,31 @@ export function ArticleJsonLd({
   const modifiedAt =
     articleModifiedAt(article.createdAt, article.updatedAt) ||
     new Date(article.createdAt);
+  const displayCaption = normalizeImageCaption(
+    decodeEntities(article.imageCaption),
+    {
+      slug: article.slug,
+      publishedAt: article.publishedAt ?? article.createdAt,
+    }
+  );
+  const image = !imageUrl
+    ? []
+    : displayCaption.ai
+      ? [
+          {
+            "@type": "ImageObject",
+            url: imageUrl,
+            caption: displayCaption.text,
+            description: "AI-generated illustration for Dalimss News.",
+            creditText: "AI-generated illustration for Dalimss News",
+            creator: {
+              "@type": "Organization",
+              "@id": ORGANIZATION_ID,
+              name: SITE_NAME,
+            },
+          },
+        ]
+      : [imageUrl];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -76,7 +106,7 @@ export function ArticleJsonLd({
     },
     headline: stripForMeta(article.metaTitle || article.title, 110),
     description,
-    image: imageUrl ? [imageUrl] : [],
+    image,
     datePublished: toISOWithTZ(article.createdAt),
     dateModified: toISOWithTZ(modifiedAt),
     inLanguage: article.language === "hi" ? "hi" : "en-IN",

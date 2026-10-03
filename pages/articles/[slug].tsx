@@ -55,6 +55,7 @@ interface Article {
   title: string;
   content: string | null;
   createdAt: string;
+  publishedAt?: string | null;
   updatedAt?: string | null;
   mediaUrl?: string | null;
   mediaType?: string | null;
@@ -84,6 +85,7 @@ import Head from "next/head";
 import ShareButton from "@/components/ShareButton";
 import { ArticleJsonLd } from "@/components/ArticleJsonLd";
 import { CorrectionNotice } from "@/components/CorrectionNotice";
+import { DealDisclosure } from "@/components/DealDisclosure";
 import { AuthorBox } from "@/components/AuthorBox";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { RelatedArticles } from "@/components/RelatedArticles";
@@ -104,6 +106,8 @@ import {
   isNewsroomByline,
 } from "@/lib/seo";
 import { getCategoriesByDbValue } from "@/lib/categories";
+import { isDealArticle } from "@/lib/dealArticles";
+import { normalizeImageCaption } from "@/lib/imageCaption";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { getAuthorBox } from "@/lib/authorBoxes";
 import {
@@ -209,6 +213,10 @@ const ArticlePage: React.FC<Props> = ({
   const alternates = hreflangLinks({
     path: `/articles/${articleSlug}`,
     language: isHindi ? "hi" : "en",
+  });
+  const cap = normalizeImageCaption(decodeEntities(article.imageCaption), {
+    slug: article.slug,
+    publishedAt: article.publishedAt ?? article.createdAt,
   });
 
   return (
@@ -398,6 +406,10 @@ const ArticlePage: React.FC<Props> = ({
 
       <CorrectionNotice corrections={article.corrections} />
 
+      {isDealArticle(article) && (
+        <DealDisclosure language={article.language} />
+      )}
+
       {/* MEDIA RENDERER */}
       {(() => {
         // Build media list: prefer mediaItems, fallback to single mediaUrl
@@ -434,9 +446,9 @@ const ArticlePage: React.FC<Props> = ({
                   priority
                 />
               )}
-              {item.type === "image" && article.imageCaption && (
+              {item.type === "image" && cap.text && (
                 <figcaption className="mt-3 text-sm leading-relaxed text-gray-500">
-                  {decodeEntities(article.imageCaption)}
+                  {cap.text}
                 </figcaption>
               )}
             </figure>
@@ -492,9 +504,9 @@ const ArticlePage: React.FC<Props> = ({
                 </div>
               ))}
             </div>
-            {article.imageCaption && (
+            {cap.text && (
               <figcaption className="mt-3 text-sm leading-relaxed text-gray-500">
-                {decodeEntities(article.imageCaption)}
+                {cap.text}
               </figcaption>
             )}
           </figure>
