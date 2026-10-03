@@ -177,10 +177,13 @@ const SeoEditor: React.FC<SeoEditorProps> = ({
             <input 
                type="text" 
                className="w-full p-2 bg-slate-800 border border-slate-600 rounded text-white"
-               placeholder="e.g. politics, varanasi, election"
+               placeholder="e.g. politics, varanasi, election, deal"
                value={tags}
                onChange={(e) => setTags(e.target.value)}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Add the tag deal for a price or sale report, including a brand sale with no retailer.
+            </p>
          </div>
 
          <div>
@@ -198,10 +201,13 @@ const SeoEditor: React.FC<SeoEditorProps> = ({
             <label className="block text-gray-400 text-sm mb-1">Lead Image Caption</label>
             <textarea
                className="w-full p-2 bg-slate-800 border border-slate-600 rounded text-white h-20"
-               placeholder="Describe what the image shows, where it was taken, and include credit when available."
+               placeholder="Describe what the image shows. For AI-generated images start with: AI-generated illustration:"
                value={imageCaption}
                onChange={(e) => setImageCaption(stripForMeta(e.target.value, 240))}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              AI-generated images must be labelled.
+            </p>
          </div>
       </div>
 
