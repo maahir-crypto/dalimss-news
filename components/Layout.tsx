@@ -62,6 +62,7 @@ const Layout = ({ children }: LayoutProps) => {
         <link rel="alternate" type="application/rss+xml" title="Education News Feed" href="https://dalimss.news/education/feed.xml" />
         <link rel="alternate" type="application/rss+xml" title="Technology News Feed" href="https://dalimss.news/technology/feed.xml" />
         <link rel="alternate" type="application/rss+xml" title="Lifestyle News Feed" href="https://dalimss.news/lifestyle/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="World News Feed" href="https://dalimss.news/world/feed.xml" />
         <link rel="alternate" type="application/rss+xml" title="Dalimss News OTT" href="https://dalimss.news/ott/feed.xml" />
       </Head>
       {showAds ? (

@@ -39,7 +39,10 @@ const Footer = () => {
                 हिंदी
               </Link>
               {NAV_CATEGORIES.filter(
-                (cat, index) => index < 11 || cat.slug === "lifestyle"
+                (cat, index) =>
+                  index < 11 ||
+                  cat.slug === "lifestyle" ||
+                  cat.slug === "world"
               ).map((cat) => (
                 <Link
                   key={cat.slug}
