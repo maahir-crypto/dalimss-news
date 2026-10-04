@@ -174,6 +174,15 @@ export const CATEGORIES: Category[] = [
     dbValues: ["Lifestyle", "lifestyle"],
     priority: 0.7,
   },
+  {
+    slug: "world",
+    name: "World",
+    nameHi: "विश्व",
+    description:
+      "World news: global stories with an India angle, from Dalimss News.",
+    dbValues: ["World", "world"],
+    priority: 0.7,
+  },
 ];
 
 /**
@@ -240,4 +249,5 @@ export const NAV_CATEGORIES = [
   { slug: "reviews", name: "Reviews" },
   { slug: "entertainment", name: "Entertainment" },
   { slug: "lifestyle", name: "Lifestyle" },
+  { slug: "world", name: "World" },
 ];
