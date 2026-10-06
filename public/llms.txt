@@ -27,6 +27,11 @@ Dalimss News is an Indian digital news publication specialising in Varanasi, Eas
 - Corrections Policy: https://dalimss.news/corrections-policy
 - Contact: https://dalimss.news/contact
 
+## Leadership
+
+- Founder and CEO: Maahir Madhok (https://dalimss.news/author/maahir-madhok)
+- Editor-in-Chief: Saurav Yadav (https://dalimss.news/author/saurav-yadav)
+
 ## Feeds
 
 - RSS: https://dalimss.news/feed.xml

@@ -52,6 +52,7 @@ export const INDEX_AUTHOR_SLUGS = new Set([
   "appurva-singh",
   "pankaj-yadav",
   "tanishka-upadhyay",
+  "saurav-yadav",
   "harsh-mehra",
   "aditya-rudraksh-sehgal",
   "ansh-sisodia",

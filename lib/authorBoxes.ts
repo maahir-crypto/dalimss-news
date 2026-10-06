@@ -7,6 +7,8 @@ export interface AuthorProfileLink {
 
 export interface AuthorBoxProfile {
   name: string;
+  /** Other names the person is known by. Emitted as schema.org alternateName. */
+  alternateName?: string[];
   photoUrl: string;
   photoAlt: string;
   jobTitle: string;
@@ -78,6 +80,47 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
       "School of Management Sciences, Varanasi",
       "Mahatma Gandhi Kashi Vidyapith",
     ],
+  },
+  "Ansh Sisodia": {
+    name: "Ansh Sisodia",
+    alternateName: ["Rana Anshuman Singh"],
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791295872535-ansh-sisodia-author-q4DTm9UilIT6lJzmhp8ukuDp3hDFAi.jpg",
+    photoAlt: "Ansh Sisodia, Editor and Content Head for India at Dalimss News",
+    jobTitle: "Editor and Content Head, India",
+    organizationName: "Dalimss News",
+    bio: "Ansh Sisodia, also known as Rana Anshuman Singh, is Editor and Content Head for India at Dalimss News, where he oversees the newsroom's India news and current affairs coverage. He holds a master's degree in Mass Communication from Mahatma Gandhi Kashi Vidyapith, Varanasi. His work spans reporting, research, script writing, video production and social media.",
+    alumniOf: ["Mahatma Gandhi Kashi Vidyapith"],
+  },
+  "Pankaj Yadav": {
+    name: "Pankaj Yadav",
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791295874252-pankaj-yadav-author-8euwS8kTrOleqHLeIp0jxxGrX5wqxn.jpg",
+    photoAlt: "Pankaj Yadav, Editor and Journalist at Dalimss News",
+    jobTitle: "Editor and Journalist",
+    organizationName: "Dalimss News",
+    bio: "Pankaj Yadav is an editor and journalist at Dalimss News. He holds a postgraduate degree in Mass Communication from Mahatma Gandhi Kashi Vidyapith, Varanasi. Pankaj specialises in visual storytelling, video production and graphic design, and his focus is on making every story clear and easy to follow, in words and in pictures.",
+    alumniOf: ["Mahatma Gandhi Kashi Vidyapith"],
+  },
+  "Tanishka Upadhyay": {
+    name: "Tanishka Upadhyay",
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791295875792-tanishka-upadhyay-author-vGQaFfHZsLKf32BF72GZN5N7PEZDQM.jpg",
+    photoAlt: "Tanishka Upadhyay, Journalist and News Anchor at Dalimss News",
+    jobTitle: "Journalist and News Anchor",
+    organizationName: "Dalimss News",
+    bio: "Tanishka Upadhyay is a journalist and news anchor at Dalimss News. A Mass Communication graduate of Mahatma Gandhi Kashi Vidyapith, Varanasi, she covers important news, current affairs and public-interest stories, and cares most about explaining them clearly.",
+    alumniOf: ["Mahatma Gandhi Kashi Vidyapith"],
+  },
+  "Saurav Yadav": {
+    name: "Saurav Yadav",
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791295877261-saurav-yadav-author-h6jmLfLS0AA3Q2AWUBt0M1q3mlC1Iv.jpg",
+    photoAlt: "Saurav Yadav, Editor-in-Chief of Dalimss News",
+    jobTitle: "Editor-in-Chief",
+    organizationName: "Dalimss News",
+    bio: "Saurav Yadav is the Editor-in-Chief of Dalimss News. He leads the newsroom's editorial strategy, daily operations and digital content. Saurav holds a master's degree in Communication and Media Studies from Banaras Hindu University, and his focus is on accurate, credible journalism and a stronger digital presence for Dalimss News.",
+    alumniOf: ["Banaras Hindu University"],
   },
   "Maahir Madhok": {
     name: "Maahir Madhok",
