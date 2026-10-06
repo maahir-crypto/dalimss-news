@@ -105,7 +105,7 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
   "Tanishka Upadhyay": {
     name: "Tanishka Upadhyay",
     photoUrl:
-      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791295875792-tanishka-upadhyay-author-vGQaFfHZsLKf32BF72GZN5N7PEZDQM.jpg",
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791296311996-tanishka-upadhyay-author-v2-R9xtB905fMW5782fERTnYfQEaa0whN.jpg",
     photoAlt: "Tanishka Upadhyay, Journalist and News Anchor at Dalimss News",
     jobTitle: "Journalist and News Anchor",
     organizationName: "Dalimss News",
