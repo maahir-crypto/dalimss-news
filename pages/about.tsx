@@ -16,8 +16,14 @@ import {
   ORGANIZATION_LANGUAGES,
   SITE_NAME,
   SITE_URL,
+  authorSlug,
 } from "@/lib/seo";
-import { authorBoxes, type AuthorBoxProfile } from "@/lib/authorBoxes";
+import {
+  authorBoxes,
+  formatAuthorRole,
+  type AuthorBoxProfile,
+} from "@/lib/authorBoxes";
+import { AuthorProfileLinks } from "@/components/AuthorProfileLinks";
 
 const facts = [
   {
@@ -86,6 +92,8 @@ const editorialTeam: TeamMember[] = [
 function teamProfile(name: string): AuthorBoxProfile | undefined {
   return authorBoxes[name];
 }
+
+const founderProfile = authorBoxes["Maahir Madhok"];
 
 export default function AboutPage() {
   const canonicalUrl = `${SITE_URL}/about`;
@@ -247,7 +255,14 @@ export default function AboutPage() {
                 <p className="text-sm text-gray-500 mb-1">
                   Founder and Chief Executive Officer
                 </p>
-                <p className="font-semibold text-gray-900">Maahir Madhok</p>
+                <p className="font-semibold text-gray-900">
+                  <Link
+                    className="hover:text-red-700 hover:underline"
+                    href={`/author/${authorSlug(founderProfile.name)}`}
+                  >
+                    {founderProfile.name}
+                  </Link>
+                </p>
               </div>
               <div className="border border-gray-200 rounded-xl p-6">
                 <p className="text-sm text-gray-500 mb-1">Editor-in-Chief</p>
@@ -263,6 +278,46 @@ export default function AboutPage() {
               editor@dalimss.news with story tips, questions or correction
               requests.
             </p>
+          </div>
+        </section>
+
+        <section id="founder" aria-labelledby="founder-heading" className="py-14 bg-gray-50">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <h2 id="founder-heading" className="text-3xl font-bold text-gray-900 mb-8">
+              Founder and CEO
+            </h2>
+            <div className="border border-gray-200 bg-white rounded-xl p-6 sm:p-7">
+              <div className="flex flex-col items-start gap-5 sm:flex-row">
+                <img
+                  src={founderProfile.photoUrl}
+                  alt={founderProfile.photoAlt}
+                  width={128}
+                  height={128}
+                  loading="lazy"
+                  className="h-28 w-28 shrink-0 rounded-full object-cover sm:h-32 sm:w-32"
+                />
+                <div className="min-w-0">
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    <Link
+                      className="hover:text-red-700 hover:underline"
+                      href={`/author/${authorSlug(founderProfile.name)}`}
+                    >
+                      {founderProfile.name}
+                    </Link>
+                  </h3>
+                  <p className="mt-1 text-gray-600">
+                    {formatAuthorRole(founderProfile)}
+                  </p>
+                  <p className="mt-4 text-gray-600 leading-relaxed">
+                    {founderProfile.bio}
+                  </p>
+                  <AuthorProfileLinks
+                    links={founderProfile.sameAs}
+                    className="mt-4"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
