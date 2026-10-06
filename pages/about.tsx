@@ -20,10 +20,8 @@ import {
 } from "@/lib/seo";
 import {
   authorBoxes,
-  formatAuthorRole,
   type AuthorBoxProfile,
 } from "@/lib/authorBoxes";
-import { AuthorProfileLinks } from "@/components/AuthorProfileLinks";
 
 const facts = [
   {
@@ -91,6 +89,42 @@ const editorialTeam: TeamMember[] = [
 
 function teamProfile(name: string): AuthorBoxProfile | undefined {
   return authorBoxes[name];
+}
+
+function TeamMemberCard({
+  member,
+  profile,
+}: {
+  member: TeamMember;
+  profile?: AuthorBoxProfile;
+}) {
+  return (
+    <li>
+      <Link
+        href={`/author/${member.slug}`}
+        className="flex items-center gap-4 border border-gray-200 rounded-xl p-5 hover:border-red-300 hover:shadow-sm"
+      >
+        {profile?.photoUrl && (
+          <img
+            src={profile.photoUrl}
+            alt={profile.photoAlt}
+            width={72}
+            height={72}
+            loading="lazy"
+            className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"
+          />
+        )}
+        <span>
+          <span className="block font-semibold text-gray-900">
+            {member.name}
+          </span>
+          <span className="block text-sm text-gray-600">
+            {member.title}
+          </span>
+        </span>
+      </Link>
+    </li>
+  );
 }
 
 const founderProfile = authorBoxes["Maahir Madhok"];
@@ -281,82 +315,37 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section id="founder" aria-labelledby="founder-heading" className="py-14 bg-gray-50">
+        <section id="founder" aria-labelledby="founder-heading" className="pt-14 pb-2 bg-white">
           <div className="container mx-auto px-4 max-w-5xl">
             <h2 id="founder-heading" className="text-3xl font-bold text-gray-900 mb-8">
               Founder and CEO
             </h2>
-            <div className="border border-gray-200 bg-white rounded-xl p-6 sm:p-7">
-              <div className="flex flex-col items-start gap-5 sm:flex-row">
-                <img
-                  src={founderProfile.photoUrl}
-                  alt={founderProfile.photoAlt}
-                  width={128}
-                  height={128}
-                  loading="lazy"
-                  className="h-28 w-28 shrink-0 rounded-full object-cover sm:h-32 sm:w-32"
-                />
-                <div className="min-w-0">
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    <Link
-                      className="hover:text-red-700 hover:underline"
-                      href={`/author/${authorSlug(founderProfile.name)}`}
-                    >
-                      {founderProfile.name}
-                    </Link>
-                  </h3>
-                  <p className="mt-1 text-gray-600">
-                    {formatAuthorRole(founderProfile)}
-                  </p>
-                  <p className="mt-4 text-gray-600 leading-relaxed">
-                    {founderProfile.bio}
-                  </p>
-                  <AuthorProfileLinks
-                    links={founderProfile.sameAs}
-                    className="mt-4"
-                  />
-                </div>
-              </div>
-            </div>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <TeamMemberCard
+                member={{
+                  name: founderProfile.name,
+                  slug: authorSlug(founderProfile.name),
+                  title: "Founder and CEO",
+                }}
+                profile={founderProfile}
+              />
+            </ul>
           </div>
         </section>
 
-        <section id="editorial-team" aria-labelledby="editorial-team-heading" className="py-14 bg-white">
+        <section id="editorial-team" aria-labelledby="editorial-team-heading" className="pt-6 pb-14 bg-white">
           <div className="container mx-auto px-4 max-w-5xl">
             <h2 id="editorial-team-heading" className="text-3xl font-bold text-gray-900 mb-8">
               Our editorial team
             </h2>
             <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {editorialTeam.map((member) => {
-                const profile = teamProfile(member.name);
-                return (
-                  <li key={member.slug}>
-                    <Link
-                      href={`/author/${member.slug}`}
-                      className="flex items-center gap-4 border border-gray-200 rounded-xl p-5 hover:border-red-300 hover:shadow-sm"
-                    >
-                      {profile?.photoUrl && (
-                        <img
-                          src={profile.photoUrl}
-                          alt={profile.photoAlt}
-                          width={72}
-                          height={72}
-                          loading="lazy"
-                          className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"
-                        />
-                      )}
-                      <span>
-                        <span className="block font-semibold text-gray-900">
-                          {member.name}
-                        </span>
-                        <span className="block text-sm text-gray-600">
-                          {member.title}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
+              {editorialTeam.map((member) => (
+                <TeamMemberCard
+                  key={member.slug}
+                  member={member}
+                  profile={teamProfile(member.name)}
+                />
+              ))}
             </ul>
           </div>
         </section>
