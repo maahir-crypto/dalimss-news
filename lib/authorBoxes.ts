@@ -1,5 +1,10 @@
 import { canonicalAuthorName } from "@/lib/seo";
 
+export interface AuthorProfileLink {
+  label: string;
+  url: string;
+}
+
 export interface AuthorBoxProfile {
   name: string;
   photoUrl: string;
@@ -9,6 +14,33 @@ export interface AuthorBoxProfile {
   bio: string;
   /** Schools named in the bio. Author pages use these for Person JSON-LD. */
   alumniOf?: string[];
+  /**
+   * Public profile links. Rendered on the author page and emitted as
+   * schema.org sameAs. Other authors can add links the same way.
+   */
+  sameAs?: AuthorProfileLink[];
+}
+
+/** Role line shown under an author name. Skips a repeated organization. */
+export function formatAuthorRole(profile: AuthorBoxProfile): string {
+  const title = profile.jobTitle.trim();
+  const organization = profile.organizationName.trim();
+  if (
+    !organization ||
+    title === organization ||
+    title.endsWith(`, ${organization}`)
+  ) {
+    return title;
+  }
+  return `${title}, ${organization}`;
+}
+
+export function authorSameAsUrls(
+  profile: { sameAs?: AuthorProfileLink[] } | null | undefined
+): string[] {
+  return (profile?.sameAs ?? [])
+    .map((link) => link.url.trim())
+    .filter((url) => url.length > 0);
 }
 
 /**
@@ -45,6 +77,25 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
     alumniOf: [
       "School of Management Sciences, Varanasi",
       "Mahatma Gandhi Kashi Vidyapith",
+    ],
+  },
+  "Maahir Madhok": {
+    name: "Maahir Madhok",
+    photoUrl: "https://maahirmadhok.in/img/maahir-madhok.jpg",
+    photoAlt: "Portrait of Maahir Madhok",
+    jobTitle: "Founder and CEO, Dalimss News",
+    organizationName: "Dalimss News",
+    bio: "Maahir Madhok is the Founder and CEO of Dalimss News, a digital newsroom he launched in February 2024, headquartered in Gurugram. He is also Additional Director of Dalimss Sunbeam Group of Schools, a CBSE school group in Varanasi founded in 1972, a role he has held since October 2021. He writes about how Indian schools can prepare children for adult life and an AI-shaped world.",
+    sameAs: [
+      { label: "Website", url: "https://maahirmadhok.in" },
+      {
+        label: "LinkedIn",
+        url: "https://www.linkedin.com/in/maahir-madhok-b1b336b9",
+      },
+      { label: "X", url: "https://x.com/maahirmadhok" },
+      { label: "Facebook", url: "https://www.facebook.com/maahirmadhok" },
+      { label: "Instagram", url: "https://www.instagram.com/madhokmaahir" },
+      { label: "Wikidata", url: "https://www.wikidata.org/wiki/Q141636630" },
     ],
   },
 };

@@ -3,6 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { AuthorProfileLinks } from "@/components/AuthorProfileLinks";
 import { Pagination } from "@/components/Pagination";
 import { Article } from "@/types";
 import {
@@ -19,7 +20,11 @@ import { getCategoriesByDbValue } from "@/lib/categories";
 import { articleIdsForAuthorVariants } from "@/lib/authorMatch";
 import prisma from "@/lib/prisma";
 import { getAuthorPortrait } from "@/lib/author-portraits";
-import { getAuthorBox } from "@/lib/authorBoxes";
+import {
+  authorSameAsUrls,
+  formatAuthorRole,
+  getAuthorBox,
+} from "@/lib/authorBoxes";
 import {
   LISTING_PAGE_SIZE,
   listingExcerpt,
@@ -85,6 +90,7 @@ export default function AuthorPage({
       ? `Articles by ${authorName} | Page ${page} | ${SITE_NAME}`
       : `Articles by ${authorName} | ${SITE_NAME}`;
   const curated = getAuthorBox(authorName);
+  const curatedSameAs = authorSameAsUrls(curated);
   const portraitUrl =
     curated?.photoUrl || getAuthorPortrait(authorName) || profile?.imageUrl;
   const absolutePortraitUrl = portraitUrl
@@ -134,9 +140,11 @@ export default function AuthorPage({
       : {}),
     knowsAbout: beats,
     ...(portraitUrl ? { image: absolutePortraitUrl } : {}),
-    ...(!curated && profile?.professionalUrl
-      ? { sameAs: [profile.professionalUrl] }
-      : {}),
+    ...(curatedSameAs.length > 0
+      ? { sameAs: curatedSameAs }
+      : !curated && profile?.professionalUrl
+        ? { sameAs: [profile.professionalUrl] }
+        : {}),
     ...(!curated && profile?.email ? { email: profile.email } : {}),
     contactPoint: {
       "@type": "ContactPoint",
@@ -257,7 +265,7 @@ export default function AuthorPage({
               </h1>
               <p className="text-gray-500 text-sm mb-4">
                 {curated
-                  ? `${curated.jobTitle}, ${curated.organizationName}`
+                  ? formatAuthorRole(curated)
                   : hindiPage
                     ? `${SITE_NAME} के प्रकाशित लेखक`
                     : `Published contributor at ${SITE_NAME}`}
@@ -269,6 +277,10 @@ export default function AuthorPage({
                     ? `इस पृष्ठ पर ${authorName} के नाम से छपी खबरें एक जगह हैं. हर लेख में रिपोर्टिंग का आधार, स्रोत और अपडेट का समय दिया गया है.`
                     : `This page collects stories published under the ${authorName} byline. Article pages identify their available reporting basis, primary material and update history.`)}
               </p>
+              <AuthorProfileLinks
+                links={curated?.sameAs}
+                className="mb-4 justify-center md:justify-start"
+              />
               {!curated && profile?.experience && (
                 <p className="text-gray-600 text-sm leading-relaxed max-w-2xl mb-4">
                   <strong className="text-gray-800">

@@ -17,7 +17,7 @@ import {
   isNewsroomByline,
 } from "@/lib/seo";
 import { normalizeArticleSources } from "@/lib/articleSources";
-import type { AuthorBoxProfile } from "@/lib/authorBoxes";
+import { authorSameAsUrls, type AuthorBoxProfile } from "@/lib/authorBoxes";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { normalizeImageCaption } from "@/lib/imageCaption";
 
@@ -78,6 +78,7 @@ export function ArticleJsonLd({
       publishedAt: article.publishedAt ?? article.createdAt,
     }
   );
+  const profileSameAs = authorSameAsUrls(authorProfile);
   const image = !imageUrl
     ? []
     : displayCaption.ai
@@ -134,6 +135,7 @@ export function ArticleJsonLd({
               "@type": "Organization",
               name: authorProfile.organizationName,
             },
+            ...(profileSameAs.length > 0 ? { sameAs: profileSameAs } : {}),
           }
         : {}),
     },
