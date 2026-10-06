@@ -59,14 +59,23 @@ interface TeamMember {
 }
 
 const editorialTeam: TeamMember[] = [
-  { name: "Maahir Madhok", slug: "maahir-madhok", title: "Founder and CEO" },
   { name: "Saurav Yadav", slug: "saurav-yadav", title: "Editor-in-Chief" },
   {
     name: "Ansh Sisodia",
     slug: "ansh-sisodia",
     title: "Editor and Content Head, India",
   },
+  {
+    name: "Jhinuk Barman",
+    slug: "jhinuk-barman",
+    title: "Content Head, Education",
+  },
   { name: "Pankaj Yadav", slug: "pankaj-yadav", title: "Editor and Journalist" },
+  {
+    name: "Appurva Singh",
+    slug: "appurva-singh",
+    title: "Journalist and News Anchor",
+  },
   {
     name: "Tanishka Upadhyay",
     slug: "tanishka-upadhyay",
