@@ -1,4 +1,5 @@
-import type { AuthorBoxProfile } from "@/lib/authorBoxes";
+import { formatAuthorRole, type AuthorBoxProfile } from "@/lib/authorBoxes";
+import { AuthorProfileLinks } from "@/components/AuthorProfileLinks";
 
 export interface AuthorFallback {
   name: string;
@@ -86,9 +87,10 @@ export function AuthorBox({ author, fallback, language }: AuthorBoxProps) {
             <>
               <p className="font-semibold text-gray-900">{author.name}</p>
               <p className="mb-2 text-gray-600">
-                {author.jobTitle}, {author.organizationName}
+                {formatAuthorRole(author)}
               </p>
               <p>{author.bio}</p>
+              <AuthorProfileLinks links={author.sameAs} className="mt-2" />
             </>
           ) : (
             <>
