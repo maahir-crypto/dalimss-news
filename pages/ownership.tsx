@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import {
   BuildingOffice2Icon,
   EnvelopeIcon,
@@ -112,8 +113,16 @@ export default function OwnershipPage() {
             </div>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="border border-gray-200 rounded-xl p-6">
-                <p className="text-sm text-gray-500 mb-1">Chief Executive Officer</p>
+                <p className="text-sm text-gray-500 mb-1">Founder and Chief Executive Officer</p>
                 <p className="font-semibold text-gray-900">Maahir Madhok</p>
+              </div>
+              <div className="border border-gray-200 rounded-xl p-6">
+                <p className="text-sm text-gray-500 mb-1">Editor-in-Chief</p>
+                <p className="font-semibold text-gray-900">
+                  <Link className="hover:text-red-700 hover:underline" href="/author/saurav-yadav">
+                    Saurav Yadav
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

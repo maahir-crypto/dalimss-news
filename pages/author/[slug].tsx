@@ -108,6 +108,9 @@ export default function AuthorPage({
   const personSchema = {
     "@type": "Person",
     name: authorName,
+    ...(curated?.alternateName && curated.alternateName.length > 0
+      ? { alternateName: curated.alternateName }
+      : {}),
     url: profileUrl,
     worksFor: curated
       ? {

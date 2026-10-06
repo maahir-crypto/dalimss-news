@@ -17,6 +17,7 @@ import {
   SITE_NAME,
   SITE_URL,
 } from "@/lib/seo";
+import { authorBoxes, type AuthorBoxProfile } from "@/lib/authorBoxes";
 
 const facts = [
   {
@@ -50,6 +51,32 @@ const facts = [
     icon: BuildingOffice2Icon,
   },
 ];
+
+interface TeamMember {
+  name: string;
+  slug: string;
+  title: string;
+}
+
+const editorialTeam: TeamMember[] = [
+  { name: "Maahir Madhok", slug: "maahir-madhok", title: "Founder and CEO" },
+  { name: "Saurav Yadav", slug: "saurav-yadav", title: "Editor-in-Chief" },
+  {
+    name: "Ansh Sisodia",
+    slug: "ansh-sisodia",
+    title: "Editor and Content Head, India",
+  },
+  { name: "Pankaj Yadav", slug: "pankaj-yadav", title: "Editor and Journalist" },
+  {
+    name: "Tanishka Upadhyay",
+    slug: "tanishka-upadhyay",
+    title: "Journalist and News Anchor",
+  },
+];
+
+function teamProfile(name: string): AuthorBoxProfile | undefined {
+  return authorBoxes[name];
+}
 
 export default function AboutPage() {
   const canonicalUrl = `${SITE_URL}/about`;
@@ -209,9 +236,17 @@ export default function AboutPage() {
               </div>
               <div className="border border-gray-200 rounded-xl p-6">
                 <p className="text-sm text-gray-500 mb-1">
-                  Chief Executive Officer
+                  Founder and Chief Executive Officer
                 </p>
                 <p className="font-semibold text-gray-900">Maahir Madhok</p>
+              </div>
+              <div className="border border-gray-200 rounded-xl p-6">
+                <p className="text-sm text-gray-500 mb-1">Editor-in-Chief</p>
+                <p className="font-semibold text-gray-900">
+                  <Link className="hover:text-red-700 hover:underline" href="/author/saurav-yadav">
+                    Saurav Yadav
+                  </Link>
+                </p>
               </div>
             </div>
             <p className="text-gray-600 leading-relaxed max-w-4xl">
@@ -219,6 +254,46 @@ export default function AboutPage() {
               editor@dalimss.news with story tips, questions or correction
               requests.
             </p>
+          </div>
+        </section>
+
+        <section id="editorial-team" aria-labelledby="editorial-team-heading" className="py-14 bg-white">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <h2 id="editorial-team-heading" className="text-3xl font-bold text-gray-900 mb-8">
+              Our editorial team
+            </h2>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {editorialTeam.map((member) => {
+                const profile = teamProfile(member.name);
+                return (
+                  <li key={member.slug}>
+                    <Link
+                      href={`/author/${member.slug}`}
+                      className="flex items-center gap-4 border border-gray-200 rounded-xl p-5 hover:border-red-300 hover:shadow-sm"
+                    >
+                      {profile?.photoUrl && (
+                        <img
+                          src={profile.photoUrl}
+                          alt={profile.photoAlt}
+                          width={72}
+                          height={72}
+                          loading="lazy"
+                          className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"
+                        />
+                      )}
+                      <span>
+                        <span className="block font-semibold text-gray-900">
+                          {member.name}
+                        </span>
+                        <span className="block text-sm text-gray-600">
+                          {member.title}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
 

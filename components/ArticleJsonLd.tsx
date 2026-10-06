@@ -129,6 +129,10 @@ export function ArticleJsonLd({
       ...(authorProfile && !newsroomByline
         ? {
             "@type": "Person",
+            ...(authorProfile.alternateName &&
+            authorProfile.alternateName.length > 0
+              ? { alternateName: authorProfile.alternateName }
+              : {}),
             jobTitle: authorProfile.jobTitle,
             image: absoluteImageUrl(authorProfile.photoUrl),
             worksFor: {
