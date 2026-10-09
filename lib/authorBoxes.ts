@@ -13,6 +13,12 @@ export interface AuthorBoxProfile {
   photoAlt: string;
   jobTitle: string;
   organizationName: string;
+  /**
+   * Outside contributor, not a Dalimss News reporter. The author card
+   * omits the staff byline, and article JSON-LD must not list this
+   * person as newsroom staff.
+   */
+  guest?: boolean;
   bio: string;
   /** Schools named in the bio. Author pages use these for Person JSON-LD. */
   alumniOf?: string[];
@@ -140,6 +146,16 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
       { label: "Instagram", url: "https://www.instagram.com/madhokmaahir" },
       { label: "Wikidata", url: "https://www.wikidata.org/wiki/Q141636630" },
     ],
+  },
+  // Public author slug: dr-sangeeta-bhatia
+  "Dr Sangeeta Bhatia": {
+    name: "Dr Sangeeta Bhatia",
+    photoUrl: "",
+    photoAlt: "Dr Sangeeta Bhatia",
+    jobTitle: "Founder and Principal, KIIT World School, Delhi",
+    organizationName: "KIIT World School, Delhi",
+    guest: true,
+    bio: "Dr Sangeeta Bhatia is the principal of KIIT World School, Delhi. She writes here as a guest contributor, and the views in this piece are her own.",
   },
 };
 

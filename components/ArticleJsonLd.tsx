@@ -134,11 +134,19 @@ export function ArticleJsonLd({
               ? { alternateName: authorProfile.alternateName }
               : {}),
             jobTitle: authorProfile.jobTitle,
-            image: absoluteImageUrl(authorProfile.photoUrl),
-            worksFor: {
-              "@type": "Organization",
-              name: authorProfile.organizationName,
-            },
+            ...(authorProfile.photoUrl
+              ? { image: absoluteImageUrl(authorProfile.photoUrl) }
+              : {}),
+            // A guest stays a Person. Do not name Dalimss News as their employer.
+            ...(authorProfile.guest &&
+            authorProfile.organizationName.trim() === SITE_NAME
+              ? {}
+              : {
+                  worksFor: {
+                    "@type": "Organization",
+                    name: authorProfile.organizationName,
+                  },
+                }),
             ...(profileSameAs.length > 0 ? { sameAs: profileSameAs } : {}),
           }
         : {}),

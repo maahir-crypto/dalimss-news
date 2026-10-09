@@ -12,6 +12,11 @@ interface AuthorBoxProps {
   author?: AuthorBoxProfile | null;
   fallback?: AuthorFallback | null;
   language?: string | null;
+  /**
+   * Archive link for a guest who has other published articles.
+   * Leave unset when this piece is their only one.
+   */
+  moreFromHref?: string | null;
 }
 
 function storiesOnDalimss(count: number): string {
@@ -55,17 +60,23 @@ function authorInitials(name: string): string {
   return `${first}${last}`.toUpperCase();
 }
 
-export function AuthorBox({ author, fallback, language }: AuthorBoxProps) {
+export function AuthorBox({
+  author,
+  fallback,
+  language,
+  moreFromHref,
+}: AuthorBoxProps) {
   if (!author && !fallback?.name) return null;
 
   const isHindi = language === "hi";
   const heading = isHindi ? "लेखक के बारे में" : "About the author";
+  const showPhoto = Boolean(author && (!author.guest || author.photoUrl));
 
   return (
     <section className="mt-8 rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 sm:px-5">
       <h2 className="mb-4 text-base font-bold text-gray-900">{heading}</h2>
       <div className="flex flex-col items-start gap-4 sm:flex-row">
-        {author ? (
+        {showPhoto && author ? (
           <img
             src={author.photoUrl}
             alt={author.photoAlt}
@@ -79,11 +90,33 @@ export function AuthorBox({ author, fallback, language }: AuthorBoxProps) {
             aria-hidden="true"
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gray-200 text-xl font-semibold text-gray-800"
           >
-            {authorInitials(fallback?.name || "")}
+            {authorInitials(author?.name || fallback?.name || "")}
           </div>
         )}
         <div className="min-w-0 text-sm leading-relaxed text-gray-700">
-          {author ? (
+          {author?.guest ? (
+            <>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+                {isHindi ? "अतिथि योगदानकर्ता" : "Guest contributor"}
+              </p>
+              <p className="font-semibold text-gray-900">{author.name}</p>
+              <p className="mb-2 text-gray-600">{formatAuthorRole(author)}</p>
+              <p>{author.bio}</p>
+              <AuthorProfileLinks links={author.sameAs} className="mt-2" />
+              {moreFromHref ? (
+                <p className="mt-2">
+                  <a
+                    href={moreFromHref}
+                    className="font-medium text-blue-600 hover:underline"
+                  >
+                    {isHindi
+                      ? `${author.name} की सभी खबरें`
+                      : `More from ${author.name}`}
+                  </a>
+                </p>
+              ) : null}
+            </>
+          ) : author ? (
             <>
               <p className="font-semibold text-gray-900">{author.name}</p>
               <p className="mb-2 text-gray-600">
