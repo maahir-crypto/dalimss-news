@@ -658,6 +658,11 @@ const ArticlePage: React.FC<Props> = ({
         <AuthorBox
           author={curatedAuthor}
           language={article.language}
+          moreFromHref={
+            curatedAuthor?.guest && (authorStats?.storyCount ?? 0) > 1
+              ? authorPath
+              : undefined
+          }
           fallback={
             curatedAuthor
               ? null
@@ -671,29 +676,37 @@ const ArticlePage: React.FC<Props> = ({
         />
       )}
 
-      {(article.reportingBasis || visibleSources.length > 0) && (
-        <section className="mt-8 pt-5 border-t border-gray-200 text-sm text-gray-600">
-          <h2 className="text-base font-bold text-gray-900 mb-2">
-            {isHindi ? "स्रोत और रिपोर्टिंग" : "Sources and reporting"}
-          </h2>
-          {article.reportingBasis && <p>{article.reportingBasis}</p>}
-          {visibleSources.length > 0 && (
-            <ul className="mt-3 list-disc space-y-2 pl-5">
-              {visibleSources.map((source) => (
-                <li key={`${source.label}-${source.url}`}>
-                  <a
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {source.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {curatedAuthor?.guest && visibleSources.length === 0 ? (
+        <p className="mt-8 border-t border-gray-200 pt-5 text-sm text-gray-600">
+          {isHindi
+            ? "यह एक अतिथि राय लेख है. विचार लेखक के अपने हैं."
+            : "This is a guest opinion piece. The views are the author's own."}
+        </p>
+      ) : (
+        (article.reportingBasis || visibleSources.length > 0) && (
+          <section className="mt-8 pt-5 border-t border-gray-200 text-sm text-gray-600">
+            <h2 className="text-base font-bold text-gray-900 mb-2">
+              {isHindi ? "स्रोत और रिपोर्टिंग" : "Sources and reporting"}
+            </h2>
+            {article.reportingBasis && <p>{article.reportingBasis}</p>}
+            {visibleSources.length > 0 && (
+              <ul className="mt-3 list-disc space-y-2 pl-5">
+                {visibleSources.map((source) => (
+                  <li key={`${source.label}-${source.url}`}>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {source.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )
       )}
 
       <AdSlot
@@ -774,7 +787,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   if (article?.customAuthor) {
     const statsName = canonicalAuthorName(article.customAuthor);
-    if (statsName && !isNewsroomByline(statsName) && !getAuthorBox(statsName)) {
+    const curatedForStats = statsName ? getAuthorBox(statsName) : null;
+    if (
+      statsName &&
+      !isNewsroomByline(statsName) &&
+      (!curatedForStats || curatedForStats.guest)
+    ) {
       try {
         authorStats = await getAuthorPublicationStats(
           statsName,
