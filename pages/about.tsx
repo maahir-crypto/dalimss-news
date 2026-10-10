@@ -85,6 +85,11 @@ const editorialTeam: TeamMember[] = [
     slug: "tanishka-upadhyay",
     title: "Journalist and News Anchor",
   },
+  {
+    name: "Aditya Rudraksh Sehgal",
+    slug: "aditya-rudraksh-sehgal",
+    title: "Journalist, Varanasi and Automotive",
+  },
 ];
 
 function teamProfile(name: string): AuthorBoxProfile | undefined {

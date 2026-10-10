@@ -118,6 +118,17 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
     bio: "Tanishka Upadhyay is a journalist and news anchor at Dalimss News. A Mass Communication graduate of Mahatma Gandhi Kashi Vidyapith, Varanasi, she covers important news, current affairs and public-interest stories, and cares most about explaining them clearly.",
     alumniOf: ["Mahatma Gandhi Kashi Vidyapith"],
   },
+  "Aditya Rudraksh Sehgal": {
+    name: "Aditya Rudraksh Sehgal",
+    alternateName: ["Rudraksh Sehgal"],
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791629473113-aditya-rudraksh-sehgal-author-oyC2cAdXwtEKynTwsajRhmA45wt4C5.jpg",
+    photoAlt: "Aditya Rudraksh Sehgal, journalist at Dalimss News",
+    jobTitle: "Journalist, Varanasi and Automotive",
+    organizationName: "Dalimss News",
+    bio: "Aditya Rudraksh Sehgal is a Varanasi-based journalist, host and automotive storyteller. He completed his BA in Mass Communication and Journalism at Mahatma Gandhi Kashi Vidyapith in 2020 and began his career in automotive journalism, hosting Rolling Pistons in Gurgaon and later Trakin Auto in Pune. He has also worked on national and international assignments, including coordinating between the Government of India and YPO during the first Silicon Investment Corridor hosted by President Droupadi Murmu, and he is the Asia Correspondent for Adventure Rider Magazine, covering motorcycling and travel across the region. At Dalimss News he reports from the ground in Varanasi, with a focus on the city's culture, people, civic issues and changing urban landscape. His experience spans automotive journalism, live hosting, field reporting and cultural storytelling.",
+    alumniOf: ["Mahatma Gandhi Kashi Vidyapith"],
+  },
   "Saurav Yadav": {
     name: "Saurav Yadav",
     photoUrl:
