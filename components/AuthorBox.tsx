@@ -48,12 +48,17 @@ function hindiFallbackLine(fallback: AuthorFallback): string {
   return `${base}. ${hindiStoryCount(fallback.storyCount)}.`;
 }
 
+const HONORIFICS = new Set(["mr", "mrs", "ms", "dr", "prof", "shri", "smt"]);
+
 function authorInitials(name: string): string {
   const parts = name
+    .split(/\s+(?:and|&)\s+/i)[0]
     .trim()
     .split(/\s+/)
     .map((part) => part.replace(/[^A-Za-z0-9\u0900-\u097F]/g, ""))
     .filter(Boolean);
+  const named = parts.filter((part) => !HONORIFICS.has(part.toLowerCase()));
+  if (named.length > 0) parts.splice(0, parts.length, ...named);
   if (parts.length === 0) return "";
   const first = parts[0].charAt(0);
   const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
@@ -67,6 +72,46 @@ export function AuthorBox({
   moreFromHref,
 }: AuthorBoxProps) {
   if (!author && !fallback?.name) return null;
+
+  if (author?.guest && author.contributors && author.contributors.length > 0) {
+    const isHindiJoint = language === "hi";
+    return (
+      <section className="mt-8 rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 sm:px-5">
+        <h2 className="mb-4 text-base font-bold text-gray-900">
+          {isHindiJoint ? "लेखकों के बारे में" : "About the authors"}
+        </h2>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+          {isHindiJoint ? "अतिथि योगदानकर्ता" : "Guest contributors"}
+        </p>
+        <div className="space-y-4">
+          {author.contributors.map((person) => (
+            <div key={person.name} className="flex flex-col items-start gap-4 sm:flex-row">
+              <div
+                aria-hidden="true"
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gray-200 text-lg font-semibold text-gray-800"
+              >
+                {authorInitials(person.name)}
+              </div>
+              <div className="min-w-0 text-sm leading-relaxed text-gray-700">
+                <p className="font-semibold text-gray-900">{person.name}</p>
+                <p className="mb-1 text-gray-600">
+                  {person.jobTitle}, {person.organizationName}
+                </p>
+                <p>{person.bio}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {moreFromHref ? (
+          <p className="mt-3 text-sm">
+            <a href={moreFromHref} className="font-medium text-blue-600 hover:underline">
+              {isHindiJoint ? "इन लेखकों की सभी खबरें" : "More from these authors"}
+            </a>
+          </p>
+        ) : null}
+      </section>
+    );
+  }
 
   const isHindi = language === "hi";
   const heading = isHindi ? "लेखक के बारे में" : "About the author";

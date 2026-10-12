@@ -5,6 +5,13 @@ export interface AuthorProfileLink {
   url: string;
 }
 
+export interface GuestContributor {
+  name: string;
+  jobTitle: string;
+  organizationName: string;
+  bio: string;
+}
+
 export interface AuthorBoxProfile {
   name: string;
   /** Other names the person is known by. Emitted as schema.org alternateName. */
@@ -19,6 +26,11 @@ export interface AuthorBoxProfile {
    * person as newsroom staff.
    */
   guest?: boolean;
+  /**
+   * Joint guest byline. Each person gets their own bio in the author
+   * card and their own Person in article JSON-LD.
+   */
+  contributors?: GuestContributor[];
   bio: string;
   /** Schools named in the bio. Author pages use these for Person JSON-LD. */
   alumniOf?: string[];
@@ -167,6 +179,30 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
     organizationName: "KIIT World School, Delhi",
     guest: true,
     bio: "Dr Sangeeta Bhatia is the principal of KIIT World School, Delhi. She writes here as a guest contributor, and the views in this piece are her own.",
+  },
+  // Joint guest byline on the Varanasi festivals feature (article 3699).
+  "Ms. Ishita Dwivedi and Prof. Shyju P J": {
+    name: "Ms. Ishita Dwivedi and Prof. Shyju P J",
+    photoUrl: "",
+    photoAlt: "Ms. Ishita Dwivedi and Prof. Shyju P J",
+    jobTitle: "Guest contributors, Banaras Hindu University",
+    organizationName: "Banaras Hindu University",
+    guest: true,
+    bio: "Ms. Ishita Dwivedi is pursuing research in Tourism Management from Banaras Hindu University. She is a native of Ramnagar. Prof. Shyju P J is the Coordinator of Centre for Tourism & Hospitality Studies at Banaras Hindu University.",
+    contributors: [
+      {
+        name: "Ms. Ishita Dwivedi",
+        jobTitle: "Research scholar, Tourism Management",
+        organizationName: "Banaras Hindu University",
+        bio: "Ms. Ishita Dwivedi is pursuing research in Tourism Management from Banaras Hindu University. She is a native of Ramnagar.",
+      },
+      {
+        name: "Prof. Shyju P J",
+        jobTitle: "Coordinator, Centre for Tourism & Hospitality Studies",
+        organizationName: "Banaras Hindu University",
+        bio: "Prof. Shyju P J is the Coordinator of Centre for Tourism & Hospitality Studies at Banaras Hindu University.",
+      },
+    ],
   },
 };
 

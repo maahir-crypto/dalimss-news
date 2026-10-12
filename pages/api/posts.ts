@@ -1,3 +1,4 @@
+import { readTimeMinutes } from "@/lib/readTime";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
@@ -122,11 +123,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         mediaUrl: image_url,
         mediaType: mediaType,
         customAuthor: byline,
-        metaTitle: stripForMeta(title, 70),
+        metaTitle: stripForMeta(title, 110),
         metaDescription: cleanSummary,
         imageAltText: stripForMeta(image_alt_text || "", 200),
         imageCaption: stripForMeta(image_caption || "", 240),
-        readTimeInMinutes: Math.max(1, Math.ceil(content.length / 500)),
+        readTimeInMinutes: readTimeMinutes(content),
       },
     });
 
