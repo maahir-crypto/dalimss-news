@@ -1,3 +1,4 @@
+import { readTimeMinutes } from "@/lib/readTime";
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -45,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const cleanMetaDescription = stripForMeta(metaDescription || "", 160);
-    const cleanMetaTitle = stripForMeta(metaTitle || title, 70);
+    const cleanMetaTitle = stripForMeta(metaTitle || title, 110);
     if (cleanMetaDescription.length < 50) {
       return res.status(400).json({
         error: "A plain-language editorial summary of at least 50 characters is required",
@@ -114,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           tags,
           imageAltText: stripForMeta(imageAltText || "", 200),
           imageCaption: stripForMeta(imageCaption || "", 240),
-          readTimeInMinutes: Math.max(1, Math.ceil(content.length / 500)), // 🔥 FIXED required field
+          readTimeInMinutes: readTimeMinutes(content),
           authorId: session.user.id ?? null,
         },
       });

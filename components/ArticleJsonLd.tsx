@@ -105,7 +105,7 @@ export function ArticleJsonLd({
       "@type": "WebPage",
       "@id": url,
     },
-    headline: stripForMeta(article.metaTitle || article.title, 110),
+    headline: stripForMeta(article.title || article.metaTitle || "", 110),
     description,
     image,
     datePublished: toISOWithTZ(article.createdAt),
@@ -122,7 +122,18 @@ export function ArticleJsonLd({
         : citations.length > 1
         ? citations
         : undefined,
-    author: {
+    author: authorProfile?.guest && authorProfile.contributors?.length
+      ? authorProfile.contributors.map((person) => ({
+          "@type": "Person",
+          name: person.name,
+          jobTitle: person.jobTitle,
+          // Guests are affiliated with their own institution, not Dalimss News.
+          affiliation: {
+            "@type": "Organization",
+            name: person.organizationName,
+          },
+        }))
+      : {
       "@type": newsroomByline ? "Organization" : "Person",
       name: authorName,
       ...(authorUrl ? { url: authorUrl } : {}),

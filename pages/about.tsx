@@ -92,6 +92,24 @@ const editorialTeam: TeamMember[] = [
   },
 ];
 
+interface BusinessTeamMember {
+  name: string;
+  title: string;
+  photoUrl: string;
+  bio: string;
+}
+
+// Business staff, not editorial. No byline or author page.
+const businessTeam: BusinessTeamMember[] = [
+  {
+    name: "Anurag Pandey",
+    title: "Revenue Head",
+    photoUrl:
+      "https://8mjpruwgqc0qkgho.public.blob.vercel-storage.com/dalimss-news/articles/image/1791805171268-anurag-pandey-author-DPfLdLCWTh1OvrNZZdzydObpQLOTMD.jpg",
+    bio: "Anurag Pandey is Revenue Head at Dalimss News. He leads the newsroom's revenue strategy, builds advertising and business partnerships, and works with the editorial and product teams so the business grows in a way that keeps the journalism independent.",
+  },
+];
+
 function teamProfile(name: string): AuthorBoxProfile | undefined {
   return authorBoxes[name];
 }
@@ -352,6 +370,43 @@ export default function AboutPage() {
                 />
               ))}
             </ul>
+          </div>
+        </section>
+
+        <section id="business-team" aria-labelledby="business-team-heading" className="pb-14 bg-white">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <h2 id="business-team-heading" className="text-3xl font-bold text-gray-900 mb-8">
+              Business team
+            </h2>
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {businessTeam.map((member) => (
+                <li key={member.name}>
+                  <div className="flex items-center gap-4 border border-gray-200 rounded-xl p-5">
+                    <img
+                      src={member.photoUrl}
+                      alt={member.name}
+                      width={72}
+                      height={72}
+                      loading="lazy"
+                      className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"
+                    />
+                    <span>
+                      <span className="block font-semibold text-gray-900">
+                        {member.name}
+                      </span>
+                      <span className="block text-sm text-gray-600">
+                        {member.title}
+                      </span>
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {businessTeam.map((member) => (
+              <p key={`${member.name}-bio`} className="mt-6 max-w-3xl text-gray-700 leading-relaxed">
+                {member.bio}
+              </p>
+            ))}
           </div>
         </section>
 

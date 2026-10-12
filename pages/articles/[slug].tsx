@@ -84,6 +84,7 @@ interface Props {
 import Head from "next/head";
 import ShareButton from "@/components/ShareButton";
 import { ArticleJsonLd } from "@/components/ArticleJsonLd";
+import { readTimeMinutes } from "@/lib/readTime";
 import { CorrectionNotice } from "@/components/CorrectionNotice";
 import { DealDisclosure } from "@/components/DealDisclosure";
 import { AuthorBox } from "@/components/AuthorBox";
@@ -193,7 +194,18 @@ const ArticlePage: React.FC<Props> = ({
   const plainAlt = decodeEntities(article.imageAltText || article.title);
   const breadcrumbTitle =
     plainTitle.length > 60 ? `${plainTitle.slice(0, 57)}...` : plainTitle;
-  const seoTitle = stripForMeta(article.metaTitle || article.title, 70);
+  // A CMS meta title that is only a cut-down copy of the headline must not
+  // replace it: the <title> and OG title should match the H1.
+  const seoTitle = metaTitleIsTruncatedHeadline(article.metaTitle, plainTitle)
+    ? stripForMeta(plainTitle, 110)
+    : stripForMeta(article.metaTitle || plainTitle, 110);
+  const readMinutes = article.content
+    ? readTimeMinutes(article.content)
+    : article.readTimeInMinutes;
+  const guestCount = curatedAuthor?.contributors?.length ?? 1;
+  const guestWithoutSources = Boolean(
+    curatedAuthor?.guest && visibleSources.length === 0
+  );
   const isHindi = article.language === "hi";
   const categoryTags = categories.filter((category, index, list) => {
     const label = (isHindi && category.nameHi ? category.nameHi : category.name)
@@ -347,7 +359,23 @@ const ArticlePage: React.FC<Props> = ({
         <h1 className="mb-3 font-serif text-4xl font-bold leading-tight text-gray-900 md:text-[2.6rem] md:leading-[1.15]">
           {plainTitle}
         </h1>
-        {isOpinion && (
+        {guestWithoutSources ? (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {isHindi ? (
+              <>
+                <strong>{isOpinion ? "राय:" : "अतिथि लेख:"}</strong> यह एक अतिथि
+                लेख है. विचार लेखक के अपने हैं.
+              </>
+            ) : (
+              <>
+                <strong>{isOpinion ? "Guest opinion." : "Guest feature."}</strong>{" "}
+                {guestCount > 1
+                  ? "The views are the authors' own."
+                  : "The views are the author's own."}
+              </>
+            )}
+          </div>
+        ) : isOpinion && (
           <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             {isHindi ? (
               <>
@@ -383,13 +411,13 @@ const ArticlePage: React.FC<Props> = ({
                 </time>
               </>
             )}
-            {article.readTimeInMinutes ? (
+            {readMinutes ? (
               <>
                 <span className="text-gray-300" aria-hidden="true">·</span>
                 <span className="text-gray-500">
                   {isHindi
-                    ? `${article.readTimeInMinutes} मिनट`
-                    : `${article.readTimeInMinutes} min read`}
+                    ? `${readMinutes} मिनट`
+                    : `${readMinutes} min read`}
                 </span>
               </>
             ) : null}
@@ -676,11 +704,13 @@ const ArticlePage: React.FC<Props> = ({
         />
       )}
 
-      {curatedAuthor?.guest && visibleSources.length === 0 ? (
+      {guestWithoutSources ? (
         <p className="mt-8 border-t border-gray-200 pt-5 text-sm text-gray-600">
           {isHindi
-            ? "यह एक अतिथि राय लेख है. विचार लेखक के अपने हैं."
-            : "This is a guest opinion piece. The views are the author's own."}
+            ? "यह एक अतिथि लेख है. विचार लेखक के अपने हैं."
+            : `This is a guest ${isOpinion ? "opinion piece" : "feature"}. The views are the ${
+                guestCount > 1 ? "authors'" : "author's"
+              } own.`}
         </p>
       ) : (
         (article.reportingBasis || visibleSources.length > 0) && (
@@ -726,6 +756,27 @@ const ArticlePage: React.FC<Props> = ({
     </article>
   );
 };
+
+function normalizeTitleForCompare(value: string): string {
+  return decodeEntities(value)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/(\u2026|\.\.\.)\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** True when the meta title is empty or just a truncated copy of the headline. */
+function metaTitleIsTruncatedHeadline(
+  metaTitle: string | null | undefined,
+  headline: string
+): boolean {
+  if (!metaTitle?.trim()) return true;
+  const meta = normalizeTitleForCompare(metaTitle);
+  const full = normalizeTitleForCompare(headline);
+  return meta.length > 0 && full.startsWith(meta);
+}
 
 export default ArticlePage;
 
@@ -820,7 +871,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
             ? canonicalAuthorName(article.customAuthor)
             : null,
           metaTitle: article.metaTitle
-            ? stripForMeta(article.metaTitle, 70)
+            ? stripForMeta(article.metaTitle, 110)
             : null,
         })
       ),
