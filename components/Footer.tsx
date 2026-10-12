@@ -71,8 +71,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/fact-checking" className={footerLinkClass}>
+                  Fact-checking
+                </Link>
+              </li>
+              <li>
                 <Link href="/about" className={footerLinkClass}>
                   About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/masthead" className={footerLinkClass}>
+                  Masthead
                 </Link>
               </li>
               <li>

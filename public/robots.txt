@@ -92,6 +92,55 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
 
+# Perplexity search indexing
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# User-requested Perplexity page access
+User-agent: Perplexity-User
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Apple search
+User-agent: Applebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Apple Intelligence training and grounding
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Common Crawl
+User-agent: CCBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# Meta external agent
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
+# DuckDuckGo assistant
+User-agent: DuckAssistBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+
 # Other compliant crawlers
 User-agent: *
 Allow: /

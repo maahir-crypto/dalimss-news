@@ -9,7 +9,7 @@ import {
   authorSlug,
   canonicalArticleSlug,
   canonicalAuthorName,
-  articleModifiedAt,
+  isNewsroomByline,
 } from "@/lib/seo";
 import { LISTING_PAGE_SIZE, listingPath } from "@/lib/pagination";
 import { activeStoryWhere } from "@/lib/storyLifetime";
@@ -89,10 +89,17 @@ function isAllowedSitemapLoc(loc: string): boolean {
   if (!path || path.endsWith("/") || pathAndQuery.split("?").length > 2) return false;
   // RSS feeds and llms.txt are not HTML pages. Discover them via link
   // rel="alternate" and /llms.txt, not as urlset locs.
-  if (path === "/llms.txt" || path.endsWith("/feed.xml") || path === "/feed.xml") {
+  if (
+    path === "/llms.txt" ||
+    path === "/llms-full.txt" ||
+    path.endsWith("/feed.xml") ||
+    path === "/feed.xml"
+  ) {
     return false;
   }
   if (path === "/search" || path.startsWith("/search/")) return false;
+  // Author archives are only the first page. ?page= author URLs are not canonical.
+  if (path.startsWith("/author/") && query) return false;
   if (!query) return true;
   if (/(^|&)search=/.test(query)) return false;
   return (
@@ -149,11 +156,14 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     }),
     prisma.webStory.findMany({
+      // Same filter as pages/stories/[slug].tsx, so expired or unpublished
+      // stories that would 404 are not listed.
       where: activeStoryWhere(),
       select: {
         slug: true,
         createdAt: true,
         updatedAt: true,
+        published: true,
       },
       orderBy: { updatedAt: "desc" },
     }),
@@ -188,7 +198,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     if (existing && !canonical) continue;
     articleUrls.set(loc, {
       loc,
-      lastmod: articleModifiedAt(article.createdAt, article.updatedAt),
+      lastmod: article.lastmod,
       changefreq: "daily",
       priority: "0.8",
       canonical,
@@ -215,16 +225,22 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const authors = new Map<string, ArticleRow[]>();
   for (const article of preparedArticles) {
     if (!article.customAuthor?.trim()) continue;
+    // Desk labels such as Dalimss Editorial Team are not author archives.
+    // /author/[slug] 404s when a slug has no published articles.
+    if (isNewsroomByline(article.customAuthor)) continue;
     const slug = authorPageSlug(article.customAuthor);
-    if (!slug) continue;
+    if (!slug || isNewsroomByline(slugToName(slug))) continue;
     const bucket = authors.get(slug) || [];
     bucket.push(article);
     authors.set(slug, bucket);
   }
 
   const newestArticle = maxDate(englishArticles.map((article) => article.lastmod));
+  const episodeBulkUpdatedAt = bulkUpdatedAtMillis(
+    podcastEpisodes.map((episode) => episode.updatedAt)
+  );
   const episodeLastMods = podcastEpisodes.map((episode) =>
-    contentLastMod(episode, new Set())
+    contentLastMod(episode, episodeBulkUpdatedAt)
   );
   const newestEpisode = maxDate(episodeLastMods);
 
@@ -232,6 +248,8 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     { path: "", priority: "1.0", freq: "hourly", lastmod: newestArticle },
     { path: "/ott", priority: "0.9", freq: "daily", lastmod: newestEpisode },
     { path: "/about", priority: "0.5", freq: "monthly", lastmod: null },
+    { path: "/masthead", priority: "0.5", freq: "monthly", lastmod: null },
+    { path: "/fact-checking", priority: "0.5", freq: "monthly", lastmod: null },
     { path: "/ownership", priority: "0.5", freq: "monthly", lastmod: null },
     { path: "/contact", priority: "0.5", freq: "monthly", lastmod: null },
     { path: "/privacy-policy", priority: "0.3", freq: "monthly", lastmod: null },
@@ -279,26 +297,37 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     "0.9"
   );
 
-  const authorUrls = Array.from(authors.entries()).flatMap(([slug, rows]) => {
-    const ordered = [...rows].sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
-    const [firstPage] = listingEntries(
-      `/author/${slug}`,
-      ordered,
-      ordered.length,
-      "weekly",
-      "0.5"
-    );
-    return firstPage ? [firstPage] : [];
-  });
+  const authorUrls: UrlEntry[] = Array.from(authors.entries()).flatMap(
+    ([slug, rows]) => {
+      if (!rows.length || !isPublicSlug(slug)) return [];
+      if (isNewsroomByline(slugToName(slug))) return [];
+      return [
+        {
+          loc: absoluteUrl(`/author/${slug}`),
+          lastmod: maxDate(rows.map((item) => item.lastmod)),
+          changefreq: "weekly",
+          priority: "0.5",
+        },
+      ];
+    }
+  );
 
+  const storyBulkUpdatedAt = bulkUpdatedAtMillis(
+    stories.map((story) => story.updatedAt)
+  );
   const storyUrls: UrlEntry[] = stories.flatMap((story) => {
-    if (!isPublicSlug(story.slug)) return [];
+    if (!story.published || !isPublicSlug(story.slug)) return [];
     return [
       {
         loc: absoluteUrl(`/stories/${story.slug}`),
-        lastmod: contentLastMod(story, new Set()),
+        lastmod: contentLastMod(
+          {
+            updatedAt: story.updatedAt,
+            publishedAt: story.createdAt,
+            createdAt: story.createdAt,
+          },
+          storyBulkUpdatedAt
+        ),
         changefreq: "daily",
         priority: "0.8",
       },

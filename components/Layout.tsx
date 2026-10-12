@@ -23,6 +23,8 @@ const NO_ADS_PREFIXES = [
   "/privacy",
   "/terms-and-conditions",
   "/about",
+  "/masthead",
+  "/fact-checking",
   "/ownership",
   "/authors",
   "/editorial-policy",

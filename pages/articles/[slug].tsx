@@ -248,10 +248,7 @@ const ArticlePage: React.FC<Props> = ({
             href={alternate.href}
           />
         ))}
-        
-        {/* Robots with max-image-preview */}
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-        
+
         {/* Open Graph - Essential for WhatsApp/Facebook */}
         <meta property="og:site_name" content="Dalimss News" />
         <meta property="og:title" content={seoTitle} />
