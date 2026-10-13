@@ -13,6 +13,8 @@ import { useSession } from "next-auth/react";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { ORGANIZATION_ADDRESS, ORGANIZATION_ID, ORGANIZATION_LANGUAGES, WEBSITE_ID, formatDateIST } from "@/lib/seo";
 import { setPublicPageCache } from "@/lib/publicCache";
+import { categoryQueryDestination } from "@/lib/categories";
+import { articlePath } from "@/lib/publicPaths";
 
 interface Props {
   articles: Article[];
@@ -160,7 +162,10 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
     },
     potentialAction: {
       "@type": "SearchAction",
-      target: `${siteUrl}/?search={search_term_string}`,
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/?search={search_term_string}`,
+      },
       "query-input": "required name=search_term_string",
     },
   };
@@ -299,7 +304,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
                   </div>
                 )}
                 <div className="p-6 flex flex-col">
-                  <Link href={`/articles/${heroArticle.slug}`}>
+                  <Link href={articlePath(heroArticle.slug)}>
                     <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-3 text-gray-900 hover:text-red-600 transition-colors">
                       {heroTitle}
                     </h1>
@@ -390,6 +395,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       : "http://localhost:3000");
 
   const { category, search } = context.query;
+  if (category !== undefined) {
+    const categoryValue = Array.isArray(category) ? category[0] || "" : category;
+    return {
+      redirect: {
+        destination: categoryQueryDestination(String(categoryValue)),
+        permanent: true,
+      },
+    };
+  }
   const searchQuery = Array.isArray(search) ? search[0] || "" : search || "";
   const params = new URLSearchParams();
   if (category) params.append("category", String(category));

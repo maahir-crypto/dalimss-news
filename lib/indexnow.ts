@@ -1,3 +1,4 @@
+import { waitUntil } from "@vercel/functions";
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { SITE_URL, authorSlug, canonicalArticleSlug } from "@/lib/seo";
 
@@ -40,11 +41,12 @@ export function indexNowUrlsForArticle(article: {
  * POST the URL list to IndexNow.
  * Runs only when INDEXNOW_ENABLED=true and VERCEL_ENV=production.
  * Never throws. Uses a short timeout so a slow IndexNow response cannot hang a caller.
+ * Returns the IndexNow HTTP status, or null when the ping is skipped or fails.
  */
-export async function submitIndexNow(urls: string[]): Promise<void> {
+export async function submitIndexNow(urls: string[]): Promise<number | null> {
   try {
-    if (process.env.INDEXNOW_ENABLED !== "true") return;
-    if (process.env.VERCEL_ENV !== "production") return;
+    if (process.env.INDEXNOW_ENABLED !== "true") return null;
+    if (process.env.VERCEL_ENV !== "production") return null;
 
     const key = process.env.INDEXNOW_KEY;
     const urlList = Array.from(
@@ -54,8 +56,9 @@ export async function submitIndexNow(urls: string[]): Promise<void> {
         )
       )
     );
-    if (!key || urlList.length === 0) return;
+    if (!key || urlList.length === 0) return null;
 
+    const submitted = urlList.slice(0, 10000);
     const response = await fetch(INDEXNOW_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -63,22 +66,31 @@ export async function submitIndexNow(urls: string[]): Promise<void> {
         host: HOST,
         key,
         keyLocation: `https://${HOST}/${key}.txt`,
-        urlList: urlList.slice(0, 10000),
+        urlList: submitted,
       }),
       signal: AbortSignal.timeout(INDEXNOW_TIMEOUT_MS),
     });
 
     if (!response.ok) {
-      console.warn(`IndexNow submission failed: ${response.status}`);
+      console.error(
+        new Error(`IndexNow ${response.status} ${submitted.length} urls`)
+      );
+      return response.status;
     }
-  } catch {
-    console.warn("IndexNow submission failed");
+
+    console.log(`IndexNow ${response.status} ${submitted.length} urls`);
+    return response.status;
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 }
 
-/** Fire-and-forget. Saving an article does not wait on IndexNow. */
+/**
+ * Schedule the IndexNow ping without blocking the response.
+ * waitUntil keeps the Vercel function alive after the route returns; a bare
+ * floating promise is frozen when the serverless invocation ends.
+ */
 export function notifyIndexNow(urls: string[]): void {
-  void submitIndexNow(urls).catch(() => {
-    console.warn("IndexNow submission failed");
-  });
+  waitUntil(submitIndexNow(urls));
 }

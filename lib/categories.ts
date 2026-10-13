@@ -193,6 +193,26 @@ export function getCategoryBySlug(slug: string): Category | undefined {
 }
 
 /**
+ * Destination for a legacy `/?category=` query.
+ * Known categories go to `/category/<slug>`. Anything else goes home.
+ */
+export function categoryQueryDestination(value: string): string {
+  const trimmed = value.trim();
+  if (
+    !trimmed ||
+    trimmed.indexOf("[") !== -1 ||
+    trimmed.indexOf("]") !== -1
+  ) {
+    return "/";
+  }
+  const category =
+    getCategoryBySlug(trimmed) ||
+    getCategoryBySlug(trimmed.toLowerCase()) ||
+    getCategoryByDbValue(trimmed);
+  return category ? `/category/${category.slug}` : "/";
+}
+
+/**
  * Find a category by a database category value
  */
 export function getCategoryByDbValue(dbValue: string): Category | undefined {

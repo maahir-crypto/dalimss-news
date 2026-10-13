@@ -15,6 +15,7 @@ import {
   formatDateIST,
 } from "@/lib/seo";
 import { getCategoryBySlug, Category } from "@/lib/categories";
+import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import prisma from "@/lib/prisma";
 
@@ -136,7 +137,7 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <Breadcrumbs
-          items={[{ name: category.name, href: `/category/${category.slug}` }]}
+          items={[{ name: category.name, href: categoryPath(category.slug) }]}
         />
 
         {/* Category Header */}
@@ -198,7 +199,7 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
                         </div>
                       )}
                       <div className="p-6 flex flex-col">
-                        <Link href={`/articles/${heroArticle.slug}`}>
+                        <Link href={articlePath(heroArticle.slug)}>
                           <h2 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-3 text-gray-900 hover:text-red-600 transition-colors">
                             {heroTitle}
                           </h2>

@@ -89,6 +89,8 @@ import { CorrectionNotice } from "@/components/CorrectionNotice";
 import { DealDisclosure } from "@/components/DealDisclosure";
 import { AuthorBox } from "@/components/AuthorBox";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { findArticleRedirectSlug } from "@/lib/legacySlug";
+import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
 import {
@@ -96,7 +98,6 @@ import {
   absoluteImageUrl,
   stripForMeta,
   authorSlug,
-  canonicalArticleSlug,
   ARTICLE_SLUG_REDIRECTS,
   toISOWithTZ,
   canonicalAuthorName,
@@ -188,8 +189,7 @@ const ArticlePage: React.FC<Props> = ({
   const authorUrl = `${SITE_URL}${authorPath}`;
   const curatedAuthor = newsroomByline ? null : getAuthorBox(authorName);
 
-  const articleSlug = canonicalArticleSlug(article.slug);
-  const canonicalUrl = `${SITE_URL}/articles/${articleSlug}`;
+  const canonicalUrl = `${SITE_URL}${articlePath(article.slug)}`;
   const plainTitle = decodeEntities(article.title);
   const plainAlt = decodeEntities(article.imageAltText || article.title);
   const breadcrumbTitle =
@@ -223,7 +223,7 @@ const ArticlePage: React.FC<Props> = ({
     );
   });
   const alternates = hreflangLinks({
-    path: `/articles/${articleSlug}`,
+    path: articlePath(article.slug),
     language: isHindi ? "hi" : "en",
   });
   const cap = normalizeImageCaption(decodeEntities(article.imageCaption), {
@@ -298,10 +298,10 @@ const ArticlePage: React.FC<Props> = ({
                   isHindi && breadcrumbCategory.nameHi
                     ? breadcrumbCategory.nameHi
                     : breadcrumbCategory.name,
-                href: `/category/${breadcrumbCategory.slug}`,
+                href: categoryPath(breadcrumbCategory.slug),
               }]
             : []),
-          { name: breadcrumbTitle, href: `/articles/${articleSlug}` },
+          { name: breadcrumbTitle, href: articlePath(article.slug) },
         ]}
       />
 
@@ -345,7 +345,7 @@ const ArticlePage: React.FC<Props> = ({
             {categoryTags.map((category) => (
               <a
                 key={category.slug}
-                href={`/category/${category.slug}`}
+                href={categoryPath(category.slug)}
                 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-700 hover:text-red-800"
               >
                 {isHindi && category.nameHi ? category.nameHi : category.name}
@@ -421,7 +421,7 @@ const ArticlePage: React.FC<Props> = ({
           </div>
           <div className="ml-auto shrink-0">
             <ShareButton
-              url={`/articles/${articleSlug}`}
+              url={articlePath(article.slug)}
               title={plainTitle}
               variant="full"
             />
@@ -853,6 +853,19 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   if (!article) {
+    try {
+      const redirectSlug = await findArticleRedirectSlug(slug);
+      if (redirectSlug) {
+        return {
+          redirect: {
+            destination: `/articles/${redirectSlug}`,
+            permanent: true,
+          },
+        };
+      }
+    } catch (err) {
+      console.error("Legacy article slug lookup failed:", err);
+    }
     return {
       notFound: true,
       revalidate: 60,

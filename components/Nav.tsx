@@ -14,6 +14,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { NAV_CATEGORIES } from "@/lib/categories";
+import { isPlaceholderSegment } from "@/lib/publicPaths";
 import { formatDateIST } from "@/lib/seo";
 
 const EDITOR_EMAILS = new Set([
@@ -33,6 +34,7 @@ const PRIMARY_CATEGORY_SLUGS = new Set([
 ]);
 
 function categoryHref(slug: string) {
+  if (isPlaceholderSegment(slug)) return "/";
   if (slug === "varanasi") return "/varanasi-news";
   if (slug === "gurgaon") return "/gurugram-news";
   return `/category/${slug}`;

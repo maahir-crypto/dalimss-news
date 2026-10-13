@@ -8,7 +8,6 @@ import {
   ORGANIZATION_ID,
   WEBSITE_ID,
   absoluteImageUrl,
-  canonicalArticleSlug,
   toISOWithTZ,
   stripForMeta,
   canonicalAuthorName,
@@ -20,6 +19,7 @@ import { normalizeArticleSources } from "@/lib/articleSources";
 import { authorSameAsUrls, type AuthorBoxProfile } from "@/lib/authorBoxes";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { normalizeImageCaption } from "@/lib/imageCaption";
+import { articlePath } from "@/lib/publicPaths";
 
 interface ArticleJsonLdProps {
   article: {
@@ -52,7 +52,7 @@ export function ArticleJsonLd({
   authorProfile,
   description: descriptionOverride,
 }: ArticleJsonLdProps) {
-  const url = `${SITE_URL}/articles/${canonicalArticleSlug(article.slug)}`;
+  const url = `${SITE_URL}${articlePath(article.slug)}`;
   const imageUrl = absoluteImageUrl(article.mediaUrl);
   const authorName = canonicalAuthorName(
     article.customAuthor || "Dalimss News Desk"

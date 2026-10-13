@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Article } from "@/types";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { formatDateIST } from "@/lib/seo";
+import { articlePath } from "@/lib/publicPaths";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 
 interface Props {
@@ -145,7 +146,7 @@ const NewsShortsSidebar = ({ articles }: Props) => {
             <div className={`p-5 bg-white transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
               
               {/* Title */}
-              <Link href={`/articles/${currentArticle.slug}`}>
+              <Link href={articlePath(currentArticle.slug)}>
                 <h2 className="text-[18px] leading-[1.35] font-bold text-gray-900 mb-3 font-serif hover:text-[#dc2626] transition-colors line-clamp-3">
                   {title}
                 </h2>
@@ -175,7 +176,7 @@ const NewsShortsSidebar = ({ articles }: Props) => {
 
               {/* Read More Button */}
               <Link
-                href={`/articles/${currentArticle.slug}`}
+                href={articlePath(currentArticle.slug)}
                 className="block w-full bg-[#dc2626] hover:bg-[#b91c1c] text-white text-[14px] font-bold text-center py-3 rounded transition-colors"
               >
                 Read More

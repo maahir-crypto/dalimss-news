@@ -24,6 +24,7 @@
     "@tiptap/starter-kit": "^3.26.1",
     "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.2.0",
+    "@vercel/functions": "^3.9.11",
     "bcryptjs": "^3.0.3",
     "firebase": "^12.5.0",
     "formidable": "^3.5.4",

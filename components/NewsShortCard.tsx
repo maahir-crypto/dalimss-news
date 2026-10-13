@@ -3,6 +3,7 @@ import { Article } from "@/types";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { formatDateIST } from "@/lib/seo";
+import { articlePath } from "@/lib/publicPaths";
 
 interface Props {
   article: Article;
@@ -62,7 +63,7 @@ const NewsShortCard = ({ article }: Props) => {
       <div className="p-5 pt-4 bg-white flex flex-col h-auto min-h-[300px]">
         
         {/* Headline */}
-        <Link href={`/articles/${article.slug}`}>
+        <Link href={articlePath(article.slug)}>
           <h2 className="text-[20px] leading-[1.3] font-bold text-gray-900 mb-2 font-serif tracking-tight hover:text-[#ff5722] transition-colors">
             {title}
           </h2>
@@ -86,7 +87,7 @@ const NewsShortCard = ({ article }: Props) => {
         {/* Read More Button */}
         <div className="mt-auto">
              <Link
-                href={`/articles/${article.slug}`}
+                href={articlePath(article.slug)}
                 className="block w-full bg-[#ff6d00] hover:bg-[#ef6c00] active:bg-[#e65100] text-white text-[14px] font-bold text-center py-3 rounded-[4px] shadow-sm transition-transform active:scale-[0.98]"
               >
                 Read More

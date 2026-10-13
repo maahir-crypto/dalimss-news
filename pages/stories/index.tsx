@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import prisma from "@/lib/prisma";
 import ImageWithFallback from "@/components/ImageWithFallback";
 import { formatDateIST } from "@/lib/seo";
+import { storyPath } from "@/lib/publicPaths";
 
 interface StoryPage {
   id: number;
@@ -81,7 +82,7 @@ export default function StoriesPage({ stories }: Props) {
             {stories.map((story) => (
               <div key={story.id} className="relative group">
                 <a
-                  href={`/stories/${story.slug}`}
+                  href={storyPath(story.slug)}
                   className="block"
                 >
                   <div className="relative aspect-[9/16] rounded-xl overflow-hidden shadow-lg border-2 border-transparent group-hover:border-red-500 transition-all duration-300">

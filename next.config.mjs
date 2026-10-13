@@ -34,12 +34,17 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/podcasts/:path*",
-        destination: "/ott/:path*",
+        source: "/podcasts",
+        destination: "/ott",
         permanent: true,
       },
       {
-        source: "/courses/:path*",
+        source: "/podcasts/:path((?!feed\\.xml$).*)",
+        destination: "/ott/:path",
+        permanent: true,
+      },
+      {
+        source: "/courses",
         destination: "/",
         permanent: true,
       },
