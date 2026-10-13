@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { coursePath } from "@/lib/publicPaths";
 import { useSession } from "next-auth/react";
 import { 
   AcademicCapIcon, 
@@ -368,7 +369,7 @@ const CoursesPage: React.FC = () => {
 
                     {/* CTA Button */}
                     <Link
-                      href={`/courses/${course.slug}`}
+                      href={coursePath(course.slug)}
                       className="block w-full mt-4 bg-gray-900 hover:bg-red-600 text-center text-white py-3 rounded-lg font-semibold transition-all"
                     >
                       View Course

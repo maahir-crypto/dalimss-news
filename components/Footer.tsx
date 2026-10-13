@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NAV_CATEGORIES } from "@/lib/categories";
+import { categoryPath } from "@/lib/publicPaths";
 import { formatDateIST } from "@/lib/seo";
 
 const footerLinkClass =
@@ -46,7 +47,7 @@ const Footer = () => {
               ).map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={`/category/${cat.slug}`}
+                  href={categoryPath(cat.slug)}
                   className={footerLinkClass}
                 >
                   {cat.name}

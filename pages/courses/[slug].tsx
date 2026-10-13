@@ -84,8 +84,8 @@ const CourseDetailPage: React.FC<Props> = ({ course, isEnrolled, totalLessons, t
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Course Not Found</h1>
           <p className="text-gray-600 mb-4">This course doesn't exist or has been removed.</p>
-          <Link href="/courses" className="text-red-600 hover:text-red-700 font-semibold">
-            ← Back to Courses
+          <Link href="/" className="text-red-600 hover:text-red-700 font-semibold">
+            ← Back to Dalimss News
           </Link>
         </div>
       </div>
@@ -574,7 +574,7 @@ const CourseDetailPage: React.FC<Props> = ({ course, isEnrolled, totalLessons, t
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req, res }) => {
   const slug = params?.slug as string;
 
   try {
@@ -601,7 +601,13 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
     });
 
     if (!course) {
-      return { props: { course: null, isEnrolled: false, totalLessons: 0, totalDuration: 0 } };
+      res.statusCode = 410;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("X-Robots-Tag", "noindex");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return {
+        props: { course: null, isEnrolled: false, totalLessons: 0, totalDuration: 0 },
+      };
     }
 
     // Check if user is enrolled
@@ -643,7 +649,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, req }) =>
     };
   } catch (error) {
     console.error('Error fetching course:', error);
-    return { props: { course: null, isEnrolled: false, totalLessons: 0, totalDuration: 0 } };
+    return { notFound: true };
   }
 };
 

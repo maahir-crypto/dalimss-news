@@ -4,7 +4,8 @@ import { Article } from '../types';
 import ShareButton from './ShareButton';
 import ArticleMediaPreview from './ArticleMediaPreview';
 import { decodeEntities } from '@/lib/decodeEntities';
-import { canonicalArticleSlug, formatDateIST } from '@/lib/seo';
+import { formatDateIST } from '@/lib/seo';
+import { articlePath } from '@/lib/publicPaths';
 
 interface ArticleCardProps {
   article: Article;
@@ -23,7 +24,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
     typeof article.content === "string"
       ? decodeEntities(article.content.replace(/<[^>]+>/g, "")).split("\n")[0].slice(0, 100) + "..."
       : "";
-  const articleSlug = canonicalArticleSlug(article.slug);
+  const articleHref = articlePath(article.slug);
 
   // Horizontal Card (Image Left, Content Right)
   if (variant === 'horizontal') {
@@ -42,7 +43,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
           </div>
         )}
         <div className="flex min-w-0 flex-col justify-between">
-          <Link href={`/articles/${articleSlug}`}>
+          <Link href={articleHref}>
             <h3 lang={titleLang} className="text-lg md:text-xl font-serif font-bold text-gray-900 leading-tight group-hover:text-[#E21B22] transition-colors">
               {title}
             </h3>
@@ -55,7 +56,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
               {formattedDate}
             </time>
             <ShareButton 
-              url={`/articles/${articleSlug}`}
+              url={articleHref}
               title={title} 
               variant="minimal"
             />
@@ -69,7 +70,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
   if (variant === 'compact') {
     return (
       <div className="group py-3 border-b border-gray-100 last:border-0">
-        <Link href={`/articles/${articleSlug}`} className="block">
+        <Link href={articleHref} className="block">
           <h4 lang={titleLang} className="font-serif text-sm font-bold leading-snug text-gray-900 group-hover:text-[#E21B22] md:text-base">
             {title}
           </h4>
@@ -79,7 +80,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
             {formattedDate}
           </time>
           <ShareButton 
-            url={`/articles/${articleSlug}`}
+            url={articleHref}
             title={title} 
             variant="minimal"
           />
@@ -104,7 +105,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
         </div>
       )}
       <div className="p-4 flex flex-col flex-grow">
-        <Link href={`/articles/${articleSlug}`} className="block mb-2">
+        <Link href={articleHref} className="block mb-2">
           <h3 lang={titleLang} className="text-xl font-serif font-bold text-gray-900 leading-tight group-hover:text-[#E21B22] transition-colors">
             {title}
           </h3>
@@ -120,7 +121,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'vertical'
             {article.authorName && <span className="font-medium text-gray-700">• {article.authorName}</span>}
           </div>
           <ShareButton 
-            url={`/articles/${articleSlug}`}
+            url={articleHref}
             title={title} 
             variant="minimal"
           />

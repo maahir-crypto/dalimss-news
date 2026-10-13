@@ -10,6 +10,7 @@ import prisma from "@/lib/prisma";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { canonicalAuthorName } from "@/lib/seo";
+import { articlePath } from "@/lib/publicPaths";
 import {
   LISTING_PAGE_SIZE,
   listingExcerpt,
@@ -120,7 +121,7 @@ export default function AllArticlesPage({
                   </div>
                 )}
                 <div className="p-6 bg-white absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-20 text-white">
-                  <Link href={`/articles/${heroArticle.slug}`}>
+                  <Link href={articlePath(heroArticle.slug)}>
                     <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-2 hover:text-red-400 transition-colors">
                       {heroTitle}
                     </h1>

@@ -1,4 +1,5 @@
 import { activeStoryWhere } from "@/lib/storyLifetime";
+import { findStoryRedirectSlug } from "@/lib/legacySlug";
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 
@@ -17,6 +18,15 @@ export const getServerSideProps: GetServerSideProps = async ({ params, res }) =>
     });
 
     if (!story) {
+      const redirectSlug = await findStoryRedirectSlug(slug);
+      if (redirectSlug) {
+        return {
+          redirect: {
+            destination: `/stories/${redirectSlug}`,
+            permanent: true,
+          },
+        };
+      }
       return { notFound: true };
     }
 

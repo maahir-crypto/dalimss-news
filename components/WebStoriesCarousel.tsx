@@ -4,6 +4,7 @@ import ImageWithFallback from "./ImageWithFallback";
 import { formatDateIST } from "@/lib/seo";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 import { isPublicStory } from "@/lib/storyLifetime";
+import { storyPath } from "@/lib/publicPaths";
 
 interface StoryPage {
   id: number;
@@ -49,7 +50,7 @@ const WebStoriesCarousel = ({ stories }: Props) => {
         {publishedStories.map((story) => (
           <a
             key={story.id}
-            href={`/stories/${story.slug}`}
+            href={storyPath(story.slug)}
             className="flex-shrink-0 group"
           >
             <div className="relative w-[140px] h-[200px] md:w-[160px] md:h-[240px] rounded-xl overflow-hidden shadow-lg border-2 border-white hover:border-red-500 transition-all">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { formatDateIST } from "@/lib/seo";
+import { articlePath } from "@/lib/publicPaths";
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 
@@ -48,7 +49,7 @@ export function RelatedArticles({
           return (
           <Link
             key={article.id}
-            href={`/articles/${article.slug}`}
+            href={articlePath(article.slug)}
             className="group flex gap-4 rounded-lg border border-gray-100 bg-white p-3 transition-colors hover:border-gray-200 hover:bg-gray-50"
           >
             {article.mediaUrl && (
