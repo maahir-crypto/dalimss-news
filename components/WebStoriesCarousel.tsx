@@ -3,6 +3,7 @@ import Image from "next/image";
 import ImageWithFallback from "./ImageWithFallback";
 import { formatDateIST } from "@/lib/seo";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
+import { isPublicStory } from "@/lib/storyLifetime";
 
 interface StoryPage {
   id: number;
@@ -17,6 +18,7 @@ interface WebStory {
   title: string;
   coverImage: string;
   createdAt: string;
+  published?: boolean;
   pages: StoryPage[];
 }
 
@@ -25,7 +27,8 @@ interface Props {
 }
 
 const WebStoriesCarousel = ({ stories }: Props) => {
-  if (!stories || stories.length === 0) {
+  const publishedStories = (stories || []).filter((story) => isPublicStory(story));
+  if (publishedStories.length === 0) {
     return null;
   }
 
@@ -43,7 +46,7 @@ const WebStoriesCarousel = ({ stories }: Props) => {
 
       {/* Stories Grid */}
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-        {stories.map((story) => (
+        {publishedStories.map((story) => (
           <a
             key={story.id}
             href={`/stories/${story.slug}`}
