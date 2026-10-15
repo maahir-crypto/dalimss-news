@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import prisma from "@/lib/prisma";
 import { put } from "@vercel/blob";
+import { revalidateArticlePaths } from "@/lib/revalidate";
 
 /**
  * Admin-only migration endpoint.
@@ -64,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const articles = await prisma.article.findMany({
       where: { mediaUrl: { contains: "cloudinary" } },
-      select: { id: true, title: true, mediaUrl: true },
+      select: { id: true, title: true, mediaUrl: true, slug: true },
       take: batchSize,
       orderBy: { id: "asc" },
     });
@@ -84,6 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           where: { id: article.id },
           data: { mediaUrl: newUrl },
         });
+        await revalidateArticlePaths(res, { slug: article.slug });
 
         results.articles.migrated++;
         console.log(`✅ Article #${article.id} migrated`);

@@ -868,7 +868,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
     return {
       notFound: true,
-      revalidate: 60,
+      revalidate: 3600,
     };
   }
 
@@ -898,7 +898,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       ),
       authorStats,
     },
-    revalidate: 60,
+    revalidate: 3600,
   };
 };
 

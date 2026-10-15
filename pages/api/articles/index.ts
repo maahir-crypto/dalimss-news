@@ -6,6 +6,7 @@ import { authOptions } from "../auth/[...nextauth]";
 
 import { getCategoryBySlug, getCategoryByDbValue } from "@/lib/categories";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
+import { revalidateArticlePaths } from "@/lib/revalidate";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { englishArticleWhere } from "@/lib/articleLanguage";
@@ -121,6 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       notifyIndexNow(indexNowUrlsForArticle(article));
+      await revalidateArticlePaths(res, article);
 
       return res.status(200).json(article);
     } catch (err) {

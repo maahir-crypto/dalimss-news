@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import prisma from "../../../lib/prisma";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
+import { revalidateArticlePaths } from "@/lib/revalidate";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { canonicalAuthorName, stripForMeta } from "@/lib/seo";
@@ -128,6 +129,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...indexNowUrlsForArticle(article),
       ...indexNowUrlsForArticle(updatedArticle),
     ]);
+    await revalidateArticlePaths(res, {
+      ...updatedArticle,
+      previousSlug: article.slug,
+    });
 
     return res.status(200).json(updatedArticle);
   } catch (error) {

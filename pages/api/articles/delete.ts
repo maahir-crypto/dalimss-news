@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { articleUrl, submitIndexNow } from "@/lib/indexnow";
+import { revalidateArticlePaths } from "@/lib/revalidate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -38,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await prisma.article.delete({ where: { slug } });
 
+    await revalidateArticlePaths(res, article);
     await submitIndexNow([articleUrl(article.slug)]);
 
     return res.json({ success: true });
