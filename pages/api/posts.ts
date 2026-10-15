@@ -9,6 +9,7 @@ import {
 } from "@/lib/seo";
 import { Prisma } from "@prisma/client";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
+import { revalidateArticlePaths } from "@/lib/revalidate";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // 1. Validations
@@ -132,6 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     notifyIndexNow(indexNowUrlsForArticle(article));
+    await revalidateArticlePaths(res, article);
 
     return res.status(200).json({ success: true, article });
   } catch (error) {
