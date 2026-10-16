@@ -79,6 +79,8 @@ export function ArticleJsonLd({
     }
   );
   const profileSameAs = authorSameAsUrls(authorProfile);
+  // Article rows do not store pixel size. 1200×630 matches the Open Graph
+  // image dimensions already declared on article pages.
   const image = !imageUrl
     ? []
     : displayCaption.ai
@@ -86,6 +88,8 @@ export function ArticleJsonLd({
           {
             "@type": "ImageObject",
             url: imageUrl,
+            width: 1200,
+            height: 630,
             caption: displayCaption.text,
             description: "AI-generated illustration for Dalimss News.",
             creditText: "AI-generated illustration for Dalimss News",
@@ -96,7 +100,14 @@ export function ArticleJsonLd({
             },
           },
         ]
-      : [imageUrl];
+      : [
+          {
+            "@type": "ImageObject",
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+          },
+        ];
 
   const jsonLd = {
     "@context": "https://schema.org",

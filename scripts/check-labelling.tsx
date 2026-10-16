@@ -348,6 +348,8 @@ assert.deepEqual(aiJson.image[0].creator, {
   "@id": "https://dalimss.news/#organization",
   name: "Dalimss News",
 });
+assert.equal(aiJson.image[0].width, 1200);
+assert.equal(aiJson.image[0].height, 630);
 assert.equal(aiJson.image[0].copyrightNotice, undefined);
 assert.equal(aiJson.image[0].license, undefined);
 assert.equal(JSON.stringify(aiJson).includes(DISCLOSURE), false);
@@ -367,7 +369,12 @@ const creditJson = JSON.parse(
   ).replace(/<script type="application\/ld\+json">|<\/script>/g, "")
 );
 assert.deepEqual(creditJson.image, [
-  "https://dalimss.news/articles/image/xiaomi.jpg",
+  {
+    "@type": "ImageObject",
+    url: "https://dalimss.news/articles/image/xiaomi.jpg",
+    width: 1200,
+    height: 630,
+  },
 ]);
 assert.equal(JSON.stringify(creditJson).includes(DISCLOSURE), false);
 
