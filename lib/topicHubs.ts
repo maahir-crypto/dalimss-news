@@ -35,6 +35,7 @@ export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
       { label: "Uttar Pradesh updates", href: "/category/uttar-pradesh" },
       { label: "Education coverage", href: "/category/education" },
       { label: "Corrections policy", href: "/corrections-policy" },
+      { label: "BHU news hub", href: "/bhu-news" },
     ],
     faqs: [
       {
