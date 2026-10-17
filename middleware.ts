@@ -61,6 +61,15 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
+  if (pathname === "/listing/search") {
+    if (request.headers.get("x-dalimss-search-rewrite") === "1") {
+      return NextResponse.next();
+    }
+    const destination = request.nextUrl.clone();
+    destination.pathname = "/";
+    return NextResponse.redirect(destination, 308);
+  }
+
   if (pathname === "/") {
     const category = request.nextUrl.searchParams.get("category");
     if (category !== null) {
@@ -70,6 +79,15 @@ export function middleware(request: NextRequest) {
       destination.search = "";
       return NextResponse.redirect(destination, 308);
     }
+
+    const search = request.nextUrl.searchParams.get("search");
+    if (search) {
+      const destination = request.nextUrl.clone();
+      destination.pathname = "/listing/search";
+      const headers = new Headers(request.headers);
+      headers.set("x-dalimss-search-rewrite", "1");
+      return NextResponse.rewrite(destination, { request: { headers } });
+    }
   }
 
   return NextResponse.next();
@@ -78,6 +96,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/listing/search",
     "/home/:path*",
     "/articles/:path*",
     "/category/:path*",

@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { GetServerSideProps } from "next";
+import { setPublicPageCache } from "@/lib/publicCache";
 import { articleIdsForAuthorVariants } from "@/lib/authorMatch";
 import prisma from "@/lib/prisma";
 import {
@@ -122,7 +123,7 @@ export default function Authors({ authors }: AuthorsProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const articles = await prisma.article.findMany({
     select: {
       customAuthor: true,
@@ -155,6 +156,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     .filter((author) => author.articleCount > 0)
     .sort((a, b) => b.articleCount - a.articleCount);
 
+  setPublicPageCache(req, res);
   return {
     props: {
       authors: authorsList,

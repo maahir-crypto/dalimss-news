@@ -239,7 +239,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (
       language: article.language,
     }));
 
-    setPublicPageCache(context.res);
+    setPublicPageCache(context.req, context.res);
     return {
       props: {
         articles,

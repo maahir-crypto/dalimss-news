@@ -115,9 +115,10 @@ const Nav: React.FC = () => {
   const handleSearch = () => {
     const query = searchQuery.trim();
     if (query) {
-      router.push(`/?search=${encodeURIComponent(query)}`);
+      // Full navigation so middleware can render server-side, noindex results.
+      window.location.assign(`/?search=${encodeURIComponent(query)}`);
     } else if (router.query.search) {
-      router.push("/");
+      window.location.assign("/");
     }
     setIsMenuOpen(false);
     setOpenDropdown(null);
