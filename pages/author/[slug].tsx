@@ -1,4 +1,5 @@
 import { GetServerSideProps } from "next";
+import { setPublicPageCache } from "@/lib/publicCache";
 import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
@@ -571,6 +572,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       ).values()
     );
 
+    setPublicPageCache(context.req, context.res);
     return {
       props: {
         authorName: displayName,

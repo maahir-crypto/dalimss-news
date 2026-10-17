@@ -1,7 +1,8 @@
-import { GetServerSideProps } from "next";
+import { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { Article } from "@/types";
 import { canonicalAuthorName } from "@/lib/seo";
+import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
 
 export type TopicHubConfig = {
   slug: string;
@@ -215,12 +216,47 @@ export function getTopicHubBySlug(slug: string) {
   return TOPIC_HUBS[slug];
 }
 
-export function makeTopicHubServerSideProps(slug: string): GetServerSideProps {
+/**
+ * Hub paths whose keywords appear in the article. Hindi stories are excluded
+ * because the hub query itself skips `language: "hi"`.
+ * Matching is the same case-insensitive contains check the page uses, done
+ * in memory so publish does not run another database scan.
+ */
+export function topicHubPathsForArticle(article: {
+  language?: string | null;
+  title?: string | null;
+  content?: string | null;
+  category?: string | null;
+  tags?: string | null;
+  focusKeyword?: string | null;
+}): string[] {
+  if (article.language === "hi") return [];
+  const haystack = [
+    article.title,
+    article.content,
+    article.category,
+    article.tags,
+    article.focusKeyword,
+  ]
+    .filter((part): part is string => Boolean(part && part.trim()))
+    .join("\n")
+    .toLowerCase();
+  if (!haystack) return [];
+  return Object.values(TOPIC_HUBS)
+    .filter((hub) =>
+      hub.keywords.some((keyword) => haystack.includes(keyword.toLowerCase()))
+    )
+    .map((hub) => hub.canonicalPath);
+}
+
+export function makeTopicHubStaticProps(
+  slug: string
+): GetStaticProps<TopicHubProps> {
   return async () => {
     const hub = getTopicHubBySlug(slug);
 
     if (!hub) {
-      return { notFound: true };
+      return { notFound: true, revalidate: LISTING_REVALIDATE_SECONDS };
     }
 
     const articleWhere = {
@@ -238,55 +274,65 @@ export function makeTopicHubServerSideProps(slug: string): GetServerSideProps {
       ],
     };
 
-    const articles = await prisma.article.findMany({
-      where: articleWhere,
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-      take: 30,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        content: true,
-        mediaUrl: true,
-        mediaType: true,
-        readTimeInMinutes: true,
-        category: true,
-        customAuthor: true,
-        createdAt: true,
-        updatedAt: true,
-        metaTitle: true,
-        metaDescription: true,
-        focusKeyword: true,
-      },
-    });
+    try {
+      const articles = await prisma.article.findMany({
+        where: articleWhere,
+        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+        take: 30,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          content: true,
+          mediaUrl: true,
+          mediaType: true,
+          readTimeInMinutes: true,
+          category: true,
+          customAuthor: true,
+          createdAt: true,
+          updatedAt: true,
+          metaTitle: true,
+          metaDescription: true,
+          focusKeyword: true,
+        },
+      });
 
-    const serializedArticles: Article[] = articles.map((article) => ({
-      id: article.id,
-      slug: article.slug,
-      title: article.title,
-      content: article.content,
-      mediaUrl: article.mediaUrl,
-      mediaType: article.mediaType as Article["mediaType"],
-      createdAt: article.createdAt.toISOString(),
-      authorName: canonicalAuthorName(
-        article.customAuthor || "Dalimss News Desk"
-      ),
-      authorAvatarUrl: "",
-      readTimeInMinutes: article.readTimeInMinutes,
-      claps: 0,
-      commentsCount: 0,
-      category: article.category,
-      metaTitle: article.metaTitle,
-      metaDescription: article.metaDescription,
-      focusKeyword: article.focusKeyword,
-    }));
+      const serializedArticles: Article[] = articles.map((article) => ({
+        id: article.id,
+        slug: article.slug,
+        title: article.title,
+        content: article.content,
+        mediaUrl: article.mediaUrl,
+        mediaType: article.mediaType as Article["mediaType"],
+        createdAt: article.createdAt.toISOString(),
+        authorName: canonicalAuthorName(
+          article.customAuthor || "Dalimss News Desk"
+        ),
+        authorAvatarUrl: "",
+        readTimeInMinutes: article.readTimeInMinutes,
+        claps: 0,
+        commentsCount: 0,
+        category: article.category,
+        metaTitle: article.metaTitle,
+        metaDescription: article.metaDescription,
+        focusKeyword: article.focusKeyword,
+      }));
 
-    return {
-      props: {
-        hub,
-        articles: serializedArticles,
-        latestUpdate: articles[0]?.updatedAt.toISOString() || null,
-      },
-    };
+      return {
+        props: {
+          hub,
+          articles: serializedArticles,
+          latestUpdate: articles[0]?.updatedAt.toISOString() || null,
+        },
+        revalidate: LISTING_REVALIDATE_SECONDS,
+      };
+    } catch (error) {
+      console.error(`Error fetching topic hub ${slug}:`, error);
+      if (process.env.DATABASE_URL) throw error;
+      return {
+        props: { hub, articles: [], latestUpdate: null },
+        revalidate: LISTING_REVALIDATE_SECONDS,
+      };
+    }
   };
 }

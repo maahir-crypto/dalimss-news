@@ -1,4 +1,5 @@
 import { GetServerSideProps } from "next";
+import { setPublicPageCache } from "@/lib/publicCache";
 import Head from "next/head";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleMediaPreview from "@/components/ArticleMediaPreview";
@@ -236,6 +237,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       category: article.category,
     }));
 
+    setPublicPageCache(context.req, context.res);
     return { props: { articles, page, totalPages } };
   } catch (error) {
     console.error("Error fetching articles:", error);

@@ -1,4 +1,4 @@
-import { GetServerSideProps } from "next";
+import { GetStaticPaths, GetStaticProps } from "next";
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -14,7 +14,8 @@ import {
   canonicalAuthorName,
   formatDateIST,
 } from "@/lib/seo";
-import { getCategoryBySlug, Category } from "@/lib/categories";
+import { CATEGORIES, getCategoryBySlug, Category } from "@/lib/categories";
+import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
 import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import prisma from "@/lib/prisma";
@@ -288,7 +289,12 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: CATEGORIES.map((category) => ({ params: { slug: category.slug } })),
+  fallback: false,
+});
+
+export const getStaticProps: GetStaticProps = async (context) => {
   const slug = context.params?.slug as string;
   const category = getCategoryBySlug(slug);
 
@@ -366,15 +372,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         articles: serializedArticles,
         totalCount,
       },
+      revalidate: LISTING_REVALIDATE_SECONDS,
     };
   } catch (error) {
     console.error("Error fetching category articles:", error);
+    if (process.env.DATABASE_URL) throw error;
     return {
       props: {
         category,
         articles: [],
         totalCount: 0,
       },
+      revalidate: LISTING_REVALIDATE_SECONDS,
     };
   }
 };

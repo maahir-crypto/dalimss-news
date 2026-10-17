@@ -1,4 +1,4 @@
-import { GetServerSideProps } from "next";
+import { GetStaticProps } from "next";
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Layout from "@/components/Layout";
@@ -12,8 +12,8 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { ORGANIZATION_ADDRESS, ORGANIZATION_ID, ORGANIZATION_LANGUAGES, WEBSITE_ID, formatDateIST } from "@/lib/seo";
-import { setPublicPageCache } from "@/lib/publicCache";
-import { categoryQueryDestination } from "@/lib/categories";
+import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
+import { loadHomePage } from "@/lib/homeListing";
 import { articlePath } from "@/lib/publicPaths";
 
 interface Props {
@@ -386,63 +386,16 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
   );
 }
 
-// Fetch articles
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    (process.env.NODE_ENV === "production"
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
-
-  const { category, search } = context.query;
-  if (category !== undefined) {
-    const categoryValue = Array.isArray(category) ? category[0] || "" : category;
-    return {
-      redirect: {
-        destination: categoryQueryDestination(String(categoryValue)),
-        permanent: true,
-      },
-    };
-  }
-  const searchQuery = Array.isArray(search) ? search[0] || "" : search || "";
-  const params = new URLSearchParams();
-  if (category) params.append("category", String(category));
-  if (searchQuery) params.append("search", searchQuery);
-  
-  // Set initial pagination
-  params.append("page", "1");
-  params.append("limit", "15");
-
-  const queryString = params.toString() ? `?${params.toString()}` : "";
-
+export const getStaticProps: GetStaticProps = async () => {
   try {
-    const apiUrl = `${baseUrl}/api/articles${queryString}`;
-    const res = await fetch(apiUrl);
-    
-    if (!res.ok) {
-        throw new Error(`Failed to fetch: ${res.status}`);
-    }
-    
-    const articles = await res.json();
-    if (!Array.isArray(articles)) {
-      throw new Error("Invalid articles response");
-    }
-
-    // Fetch Web Stories
-    let stories = [];
-    try {
-      const storiesRes = await fetch(`${baseUrl}/api/stories`);
-      if (storiesRes.ok) {
-        stories = await storiesRes.json();
-      }
-    } catch (e) {
-      console.error("Error fetching stories:", e);
-    }
-
-    setPublicPageCache(context.res);
-    return { props: { articles, stories, searchQuery } };
+    const props = await loadHomePage("");
+    return { props, revalidate: LISTING_REVALIDATE_SECONDS };
   } catch (error) {
     console.error("Error fetching articles:", error);
-    return { props: { articles: [], stories: [], searchQuery } };
+    if (process.env.DATABASE_URL) throw error;
+    return {
+      props: { articles: [], stories: [], searchQuery: "" },
+      revalidate: LISTING_REVALIDATE_SECONDS,
+    };
   }
 };

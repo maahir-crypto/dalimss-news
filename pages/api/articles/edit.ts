@@ -74,7 +74,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const article = await prisma.article.findUnique({
       where: { slug },
-      select: { authorId: true, slug: true, category: true, customAuthor: true },
+      select: {
+        authorId: true,
+        slug: true,
+        category: true,
+        customAuthor: true,
+        language: true,
+        title: true,
+        content: true,
+        tags: true,
+        focusKeyword: true,
+      },
     });
 
     if (!article) {
@@ -126,12 +136,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     notifyIndexNow([
-      ...indexNowUrlsForArticle(article),
+      ...indexNowUrlsForArticle({
+        slug: article.slug,
+        category: article.category,
+        customAuthor: article.customAuthor,
+      }),
       ...indexNowUrlsForArticle(updatedArticle),
     ]);
     await revalidateArticlePaths(res, {
       ...updatedArticle,
       previousSlug: article.slug,
+      previous: {
+        category: article.category,
+        customAuthor: article.customAuthor,
+        language: article.language,
+        title: article.title,
+        content: article.content,
+        tags: article.tags,
+        focusKeyword: article.focusKeyword,
+      },
     });
 
     return res.status(200).json(updatedArticle);
