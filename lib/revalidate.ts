@@ -1,5 +1,7 @@
+import { dangerouslyDeleteByTag } from "@vercel/functions";
 import type { NextApiResponse } from "next";
 import { getCategoriesByDbValue } from "@/lib/categories";
+import { CRAWLER_FILES_CACHE_TAG } from "@/lib/publicCache";
 import { canonicalArticleSlug } from "@/lib/seo";
 import { TOPIC_HUBS, topicHubPathsForArticle } from "@/lib/topicHubs";
 
@@ -40,6 +42,9 @@ export type ArticleRevalidateInput = {
  * getServerSideProps listings (/articles, /hindi, /author/[slug], /authors)
  * are not included. res.revalidate throws for those. They use a short
  * s-maxage instead.
+ *
+ * /llms.txt, /llms-full.txt, and /news-sitemap.xml are getServerSideProps too,
+ * so they are not listed here. Publish drops their CDN tag instead.
  */
 function listingPaths(article: {
   language?: string | null;
@@ -92,7 +97,25 @@ export function articleRevalidatePaths(article: ArticleRevalidateInput): string[
 }
 
 /**
- * Regenerate ISR pages for this article.
+ * Drop the cached llms files and news sitemap.
+ * res.revalidate throws for those getServerSideProps routes. Deleting the tag
+ * makes the next fetch render the current stories instead of the previous
+ * body. Outside Vercel this is a no-op, and the routes' s-maxage is the
+ * backstop (about two minutes for the news sitemap, ten for the llms files).
+ */
+async function revalidateCrawlerFiles(): Promise<void> {
+  try {
+    await dangerouslyDeleteByTag(CRAWLER_FILES_CACHE_TAG);
+  } catch (error) {
+    console.error(
+      `On-demand revalidate failed for ${CRAWLER_FILES_CACHE_TAG}:`,
+      error
+    );
+  }
+}
+
+/**
+ * Regenerate ISR pages for this article and drop the cached crawler files.
  * A failed path is logged and ignored so the API response still succeeds.
  * Must be awaited inside the request: res.revalidate cannot run after the
  * function returns.
@@ -101,13 +124,14 @@ export async function revalidateArticlePaths(
   res: NextApiResponse,
   article: ArticleRevalidateInput
 ): Promise<void> {
-  await Promise.allSettled(
-    articleRevalidatePaths(article).map(async (path) => {
+  await Promise.allSettled([
+    ...articleRevalidatePaths(article).map(async (path) => {
       try {
         await res.revalidate(path);
       } catch (error) {
         console.error(`On-demand revalidate failed for ${path}:`, error);
       }
-    })
-  );
+    }),
+    revalidateCrawlerFiles(),
+  ]);
 }

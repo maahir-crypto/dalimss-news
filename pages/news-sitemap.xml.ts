@@ -4,6 +4,10 @@
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { decodeEntities } from "@/lib/decodeEntities";
+import {
+  NEWS_SITEMAP_CACHE_CONTROL,
+  setCrawlerFileCache,
+} from "@/lib/publicCache";
 import { xmlEscape } from "@/lib/xml";
 import { SITE_URL, canonicalArticleSlug, toISOWithTZ } from "@/lib/seo";
 import { validDate } from "@/lib/sitemapDates";
@@ -16,7 +20,7 @@ function isPublicSlug(slug: string): boolean {
   return /^[a-z0-9]+(?:-+[a-z0-9]+)*$/.test(slug);
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const now = new Date();
   const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
@@ -89,10 +93,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 `;
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
-  res.setHeader(
-    "Cache-Control",
-    "public, s-maxage=300, stale-while-revalidate=600"
-  );
+  setCrawlerFileCache(req, res, NEWS_SITEMAP_CACHE_CONTROL);
   res.write(sitemap);
   res.end();
 

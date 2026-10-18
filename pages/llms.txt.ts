@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
+import { LLMS_CACHE_CONTROL, setCrawlerFileCache } from "@/lib/publicCache";
 import {
-  LLMS_CACHE_CONTROL,
   LLMS_TXT_BODY,
   latestArticleLines,
   withLatestArticles,
@@ -8,12 +8,12 @@ import {
 
 const LlmsTxt = () => null;
 
-export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   const lines = await latestArticleLines(50);
   const body = withLatestArticles(LLMS_TXT_BODY, lines);
 
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
-  res.setHeader("Cache-Control", LLMS_CACHE_CONTROL);
+  setCrawlerFileCache(req, res, LLMS_CACHE_CONTROL);
   res.write(body);
   res.end();
 
