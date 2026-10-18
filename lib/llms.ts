@@ -6,10 +6,6 @@ import {
   canonicalArticleSlug,
 } from "@/lib/seo";
 
-/** CDN and browser cache for /llms.txt and /llms-full.txt, about one hour. */
-export const LLMS_CACHE_CONTROL =
-  "public, max-age=3600, s-maxage=3600, stale-while-revalidate=3600";
-
 /**
  * Existing /llms.txt body. Kept as published, then "## Latest articles" is appended.
  * This lives in code because a public/llms.txt file would be served instead of the page.
