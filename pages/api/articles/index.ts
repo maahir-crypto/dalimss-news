@@ -10,6 +10,10 @@ import { revalidateArticlePaths } from "@/lib/revalidate";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { englishArticleWhere } from "@/lib/articleLanguage";
+import {
+  articleCreateFailureResponse,
+  logArticleCreateError,
+} from "@/lib/createArticleError";
 import { canonicalAuthorName, stripForMeta } from "@/lib/seo";
 import { Prisma } from "@prisma/client";
 
@@ -23,7 +27,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { role, email } = session.user;
-    const isAuthorized = role === "admin" || role === "editor" || email === "admin@dalimss.com" || email === "sushantgaurav@dalimss.com" || email === "dalimsssushant@gmail.com";
+    const isAdminCaller =
+      role === "admin" ||
+      email === "admin@dalimss.com" ||
+      email === "sushantgaurav@dalimss.com" ||
+      email === "dalimsssushant@gmail.com";
+    const isAuthorized = isAdminCaller || role === "editor";
 
     if (!isAuthorized) {
        return res.status(403).json({ error: "Forbidden: Admins or Editors only" });
@@ -121,13 +130,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      notifyIndexNow(indexNowUrlsForArticle(article));
-      await revalidateArticlePaths(res, article);
+      try {
+        notifyIndexNow(indexNowUrlsForArticle(article));
+        await revalidateArticlePaths(res, article);
+      } catch (postCreateError) {
+        // The row is already committed. IndexNow and cache refresh must not
+        // turn a successful insert into "Create failed".
+        console.error("Article created but post-create refresh failed:", postCreateError);
+      }
 
       return res.status(200).json(article);
     } catch (err) {
-      console.error("Create failed:", err);
-      return res.status(500).json({ error: "Create failed" });
+      logArticleCreateError(err);
+      return res.status(500).json(articleCreateFailureResponse(err, isAdminCaller));
     }
   }
 

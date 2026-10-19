@@ -224,7 +224,10 @@ const NewArticle: React.FC = () => {
       }
 
       if (!resp.ok) {
-        throw new Error(articleData.error || "Failed to publish article");
+        const summary = [articleData.error || "Failed to publish article"];
+        if (articleData.code) summary.push(String(articleData.code));
+        if (articleData.detail) summary.push(String(articleData.detail));
+        throw new Error(summary.join(" — "));
       }
 
       router.push(`/articles/${articleData.slug}`);
