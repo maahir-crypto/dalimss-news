@@ -12,6 +12,35 @@ body {
 }
 
 /*
+ * AdSense auto ads insert one in-page unit as a direct child of the site
+ * chrome, between the header and the category nav, after first paint.
+ * From 520px up that unit is a 280px box with 10px vertical margins (300px
+ * in the flow). Reserve the row in the first layout so main does not move
+ * when the unit arrives. Below 520px the unit is sized to the viewport
+ * width and is inserted before first paint, so a fixed row would change
+ * phone CLS. The slot stays in the document; this only holds its space.
+ */
+@media (min-width: 520px) {
+    .site-chrome {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(300px, auto) auto;
+    }
+
+    .site-chrome > header {
+        grid-row: 1;
+    }
+
+    .site-chrome > nav {
+        grid-row: 3;
+    }
+
+    .site-chrome > .google-auto-placed {
+        grid-row: 2;
+    }
+}
+
+/*
  * English pages keep the Devanagari slot pointed at Inter or Lora, so a
  * short Hindi label in the chrome does not download Noto. Hindi documents
  * and any lang=hi subtree switch that slot to the self-hosted Noto families.

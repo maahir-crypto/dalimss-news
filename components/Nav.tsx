@@ -148,7 +148,7 @@ const Nav: React.FC = () => {
     }`;
 
   return (
-    <div ref={navContainerRef} className="w-full font-sans">
+    <div ref={navContainerRef} className="site-chrome w-full font-sans">
       {/* Upper Section: Date Bar + Main Header (Scrolls away with page) */}
       <header className="border-b border-slate-100 bg-white">
         {/* Top Date Bar */}
