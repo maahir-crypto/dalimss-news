@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { categoryQueryDestination } from "@/lib/categories";
+import { isRootTxtPath } from "@/lib/indexnowKeyFile";
 
 const LITERAL_TEMPLATE_PATHS = new Set([
   "/articles/[slug]",
@@ -37,6 +38,12 @@ function gone(): NextResponse {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // /<INDEXNOW_KEY>.txt is served by an afterFiles rewrite. Root text files
+  // are not in the matcher; if one is passed in, do not apply the 410 rules.
+  if (isRootTxtPath(pathname)) {
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/home/")) {
     return new NextResponse("Gone", {
@@ -94,6 +101,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Root /*.txt stays off this list so the IndexNow key file is not caught
+  // by the template-path 410s, /courses/*, or the podcast feed redirect.
   matcher: [
     "/",
     "/listing/search",
