@@ -72,6 +72,23 @@ const nextConfig = {
     ];
   },
 
+  async rewrites() {
+    return {
+      // afterFiles runs after public files and non-dynamic pages (robots.txt,
+      // ads.txt, llms.txt) and before dynamic routes. A Pages Router file
+      // named [key].txt does not keep the ".txt" suffix in its route regex,
+      // so the key file is this rewrite instead of a dynamic page.
+      beforeFiles: [],
+      afterFiles: [
+        {
+          source: "/:key.txt",
+          destination: "/api/indexnow-key?key=:key",
+        },
+      ],
+      fallback: [],
+    };
+  },
+
   async headers() {
     return [
       {

@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
+import { NextRequest } from "next/server";
+import nextConfig from "../next.config.mjs";
+import { middleware } from "../middleware";
+import keyFileHandler from "../pages/api/indexnow-key";
 import {
   INDEXNOW_LOG_PREFIX,
   INDEXNOW_STATUS_CACHE_CONTROL,
   getIndexNowStatus,
+  indexNowKeyLocation,
   indexNowSkipReason,
   submitIndexNow,
 } from "./indexnow";
+import { isRootTxtPath } from "./indexnowKeyFile";
 import handler from "../pages/api/indexnow-status";
 
 const KEY = "test-indexnow-key-not-real";
@@ -40,6 +47,31 @@ function captureLogs() {
       console.error = original.error;
     },
   };
+}
+
+function callKeyFile(method: string, key: string | undefined) {
+  const headers = new Map<string, string>();
+  const state = { statusCode: 0, body: "" };
+  const req = {
+    method,
+    query: key === undefined ? {} : { key },
+  } as Parameters<typeof keyFileHandler>[0];
+  const res = {
+    setHeader(name: string, value: string | number) {
+      headers.set(name.toLowerCase(), String(value));
+      return this;
+    },
+    status(code: number) {
+      state.statusCode = code;
+      return this;
+    },
+    end(payload?: string | Buffer) {
+      state.body = payload ? payload.toString() : "";
+      return this;
+    },
+  } as unknown as Parameters<typeof keyFileHandler>[1];
+  keyFileHandler(req, res);
+  return { ...state, headers };
 }
 
 function jsonResponse(status: number, body: string) {
@@ -133,7 +165,20 @@ async function main() {
   logs.restore();
   assert.equal(status, 200);
   assert.equal(method, "POST");
-  assert.match(requestBody, new RegExp(KEY));
+  const payload = JSON.parse(requestBody) as {
+    host?: string;
+    key?: string;
+    keyLocation?: string;
+    urlList?: string[];
+  };
+  assert.equal(payload.host, "dalimss.news");
+  assert.equal(payload.key, KEY);
+  assert.equal(indexNowKeyLocation(KEY), `https://dalimss.news/${KEY}.txt`);
+  assert.equal(payload.keyLocation, indexNowKeyLocation(KEY));
+  assert.deepEqual(payload.urlList, [
+    "https://dalimss.news/articles/a",
+    "https://dalimss.news/articles/b",
+  ]);
   const logged = logs.lines.join("\n");
   assert.match(logged, /\[indexnow\] submitted status=200 urlCount=2/);
   assert.equal(logged.includes(KEY), false);
@@ -196,7 +241,7 @@ async function main() {
       return jsonResponse(200, `${KEY}\n`);
     },
   });
-  assert.equal(requested, `https://dalimss.news/${KEY}.txt`);
+  assert.equal(requested, indexNowKeyLocation(KEY));
   assert.equal(status.keyFileUrlServes, true);
   assert.equal(JSON.stringify(status).includes(KEY), false);
 }
@@ -284,6 +329,108 @@ async function main() {
   } as unknown as Parameters<typeof handler>[1];
   await handler({ method: "POST" } as Parameters<typeof handler>[0], deniedRes);
   assert.equal(denied, 405);
+}
+
+{
+  const nodeRequire = createRequire(__filename);
+  const imported = nodeRequire("next/dist/compiled/path-to-regexp") as
+    | ((path: string, keys: { name: string | number }[]) => RegExp)
+    | { pathToRegexp: (path: string, keys: { name: string | number }[]) => RegExp };
+  const pathToRegexp = typeof imported === "function" ? imported : imported.pathToRegexp;
+  const keys: { name: string | number }[] = [];
+  const pattern = pathToRegexp("/:key.txt", keys);
+  const matched = pattern.exec(`/${KEY}.txt`);
+  assert.ok(matched);
+  assert.equal(String(keys[0]?.name), "key");
+  assert.equal(matched[1], KEY);
+  assert.equal(pattern.test("/about"), false);
+  assert.equal(pattern.test("/articles/[slug]"), false);
+  assert.equal(pattern.test("/courses/old.txt"), false);
+  assert.equal(pattern.test("/llms.txt"), true);
+
+  assert.equal(isRootTxtPath(`/${KEY}.txt`), true);
+  assert.equal(isRootTxtPath("/llms.txt"), true);
+  assert.equal(isRootTxtPath("/articles/[slug]"), false);
+  assert.equal(isRootTxtPath("/courses/old.txt"), false);
+  assert.equal(isRootTxtPath("/home/legacy.txt"), false);
+
+  const statusFor = (pathname: string) =>
+    middleware(new NextRequest(new URL(pathname, "https://dalimss.news"))).status;
+  assert.equal(statusFor(`/${KEY}.txt`), 200);
+  assert.equal(statusFor("/llms.txt"), 200);
+  assert.equal(statusFor("/articles/[slug]"), 410);
+  assert.equal(statusFor("/category/[slug]"), 410);
+  assert.equal(statusFor("/courses/[slug]"), 410);
+  assert.equal(statusFor("/courses/old-course"), 410);
+  assert.equal(statusFor("/courses/old.txt"), 410);
+  assert.equal(statusFor("/home/legacy"), 410);
+
+  assert.ok(nextConfig.rewrites);
+  const rewrites = await nextConfig.rewrites();
+  assert.equal(Array.isArray(rewrites), false);
+  if (Array.isArray(rewrites)) throw new Error("key rewrite must be afterFiles");
+  const afterFiles = rewrites.afterFiles ?? [];
+  const beforeFiles = rewrites.beforeFiles ?? [];
+  const keyRewrite = afterFiles.find((rule) => rule.source === "/:key.txt");
+  assert.ok(keyRewrite);
+  assert.equal(keyRewrite.destination, "/api/indexnow-key?key=:key");
+  assert.equal(
+    beforeFiles.some((rule) => rule.source.includes(".txt")),
+    false
+  );
+
+  assert.ok(nextConfig.redirects);
+  const redirects = await nextConfig.redirects();
+  for (const rule of redirects) {
+    if (
+      rule.source === "/:path*" ||
+      rule.source === "/:key.txt" ||
+      rule.source === "/:path*.txt"
+    ) {
+      const host = rule.has?.find((item) => item.type === "host");
+      assert.equal(host?.value, "www.dalimss.news");
+      assert.equal(rule.destination.includes(":path*"), true);
+    }
+  }
+}
+
+{
+  const previous = process.env.INDEXNOW_KEY;
+  process.env.INDEXNOW_KEY = KEY;
+  const logs = captureLogs();
+  try {
+    const ok = await callKeyFile("GET", KEY);
+    assert.equal(ok.statusCode, 200);
+    assert.equal(ok.headers.get("content-type"), "text/plain; charset=utf-8");
+    assert.equal(ok.body, KEY);
+
+    const head = await callKeyFile("HEAD", KEY);
+    assert.equal(head.statusCode, 200);
+    assert.equal(head.headers.get("content-type"), "text/plain; charset=utf-8");
+    assert.equal(head.body, "");
+
+    const wrong = await callKeyFile("GET", "not-the-key");
+    assert.equal(wrong.statusCode, 404);
+    assert.equal(wrong.headers.get("content-type"), "text/plain; charset=utf-8");
+    assert.equal(wrong.headers.get("cache-control"), "no-store");
+    assert.equal(wrong.body.includes(KEY), false);
+
+    const missing = await callKeyFile("GET", undefined);
+    assert.equal(missing.statusCode, 404);
+
+    const posted = await callKeyFile("POST", KEY);
+    assert.equal(posted.statusCode, 405);
+
+    process.env.INDEXNOW_KEY = "";
+    const unset = await callKeyFile("GET", KEY);
+    assert.equal(unset.statusCode, 404);
+    assert.equal(unset.body.includes(KEY), false);
+  } finally {
+    logs.restore();
+    assert.equal(logs.lines.some((line) => line.includes(KEY)), false);
+    if (previous === undefined) delete process.env.INDEXNOW_KEY;
+    else process.env.INDEXNOW_KEY = previous;
+  }
 }
 
 console.log("indexnow checks passed");

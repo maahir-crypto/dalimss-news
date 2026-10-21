@@ -6,6 +6,11 @@ const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
 const INDEXNOW_TIMEOUT_MS = 4000;
 const HOST = "dalimss.news";
 
+/** Public key file Bing fetches before it accepts a ping. */
+export function indexNowKeyLocation(key: string): string {
+  return `https://${HOST}/${key}.txt`;
+}
+
 export const INDEXNOW_LOG_PREFIX = "[indexnow]";
 
 /**
@@ -121,6 +126,7 @@ function indexNowLog(
  * Never throws. Uses a short timeout so a slow IndexNow response cannot hang a caller.
  * Returns the IndexNow HTTP status, or null when the ping is skipped or fails.
  * Logs the skip reason or the HTTP status and URL count. Never logs the key.
+ * keyLocation is the root text file from indexNowKeyLocation.
  */
 export async function submitIndexNow(
   urls: string[],
@@ -143,7 +149,7 @@ export async function submitIndexNow(
       body: JSON.stringify({
         host: HOST,
         key,
-        keyLocation: `https://${HOST}/${key}.txt`,
+        keyLocation: indexNowKeyLocation(key),
         urlList,
       }),
       signal: AbortSignal.timeout(INDEXNOW_TIMEOUT_MS),
@@ -198,7 +204,7 @@ export async function getIndexNowStatus(
   const fetchImpl = options.fetchImpl ?? fetch;
   try {
     const response = await fetchImpl(
-      `https://${HOST}/${encodeURIComponent(key)}.txt`,
+      indexNowKeyLocation(encodeURIComponent(key)),
       {
         method: "GET",
         redirect: "manual",
