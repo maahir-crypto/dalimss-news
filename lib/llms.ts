@@ -1,62 +1,14 @@
 import prisma from "@/lib/prisma";
 import { decodeEntities } from "@/lib/decodeEntities";
 import {
+  renderPriceGuideSection,
+  selectPriceGuides,
+} from "@/lib/llmsPriceGuides";
+import {
   SITE_URL,
   articleMetaDescription,
   canonicalArticleSlug,
 } from "@/lib/seo";
-
-/**
- * Existing /llms.txt body. Kept as published, then "## Latest articles" is appended.
- * This lives in code because a public/llms.txt file would be served instead of the page.
- */
-export const LLMS_TXT_BODY = `# Dalimss News
-
-Dalimss News is an Indian digital news publication specialising in Varanasi, Eastern Uttar Pradesh and Gurugram reporting.
-
-## Primary Sections
-
-- Varanasi News: https://dalimss.news/varanasi-news
-- Gurugram News: https://dalimss.news/gurugram-news
-- BHU News: https://dalimss.news/bhu-news
-- Varanasi Infrastructure: https://dalimss.news/varanasi-infrastructure
-- Kashi Vishwanath News: https://dalimss.news/kashi-vishwanath-news
-- Varanasi Airport News: https://dalimss.news/varanasi-airport-news
-- Uttar Pradesh: https://dalimss.news/category/uttar-pradesh
-- Education: https://dalimss.news/category/education
-- Technology: https://dalimss.news/category/technology
-- Automotive: https://dalimss.news/category/automotive
-- Lifestyle: https://dalimss.news/category/lifestyle
-- World: https://dalimss.news/category/world
-- OTT: https://dalimss.news/ott
-- Hindi News: https://dalimss.news/hindi
-
-## Editorial Information
-
-- About: https://dalimss.news/about
-- Authors: https://dalimss.news/authors
-- Editorial Policy: https://dalimss.news/editorial-policy
-- Corrections Policy: https://dalimss.news/corrections-policy
-- Contact: https://dalimss.news/contact
-
-## Leadership
-
-- Founder and CEO: Maahir Madhok (https://dalimss.news/author/maahir-madhok)
-- Editor-in-Chief: Saurav Yadav (https://dalimss.news/author/saurav-yadav)
-
-## Feeds
-
-- RSS: https://dalimss.news/feed.xml
-- Hindi RSS: https://dalimss.news/hindi/feed.xml
-- Varanasi RSS: https://dalimss.news/varanasi/feed.xml
-- Gurugram RSS: https://dalimss.news/gurugram/feed.xml
-- Education RSS: https://dalimss.news/education/feed.xml
-- Technology RSS: https://dalimss.news/technology/feed.xml
-- Lifestyle RSS: https://dalimss.news/lifestyle/feed.xml
-- World RSS: https://dalimss.news/world/feed.xml
-- OTT RSS: https://dalimss.news/ott/feed.xml
-- Sitemap: https://dalimss.news/sitemap.xml
-- News Sitemap: https://dalimss.news/news-sitemap.xml`;
 
 const LLMS_FULL_INTRO = `# Dalimss News
 
@@ -168,9 +120,28 @@ export async function latestArticleLines(take: number): Promise<string[]> {
   return lines;
 }
 
-export function withLatestArticles(existing: string, lines: string[]): string {
-  const block = ["## Latest articles", "", ...lines].join("\n");
-  return `${existing.replace(/\s+$/, "")}\n\n${block}\n`;
+const PRICE_GUIDE_CANDIDATES = 500;
+
+/** Newest phone, car, scooter, bike and appliance price guides for /llms.txt. */
+export async function priceGuideMarkdown(): Promise<string> {
+  const rows = await prisma.article.findMany({
+    where: {
+      OR: [
+        { title: { contains: "price", mode: "insensitive" } },
+        { tags: { contains: "price", mode: "insensitive" } },
+      ],
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: PRICE_GUIDE_CANDIDATES,
+    select: {
+      slug: true,
+      title: true,
+      tags: true,
+      createdAt: true,
+    },
+  });
+
+  return renderPriceGuideSection(selectPriceGuides(rows));
 }
 
 export function buildLlmsFull(lines: string[]): string {
