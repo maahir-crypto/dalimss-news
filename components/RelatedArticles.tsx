@@ -23,22 +23,38 @@ interface RelatedArticlesProps {
   articles: RelatedArticle[];
   heading?: string;
   itemLang?: string;
+  moreLink?: { href: string; label: string } | null;
 }
 
 export function RelatedArticles({
   articles,
   heading = "Related Stories",
   itemLang,
+  moreLink,
 }: RelatedArticlesProps) {
-  if (!articles || articles.length === 0) return null;
+  const stories = articles || [];
+  if (stories.length === 0 && !moreLink) return null;
 
   return (
     <section className="mt-12 border-t border-gray-200 pt-8">
-      <h2 className="mb-5 font-serif text-xl font-bold uppercase tracking-[0.08em] text-gray-900">
-        {heading}
-      </h2>
+      {stories.length > 0 && (
+        <h2 className="mb-5 font-serif text-xl font-bold uppercase tracking-[0.08em] text-gray-900">
+          {heading}
+        </h2>
+      )}
+      {moreLink && (
+        <p className={stories.length > 0 ? "mb-4 text-sm" : "text-sm"}>
+          <Link
+            href={moreLink.href}
+            className="font-semibold text-red-700 hover:text-red-800"
+          >
+            {moreLink.label}
+          </Link>
+        </p>
+      )}
+      {stories.length > 0 && (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-        {articles.map((article) => {
+        {stories.map((article) => {
           const title = decodeEntities(article.title);
           const category = getCategoriesByDbValue(article.category)[0];
           const categoryName =
@@ -103,6 +119,7 @@ export function RelatedArticles({
           );
         })}
       </div>
+      )}
     </section>
   );
 }

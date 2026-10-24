@@ -14,6 +14,12 @@ import {
 import { LISTING_PAGE_SIZE, listingPath } from "@/lib/pagination";
 import { activeStoryWhere } from "@/lib/storyLifetime";
 import { xmlEscape } from "@/lib/xml";
+import { isAllowedSitemapLoc } from "@/lib/sitemapLocs";
+import {
+  PRICE_INDEX_PATH,
+  PRICE_HUBS,
+  articlesForHub,
+} from "@/lib/priceHubs";
 import {
   bulkUpdatedAtMillis,
   contentLastMod,
@@ -27,6 +33,8 @@ const Sitemap = () => null;
 
 type ArticleRow = {
   slug: string;
+  title: string;
+  tags: string | null;
   createdAt: Date;
   updatedAt: Date;
   category: string | null;
@@ -78,36 +86,6 @@ function absoluteUrl(path: string): string {
   return `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-/** Canonical https URL, or a listing page query of ?page=2 and later. */
-function isAllowedSitemapLoc(loc: string): boolean {
-  if (loc === BASE_URL) return true;
-  if (!loc.startsWith(`${BASE_URL}/`) || loc.includes("www.") || loc.includes("http://")) {
-    return false;
-  }
-  const pathAndQuery = loc.slice(BASE_URL.length);
-  const [path, query] = pathAndQuery.split("?");
-  if (!path || path.endsWith("/") || pathAndQuery.split("?").length > 2) return false;
-  // RSS feeds and llms.txt are not HTML pages. Discover them via link
-  // rel="alternate" and /llms.txt, not as urlset locs.
-  if (
-    path === "/llms.txt" ||
-    path === "/llms-full.txt" ||
-    path.endsWith("/feed.xml") ||
-    path === "/feed.xml"
-  ) {
-    return false;
-  }
-  if (path === "/search" || path.startsWith("/search/")) return false;
-  // Author archives are only the first page. ?page= author URLs are not canonical.
-  if (path.startsWith("/author/") && query) return false;
-  if (!query) return true;
-  if (/(^|&)search=/.test(query)) return false;
-  return (
-    /^page=([2-9]|[1-9]\d+)$/.test(query) &&
-    (path === "/articles" || path === "/hindi")
-  );
-}
-
 function renderUrl(entry: UrlEntry): string {
   const lastmod = entry.lastmod
     ? `\n        <lastmod>${xmlEscape(entry.lastmod.toISOString())}</lastmod>`
@@ -147,6 +125,8 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     prisma.article.findMany({
       select: {
         slug: true,
+        title: true,
+        tags: true,
         createdAt: true,
         updatedAt: true,
         category: true,
@@ -361,11 +341,34 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     priority: String(category.priority),
   }));
 
+  const priceHubEntries: UrlEntry[] = [];
+  let newestPriceGuide: Date | null = null;
+  for (const hub of PRICE_HUBS) {
+    const ordered = articlesForHub(preparedArticles, hub.slug);
+    if (ordered.length === 0) continue;
+    newestPriceGuide = laterDate(
+      newestPriceGuide,
+      maxDate(ordered.map((article) => article.lastmod))
+    );
+    priceHubEntries.push(
+      ...listingEntries(hub.path, ordered, ordered.length, "daily", "0.7")
+    );
+  }
+  if (priceHubEntries.length > 0) {
+    priceHubEntries.unshift({
+      loc: absoluteUrl(PRICE_INDEX_PATH),
+      lastmod: newestPriceGuide,
+      changefreq: "daily",
+      priority: "0.7",
+    });
+  }
+
   const entries = [
     ...staticPages,
     ...articleListing.slice(0, 1),
     ...hindiListing.slice(0, 1),
     ...categoryUrls,
+    ...priceHubEntries,
     ...articlePageUrls,
     ...hindiListing.slice(1),
     ...authorUrls,

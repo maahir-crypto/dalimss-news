@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NAV_CATEGORIES } from "@/lib/categories";
+import { PRICE_HUBS, PRICE_INDEX_PATH } from "@/lib/priceHubs";
 import { categoryPath } from "@/lib/publicPaths";
 import { formatDateIST } from "@/lib/seo";
 
@@ -51,6 +52,19 @@ const Footer = () => {
                   className={footerLinkClass}
                 >
                   {cat.name}
+                </Link>
+              ))}
+            </div>
+            <h4 className="pt-4 text-sm font-bold uppercase tracking-wider text-white">
+              Price guides
+            </h4>
+            <div className="flex flex-col text-left text-sm">
+              <Link href={PRICE_INDEX_PATH} className={footerAccentLinkClass}>
+                All price guides
+              </Link>
+              {PRICE_HUBS.map((hub) => (
+                <Link key={hub.slug} href={hub.path} className={footerLinkClass}>
+                  {hub.navLabel}
                 </Link>
               ))}
             </div>

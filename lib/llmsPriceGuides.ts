@@ -286,8 +286,20 @@ export function selectPriceGuides(articles: PriceGuideSource[]): PriceGuidePick[
   }));
 }
 
-export function renderPriceGuideSection(picks: PriceGuidePick[]): string {
+export function renderPriceGuideSection(
+  picks: PriceGuidePick[],
+  hubLinks: { label: string; href: string }[] = []
+): string {
   const lines: string[] = ["## Price guides"];
+  if (hubLinks.length > 0) {
+    lines.push("");
+    for (let index = 0; index < hubLinks.length; index += 1) {
+      const label = linkTitle(hubLinks[index].label);
+      const href = hubLinks[index].href;
+      if (!label || !href) continue;
+      lines.push(`- [${label}](${href})`);
+    }
+  }
   let category = "";
   let brand = "";
 
