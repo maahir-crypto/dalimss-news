@@ -106,6 +106,9 @@ import {
   articleWasMeaningfullyUpdated,
   formatDateIST,
   isNewsroomByline,
+  articleBreadcrumbName,
+  metaTitleIsTruncatedHeadline,
+  trimTitleAtWordBoundary,
 } from "@/lib/seo";
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
@@ -192,13 +195,16 @@ const ArticlePage: React.FC<Props> = ({
   const canonicalUrl = `${SITE_URL}${articlePath(article.slug)}`;
   const plainTitle = decodeEntities(article.title);
   const plainAlt = decodeEntities(article.imageAltText || article.title);
-  const breadcrumbTitle =
-    plainTitle.length > 60 ? `${plainTitle.slice(0, 57)}...` : plainTitle;
+  const breadcrumbTitle = articleBreadcrumbName(article.metaTitle, plainTitle);
   // A CMS meta title that is only a cut-down copy of the headline must not
-  // replace it: the <title> and OG title should match the H1.
+  // replace it: the Open Graph title should match the H1.
   const seoTitle = metaTitleIsTruncatedHeadline(article.metaTitle, plainTitle)
     ? stripForMeta(plainTitle, 110)
     : stripForMeta(article.metaTitle || plainTitle, 110);
+  // Only the document title is shortened. H1, og:title, and the headline stay full.
+  const documentTitle = trimTitleAtWordBoundary(
+    article.metaTitle ? seoTitle : `${plainTitle} | Dalimss News`
+  );
   const readMinutes = article.content
     ? readTimeMinutes(article.content)
     : article.readTimeInMinutes;
@@ -237,7 +243,7 @@ const ArticlePage: React.FC<Props> = ({
       lang={article.language === "hi" ? "hi" : "en"}
     >
       <Head>
-        <title>{article.metaTitle ? seoTitle : `${plainTitle} | Dalimss News`}</title>
+        <title>{documentTitle}</title>
         <meta name="description" content={seoDescription} />
         <link rel="canonical" href={canonicalUrl} />
         {alternates.map((alternate) => (
@@ -753,27 +759,6 @@ const ArticlePage: React.FC<Props> = ({
     </article>
   );
 };
-
-function normalizeTitleForCompare(value: string): string {
-  return decodeEntities(value)
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/(\u2026|\.\.\.)\s*$/, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-/** True when the meta title is empty or just a truncated copy of the headline. */
-function metaTitleIsTruncatedHeadline(
-  metaTitle: string | null | undefined,
-  headline: string
-): boolean {
-  if (!metaTitle?.trim()) return true;
-  const meta = normalizeTitleForCompare(metaTitle);
-  const full = normalizeTitleForCompare(headline);
-  return meta.length > 0 && full.startsWith(meta);
-}
 
 export default ArticlePage;
 

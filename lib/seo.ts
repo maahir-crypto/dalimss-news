@@ -194,6 +194,60 @@ export function stripForMeta(content: string, maxLength = 160): string {
   return `${plainText.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
+/**
+ * Document title of at most `maxLength` characters.
+ * Cuts on a space so a word is not split, and does not add an ellipsis.
+ */
+export function trimTitleAtWordBoundary(value: string, maxLength = 60): string {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) return text;
+
+  const windowText = text.slice(0, maxLength);
+  const boundary =
+    text.charAt(maxLength) === " " ? maxLength : windowText.lastIndexOf(" ");
+  const cut = (boundary > 0 ? text.slice(0, boundary) : windowText).trim();
+  const withoutMark = cut.replace(/(?:\u2026|\.\.\.)+$/, "").trim();
+  return withoutMark || cut;
+}
+
+function normalizeTitleForCompare(value: string): string {
+  return decodeEntities(value)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/(\u2026|\.\.\.)\s*$/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** True when the meta title is empty or just a truncated copy of the headline. */
+export function metaTitleIsTruncatedHeadline(
+  metaTitle: string | null | undefined,
+  headline: string
+): boolean {
+  if (!metaTitle?.trim()) return true;
+  const meta = normalizeTitleForCompare(metaTitle);
+  const full = normalizeTitleForCompare(headline);
+  return meta.length > 0 && full.startsWith(meta);
+}
+
+/**
+ * BreadcrumbList name for the article itself.
+ * Uses the full meta title when that title is not a cut-down headline,
+ * and otherwise the full headline. Does not append "...".
+ */
+export function articleBreadcrumbName(
+  metaTitle: string | null | undefined,
+  headline: string
+): string {
+  const fullHeadline = decodeEntities(headline).replace(/\s+/g, " ").trim();
+  const meta = decodeEntities(metaTitle || "").replace(/\s+/g, " ").trim();
+  if (!meta || metaTitleIsTruncatedHeadline(meta, fullHeadline)) {
+    return fullHeadline;
+  }
+  return meta;
+}
+
 const TRAILING_PUNCTUATION = /[\s.!?।,;:…"'“”‘’()[\]-]+$/;
 
 function usesDevanagariSentences(text: string): boolean {
