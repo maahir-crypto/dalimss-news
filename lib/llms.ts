@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 import { decodeEntities } from "@/lib/decodeEntities";
+import { loadPriceHubCandidates } from "@/lib/priceHubData";
+import { PRICE_INDEX, priceHubSummaries } from "@/lib/priceHubs";
 import {
   renderPriceGuideSection,
   selectPriceGuides,
@@ -124,24 +126,42 @@ const PRICE_GUIDE_CANDIDATES = 500;
 
 /** Newest phone, car, scooter, bike and appliance price guides for /llms.txt. */
 export async function priceGuideMarkdown(): Promise<string> {
-  const rows = await prisma.article.findMany({
-    where: {
-      OR: [
-        { title: { contains: "price", mode: "insensitive" } },
-        { tags: { contains: "price", mode: "insensitive" } },
-      ],
-    },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: PRICE_GUIDE_CANDIDATES,
-    select: {
-      slug: true,
-      title: true,
-      tags: true,
-      createdAt: true,
-    },
-  });
+  const [rows, candidates] = await Promise.all([
+    prisma.article.findMany({
+      where: {
+        OR: [
+          { title: { contains: "price", mode: "insensitive" } },
+          { tags: { contains: "price", mode: "insensitive" } },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: PRICE_GUIDE_CANDIDATES,
+      select: {
+        slug: true,
+        title: true,
+        tags: true,
+        createdAt: true,
+      },
+    }),
+    loadPriceHubCandidates(),
+  ]);
 
-  return renderPriceGuideSection(selectPriceGuides(rows));
+  const summaries = priceHubSummaries(candidates);
+  const hubLinks =
+    summaries.length === 0
+      ? []
+      : [
+          {
+            label: "All price guides",
+            href: `${SITE_URL}${PRICE_INDEX.path}`,
+          },
+          ...summaries.map((summary) => ({
+            label: summary.hub.llmsLabel,
+            href: `${SITE_URL}${summary.hub.path}`,
+          })),
+        ];
+
+  return renderPriceGuideSection(selectPriceGuides(rows), hubLinks);
 }
 
 export function buildLlmsFull(lines: string[]): string {

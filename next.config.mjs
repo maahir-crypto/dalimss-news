@@ -84,6 +84,10 @@ const nextConfig = {
           source: "/:key.txt",
           destination: "/api/indexnow-key?key=:key",
         },
+        {
+          source: "/prices/:hub.csv",
+          destination: "/api/price-hub-csv?hub=:hub",
+        },
       ],
       fallback: [],
     };

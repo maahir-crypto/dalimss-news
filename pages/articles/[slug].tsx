@@ -112,6 +112,7 @@ import {
 } from "@/lib/seo";
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
+import { priceHubLinkForArticle } from "@/lib/priceHubs";
 import { normalizeImageCaption } from "@/lib/imageCaption";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { getAuthorBox } from "@/lib/authorBoxes";
@@ -213,6 +214,7 @@ const ArticlePage: React.FC<Props> = ({
     curatedAuthor?.guest && visibleSources.length === 0
   );
   const isHindi = article.language === "hi";
+  const priceHubLink = priceHubLinkForArticle(article);
   const categoryTags = categories.filter((category, index, list) => {
     const label = (isHindi && category.nameHi ? category.nameHi : category.name)
       .trim()
@@ -755,6 +757,11 @@ const ArticlePage: React.FC<Props> = ({
         articles={relatedArticles}
         heading={isHindi ? "संबंधित खबरें" : "Related Stories"}
         itemLang={isHindi ? "hi" : undefined}
+        moreLink={
+          priceHubLink
+            ? { href: priceHubLink.path, label: priceHubLink.label }
+            : null
+        }
       />
     </article>
   );
