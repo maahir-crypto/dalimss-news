@@ -22,7 +22,9 @@ export type PriceHubSlug =
   | "two-wheelers"
   | "appliances"
   | "laptops-and-tablets"
-  | "watches-and-audio";
+  | "watches-and-audio"
+  | "tvs-and-projectors"
+  | "gadgets-and-accessories";
 
 export type PriceHubConfig = {
   slug: PriceHubSlug;
@@ -37,11 +39,17 @@ export type PriceHubConfig = {
   intro: [string, string];
 };
 
+/**
+ * First hub wins a tie. Specific catalogues (cases, earbuds, tablets, TVs)
+ * sit ahead of phones and cars so a shared word does not pull them across.
+ */
 const HUB_ORDER: PriceHubSlug[] = [
   "two-wheelers",
   "appliances",
   "laptops-and-tablets",
   "watches-and-audio",
+  "tvs-and-projectors",
+  "gadgets-and-accessories",
   "phones",
   "cars",
 ];
@@ -137,6 +145,36 @@ export const PRICE_HUBS: PriceHubConfig[] = [
       "The date beside each link is when that report was last updated.",
     ],
   },
+  {
+    slug: "tvs-and-projectors",
+    path: "/prices/tvs-and-projectors",
+    h1: "TV and projector prices in India",
+    navLabel: "TVs and projectors",
+    moreLabel: "TV and projector",
+    llmsLabel: "TV and projector prices",
+    titleLead: "TV and Projector Prices",
+    description:
+      "TV, projector and monitor price guides from Dalimss News, newest first. Each link is a report already published on this site.",
+    intro: [
+      "This page lists Dalimss News TV, projector and monitor price guides, newest first.",
+      "The date beside each link is when that report was last updated.",
+    ],
+  },
+  {
+    slug: "gadgets-and-accessories",
+    path: "/prices/gadgets-and-accessories",
+    h1: "Gadget and accessory prices in India",
+    navLabel: "Gadgets and accessories",
+    moreLabel: "gadget and accessory",
+    llmsLabel: "Gadget and accessory prices",
+    titleLead: "Gadget and Accessory Prices",
+    description:
+      "Gadget and accessory price guides from Dalimss News, newest first. Each link is a report already published on this site.",
+    intro: [
+      "This page lists Dalimss News gadget and accessory price guides, newest first.",
+      "The date beside each link is when that report was last updated.",
+    ],
+  },
 ];
 
 export const PRICE_INDEX = {
@@ -144,9 +182,9 @@ export const PRICE_INDEX = {
   h1: "Price guides",
   titleLead: "Price Guides in India",
   description:
-    "Price guides for phones, cars, two-wheelers, appliances, laptops and watches on Dalimss News. Each hub links to reports already published on this site.",
+    "Price guides for phones, TVs, cars, appliances and more on Dalimss News. Each hub links to reports already published on this site.",
   intro: [
-    "These hubs collect Dalimss News price guides for phones, cars, two-wheelers, appliances, laptops and watches.",
+    "These hubs collect Dalimss News price guides for phones, TVs, cars, appliances and more.",
     "Each hub links to reports already published on this site.",
   ] as [string, string],
 };
@@ -181,7 +219,18 @@ export type PriceHubArticle = PriceHubSource & {
 
 export type PricedGuide<T> = T & { slug: string; brand: string | null };
 
-const PRICE_SIGNAL = /\bpric(?:e|es|ing)\b/i;
+const PRICE_SIGNAL = /\bpric(?:e|es|ed|ing)\b/i;
+const RUPEE_SIGNAL = /(?:₹|\bRs\.?\s*\d)/i;
+
+/**
+ * Phone brands used when a price guide names the brand and model but not the
+ * word phone. Multi-category brands (Samsung, Apple, Google) are not listed.
+ */
+const PHONE_LEAD =
+  /^(?:oneplus|vivo|iqoo|oppo|xiaomi|realme|redmi|poco|motorola|infinix|nothing phone|nokia|honor|lava|mivi|hmd|tecno|itel)\b/i;
+
+/** Appliance brands used when the model name is not in the product list. */
+const APPLIANCE_LEAD = /^(?:dyson|luminous|atomberg|voltas|ifb|whirlpool)\b/i;
 
 const HUB_PATTERNS: Record<
   PriceHubSlug,
@@ -213,7 +262,12 @@ const HUB_PATTERNS: Record<
       /\bkitchen appliances?\b/i,
       /\bblenders?\b/i,
       /\bvacuum cleaners?\b/i,
+      /\bvacuums?\b/i,
       /\bair purifiers?\b/i,
+      /\bairwraps?\b/i,
+      /\bportable power stations?\b/i,
+      /\bhair dryers?\b/i,
+      /\bhair stylers?\b/i,
     ],
     titleSlug: [],
   },
@@ -236,8 +290,46 @@ const HUB_PATTERNS: Record<
       /\bspeakers?\b/i,
       /\bbuds\b/i,
       /\baudio\b/i,
+      /\b(?:fitness|smart|screenless|screen-free|recovery)\s+bands?\b/i,
+      /\bfitness trackers?\b/i,
+      /\bactivity trackers?\b/i,
     ],
     titleSlug: [/\bairpods?\b/i, /\bhomepods?\b/i],
+  },
+  "tvs-and-projectors": {
+    fields: [
+      /\btv\b/i,
+      /\bTVs\b/,
+      /\btelevisions?\b/i,
+      /\bprojectors?\b/i,
+      /\bmonitors?\b/i,
+    ],
+    titleSlug: [],
+  },
+  "gadgets-and-accessories": {
+    fields: [
+      /\bchargers?\b/i,
+      /\bpower banks?\b/i,
+      /\baccessory-cases?\b/i,
+      /\baccessory-covers?\b/i,
+      /\bgalaxy\s+cases?\b/i,
+      /\bmobile\s+cases?\b/i,
+      /\bback covers?\b/i,
+      /\baccessories\b/i,
+      /\bcamera prices?\b/i,
+      /\bmirrorless\b/i,
+      /\bdslrs?\b/i,
+      /\bplaystations?\b/i,
+      /\bps5\b/i,
+      /\bdualsense\b/i,
+      /\bxbox\b/i,
+      /\bnintendo(?:\s+switch)?\b/i,
+      /\bgaming consoles?\b/i,
+      /\bkindles?\b/i,
+      /\be-?readers?\b/i,
+      /\b(?:smart|ai|vr)\s+glasses\b/i,
+    ],
+    titleSlug: [],
   },
   phones: {
     fields: [
@@ -245,6 +337,7 @@ const HUB_PATTERNS: Record<
       /\bmobile phones?\b/i,
       /\bphones?\b/i,
       /\bredmi\b/i,
+      /\bgalaxy\s*(?:note\s*\d+|[sazmf]\s*(?:fold|flip)?\s*\d+)/i,
     ],
     titleSlug: [/\biphones?\b/i],
   },
@@ -353,6 +446,10 @@ const BRAND_ALIASES: BrandAlias[] = [
   ["Philips", ["philips"]],
   ["Blue Star", ["blue star"]],
   ["Lloyd", ["lloyd"]],
+  ["Portronics", ["portronics"]],
+  ["Zebronics", ["zebronics"]],
+  ["Lumio", ["lumio"]],
+  ["Ray-Ban", ["ray-ban"]],
 ].flatMap(([name, aliases]) =>
   (aliases as string[]).map((alias) => ({ name: name as string, alias }))
 );
@@ -381,9 +478,68 @@ function splitTags(tags: string | null | undefined): string[] {
 
 function scrub(value: string): string {
   return value
-    .replace(/\bphone cases?\b/gi, " ")
-    .replace(/\bphone covers?\b/gi, " ")
+    .replace(/\bphone cases?\b/gi, " accessory-case ")
+    .replace(/\bphone covers?\b/gi, " accessory-cover ")
+    .replace(/\bapple\s+tvs?\b/gi, " ")
+    .replace(/\btv\s+towers?\b/gi, " ")
+    .replace(/\bair\s+monitors?\b/gi, " ")
     .replace(/\bai watch\b/gi, " ");
+}
+
+function guideText(article: PriceHubSource): string {
+  const slug = (article.slug || "").replace(/-/g, " ");
+  return `${slug} ${article.title || ""} ${article.tags || ""} ${article.category || ""}`;
+}
+
+function withoutEmptyPrice(text: string): string {
+  return text.replace(/\bno\s+prices?\b/gi, " ");
+}
+
+/** "No price yet" is not a price report. Other uses of the word still count. */
+function hasPriceWord(article: PriceHubSource): boolean {
+  return PRICE_SIGNAL.test(withoutEmptyPrice(guideText(article)));
+}
+
+/**
+ * A rupee figure counts only on the tech and auto desks. City fines, theft
+ * reports, and civic budgets also name rupees, and they are not price guides.
+ */
+function hasRupeeSignal(article: PriceHubSource): boolean {
+  if (!RUPEE_SIGNAL.test(guideText(article))) return false;
+  return /\b(?:technology|automotive)\b/i.test(article.category || "");
+}
+
+/**
+ * Model comparisons and buying guides often skip the word price.
+ * An explainer that is not itself a price report stays off the hubs.
+ */
+function hasComparisonSignal(article: PriceHubSource): boolean {
+  const text = guideText(article);
+  if (/\bexplainer\b/i.test(article.tags || "") && !hasPriceWord(article)) {
+    return false;
+  }
+  if (/\b(?:vs|should you (?:buy|upgrade)|comparisons?)\b/i.test(text)) {
+    return true;
+  }
+  // A buying-guide tag alone is not enough. Insurance and rule explainers
+  // use it without a price, a rupee figure, or a model-versus-model slug.
+  if (!/\bbuying guides?\b/i.test(text)) return false;
+  return hasPriceWord(article) || hasRupeeSignal(article);
+}
+
+function isPriceHubCandidate(article: PriceHubSource): boolean {
+  return hasPriceWord(article) || hasComparisonSignal(article) || hasRupeeSignal(article);
+}
+
+function leadMatch(
+  pattern: RegExp,
+  title: string,
+  slugText: string,
+  tags: string | null | undefined
+): boolean {
+  if (pattern.test(title) || pattern.test(slugText)) return true;
+  const first = splitTags(tags)[0] || "";
+  return pattern.test(first);
 }
 
 function patternHit(patterns: RegExp[], text: string): boolean {
@@ -419,8 +575,7 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
   const title = article.title || "";
   const rawSlug = article.slug || "";
   if (!title.trim() || !rawSlug.trim()) return null;
-  const priceText = `${rawSlug} ${title} ${article.tags || ""} ${article.category || ""}`;
-  if (!PRICE_SIGNAL.test(priceText)) return null;
+  if (!isPriceHubCandidate(article)) return null;
 
   const fields = {
     title: scrub(title),
@@ -428,22 +583,47 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
     tags: scrub(`${article.tags || ""}\n${article.category || ""}`),
   };
 
+  const scores = {} as Record<PriceHubSlug, number>;
+  for (let index = 0; index < HUB_ORDER.length; index += 1) {
+    const slug = HUB_ORDER[index];
+    scores[slug] = hubScore(slug, fields.title, fields.slug, fields.tags);
+  }
+
+  // A price report filed under Automotive, with no scooter or bike wording,
+  // is a car guide. Model names such as XUV are not a separate keyword list.
+  // Charger wording in an EV story stays here, not on the accessory hub.
+  // A rupee figure or a comparison, with no vehicle wording and no price
+  // word, is not assumed to be a car guide.
+  if (/\bautomotive\b/i.test(article.category || "")) {
+    const two = scores["two-wheelers"];
+    const car = scores.cars;
+    if (two > car && two > 0) return "two-wheelers";
+    if (car > 0 && car >= two) return "cars";
+    if (two > 0) return "two-wheelers";
+    if (hasPriceWord(article)) return "cars";
+    return null;
+  }
+
   let best = 0;
   let winner: PriceHubSlug | null = null;
   for (let index = 0; index < HUB_ORDER.length; index += 1) {
     const slug = HUB_ORDER[index];
-    const score = hubScore(slug, fields.title, fields.slug, fields.tags);
-    if (score > best) {
-      best = score;
+    if (scores[slug] > best) {
+      best = scores[slug];
       winner = slug;
     }
   }
-  // A price report filed under Automotive, with no scooter or bike wording,
-  // is a car guide. Model names such as XUV are not a separate keyword list.
-  if (!winner && /\bautomotive\b/i.test(article.category || "")) {
-    return "cars";
+  if (winner) return winner;
+  // Brand lead is only for reports that use the word price. A rupee amount
+  // in a refund note or a "no price yet" demo is not a phone guide.
+  if (!hasPriceWord(article)) return null;
+  if (leadMatch(PHONE_LEAD, fields.title, fields.slug, article.tags)) {
+    return "phones";
   }
-  return winner;
+  if (leadMatch(APPLIANCE_LEAD, fields.title, fields.slug, article.tags)) {
+    return "appliances";
+  }
+  return null;
 }
 
 export function brandFromTags(tags: string | null | undefined): string | null {
