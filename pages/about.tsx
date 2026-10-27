@@ -36,17 +36,19 @@ const facts = [
   },
   {
     label: "Reports from",
-    value: "Varanasi and Gurugram",
+    value: "Varanasi and Gurugram, plus technology and automotive news and price guides",
     icon: MapPinIcon,
   },
   {
     label: "Core coverage",
-    value: "Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR",
+    value:
+      "Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, plus technology and automotive news and price guides",
     icon: NewspaperIcon,
   },
   {
     label: "Wider coverage",
-    value: "India, education, business, technology, health, culture and sport",
+    value:
+      "India, education, business, technology, automotive news, price guides, health, culture and sport",
     icon: NewspaperIcon,
   },
   {
@@ -121,9 +123,9 @@ export default function AboutPage() {
       availableLanguage: ORGANIZATION_LANGUAGES,
     },
   };
-  const pageTitle = `About ${SITE_NAME} | Varanasi, Gurugram & India News`;
+  const pageTitle = `About ${SITE_NAME} | Varanasi, Gurugram, Tech and Auto News`;
   const pageDescription =
-    "Learn about Dalimss News, a digital news publication reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, with coverage of major developments across India.";
+    "Learn about Dalimss News, a digital news publication reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, with technology and automotive coverage and major developments across India.";
 
   return (
     <>
@@ -156,15 +158,16 @@ export default function AboutPage() {
           <div className="space-y-4 text-lg md:text-xl text-gray-300 leading-relaxed max-w-3xl">
             <p>
               Dalimss News has been publishing since February 2024 and is a
-              digital news publication reporting from Varanasi and Gurugram.
+              digital news publication reporting from Varanasi and Gurugram,
+              with technology and automotive news and price guides.
             </p>
             <p>
               We publish original reporting from Varanasi, Eastern Uttar Pradesh,
               Gurugram and Delhi-NCR, alongside coverage of significant
               developments from across India. Our journalism covers civic
               administration, public safety, education, infrastructure, business,
-              technology, health, culture, tourism, sport and other matters of
-              public interest.
+              technology, automotive news, price guides, health, culture, tourism,
+              sport and other matters of public interest.
             </p>
             <p>
               Our aim is straightforward: to produce timely, credible and

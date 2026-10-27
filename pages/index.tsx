@@ -22,7 +22,9 @@ interface Props {
   searchQuery: string;
 }
 
-const HOME_TITLE = "Dalimss News | Varanasi, Gurugram and India News";
+const HOME_TITLE = "Dalimss News | Varanasi, Gurugram, Tech and Auto News";
+const HOME_DESCRIPTION =
+  "Dalimss News covers Varanasi, Gurugram and Delhi-NCR, plus technology and automotive news, phone and car price guides, and major stories from across India.";
 const SITE_URL = "https://dalimss.news";
 
 const SectionHeader = ({ title, href }: { title: string; href?: string }) => (
@@ -183,8 +185,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
       width: 512,
       height: 512,
     },
-    description:
-      "Dalimss News is a digital news publication based in Gurugram, Haryana, reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, with coverage of major developments across India.",
+    description: HOME_DESCRIPTION,
     foundingDate: "2024-02",
     email: "editor@dalimss.news",
     address: ORGANIZATION_ADDRESS,
@@ -223,7 +224,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
     <>
     <Head>
       <title>{HOME_TITLE}</title>
-      <meta name="description" content="Dalimss News is a digital news publication covering Varanasi, Gurugram, Delhi-NCR and major stories from across India, including crime, civic affairs, education, business, culture and lifestyle." />
+      <meta name="description" content={HOME_DESCRIPTION} />
       <meta name="keywords" content="Varanasi news, वाराणसी समाचार, Purvanchal news, Banaras news, Varanasi civic news, BHU news, Dalimss News" />
       <link rel="canonical" href={siteUrl} />
       {searchQuery ? (
@@ -242,7 +243,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Dalimss News" />
       <meta property="og:title" content={HOME_TITLE} />
-      <meta property="og:description" content="Dalimss News is a digital news publication covering Varanasi, Gurugram, Delhi-NCR and major stories from across India, including crime, civic affairs, education, business, culture and lifestyle." />
+      <meta property="og:description" content={HOME_DESCRIPTION} />
       <meta property="og:url" content={siteUrl} />
       <meta property="og:image" content={heroOgImage} />
       <meta property="og:image:width" content="1200" />
@@ -254,7 +255,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@dalimss_news" />
       <meta name="twitter:title" content={HOME_TITLE} />
-      <meta name="twitter:description" content="Dalimss News is a digital news publication covering Varanasi, Gurugram, Delhi-NCR and major stories from across India, including crime, civic affairs, education, business, culture and lifestyle." />
+      <meta name="twitter:description" content={HOME_DESCRIPTION} />
       <meta name="twitter:image" content={heroOgImage} />
 
       {/* JSON-LD Structured Data */}
