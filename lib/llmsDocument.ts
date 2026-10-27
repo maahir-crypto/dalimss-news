@@ -7,9 +7,9 @@ const LLMS_TXT_BYTE_LIMIT = 60 * 1024;
 
 const LLMS_TXT_MAIN = `# Dalimss News
 
-Dalimss News is an Indian digital news publication specialising in Varanasi, Eastern Uttar Pradesh and Gurugram reporting.
+Dalimss News is an Indian digital news publication, publishing since February 2024, that reports from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, and covers technology and automotive news, including price guides for phones, cars, two-wheelers, appliances and gadgets sold in India, built from official brand price lists: https://dalimss.news/prices
 
-Dalimss News is published by PAMF Digimedia Private Limited, Gurugram, Haryana, India. Reporting is in English and Hindi. Prices and rules are taken from official sources and linked in each article.
+Dalimss News is published by PAMF Digimedia Private Limited, Gurugram, Haryana, India. Reporting is in English and Hindi. Prices and rules are taken from official sources and linked in each article. Contact: editor@dalimss.news.
 
 ## Primary Sections
 

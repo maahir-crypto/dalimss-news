@@ -229,6 +229,18 @@ const RUPEE_SIGNAL = /(?:₹|\bRs\.?\s*\d)/i;
 const PHONE_LEAD =
   /^(?:oneplus|vivo|iqoo|oppo|xiaomi|realme|redmi|poco|motorola|infinix|nothing phone|nokia|honor|lava|mivi|hmd|tecno|itel)\b/i;
 
+/**
+ * Bike-only brands. Checked before the automotive car default so a model
+ * name is not filed as a car. TVS is matched separately: the title "TVs"
+ * is a television, not the bike brand.
+ */
+const TWO_WHEELER_BRAND =
+  /\b(?:ducati|kawasaki|ktm|triumph|jawa|yezdi|royal enfield|harley(?:-davidson)?|hero|bajaj|ather|ola(?: electric)?|vida|yamaha|vespa|aprilia|benelli|ultraviolette|revolt)\b/i;
+
+const CAR_WORD = /\b(?:cars?|suvs?|mpvs?|hatchbacks?|sedans?)\b/i;
+const BIKE_WORD =
+  /\b(?:scooters?|motorcycles?|motorbikes?|superbikes?|bikes?|two[- ]wheelers?|motorrad)\b/i;
+
 /** Appliance brands used when the model name is not in the product list. */
 const APPLIANCE_LEAD = /^(?:dyson|luminous|atomberg|voltas|ifb|whirlpool)\b/i;
 
@@ -328,6 +340,15 @@ const HUB_PATTERNS: Record<
       /\bkindles?\b/i,
       /\be-?readers?\b/i,
       /\b(?:smart|ai|vr)\s+glasses\b/i,
+      /\bprinters?\b/i,
+      /\bpixma\b/i,
+      /\bmaxify\b/i,
+      /\bselphy\b/i,
+      /\bsmart tanks?\b/i,
+      /\becotanks?\b/i,
+      /\bextension boards?\b/i,
+      /\bpower strips?\b/i,
+      /\blenses?\b/i,
     ],
     titleSlug: [],
   },
@@ -386,6 +407,7 @@ const BRAND_ALIASES: BrandAlias[] = [
   ["KTM", ["ktm"]],
   ["Ather", ["ather"]],
   ["Ola", ["ola electric", "ola"]],
+  ["Vida", ["vida"]],
   ["Ultraviolette", ["ultraviolette"]],
   ["Ampere", ["ampere"]],
   ["Triumph", ["triumph"]],
@@ -542,6 +564,27 @@ function leadMatch(
   return pattern.test(first);
 }
 
+function hasTvsBrand(title: string, slug: string, tags: string): boolean {
+  if (/\btvs\b/.test(slug)) return true;
+  return /\bTVS\b/.test(title) || /\bTVS\b/.test(tags);
+}
+
+/**
+ * Bike brands win before the car default. BMW, Honda and Suzuki stay on
+ * cars when the article is about a car. Maruti Suzuki is a car brand.
+ */
+function isTwoWheelerArticle(title: string, slug: string, tags: string): boolean {
+  const text = `${title}\n${slug}\n${tags}`;
+  if (TWO_WHEELER_BRAND.test(text) || hasTvsBrand(title, slug, tags)) return true;
+  const car = CAR_WORD.test(text);
+  if (/\bbmw\s+motorrad\b/i.test(text)) return true;
+  if (/\bbmw\b/i.test(text) && BIKE_WORD.test(text) && !car) return true;
+  if (/\bhonda\b/i.test(text) && !car) return true;
+  if (/\bmaruti\b/i.test(text)) return false;
+  if (/\bsuzuki\b/i.test(text) && !car) return true;
+  return false;
+}
+
 function patternHit(patterns: RegExp[], text: string): boolean {
   for (let index = 0; index < patterns.length; index += 1) {
     if (patterns[index].test(text)) return true;
@@ -589,11 +632,16 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
     scores[slug] = hubScore(slug, fields.title, fields.slug, fields.tags);
   }
 
-  // A price report filed under Automotive, with no scooter or bike wording,
-  // is a car guide. Model names such as XUV are not a separate keyword list.
+  // Bike brands are decided before this block. A price report filed under
+  // Automotive, with no scooter or bike wording, is a car guide. Model names
+  // such as XUV are not a separate keyword list.
   // Charger wording in an EV story stays here, not on the accessory hub.
   // A rupee figure or a comparison, with no vehicle wording and no price
   // word, is not assumed to be a car guide.
+  if (isTwoWheelerArticle(fields.title, fields.slug, fields.tags)) {
+    return "two-wheelers";
+  }
+
   if (/\bautomotive\b/i.test(article.category || "")) {
     const two = scores["two-wheelers"];
     const car = scores.cars;
