@@ -79,6 +79,7 @@ interface Props {
   article?: Article | null;
   relatedArticles: RelatedArticleData[];
   authorStats?: AuthorPublicationStats | null;
+  bodyContent?: string | null;
 }
 
 import Head from "next/head";
@@ -113,6 +114,8 @@ import {
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
 import { priceHubLinkForArticle } from "@/lib/priceHubs";
+import { applyRelatedArticleLinks } from "@/lib/relatedArticles";
+import { loadRelatedCandidatePool } from "@/lib/relatedCandidatePool";
 import { normalizeImageCaption } from "@/lib/imageCaption";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { getAuthorBox } from "@/lib/authorBoxes";
@@ -130,6 +133,7 @@ const ArticlePage: React.FC<Props> = ({
   article,
   relatedArticles,
   authorStats = null,
+  bodyContent = null,
 }) => {
   const { data: session } = useSession();
   
@@ -214,6 +218,10 @@ const ArticlePage: React.FC<Props> = ({
     curatedAuthor?.guest && visibleSources.length === 0
   );
   const isHindi = article.language === "hi";
+  const renderedBody =
+    bodyContent ||
+    article.content ||
+    (isHindi ? "सामग्री उपलब्ध नहीं है." : "No content available.");
   const priceHubLink = priceHubLinkForArticle(article);
   const categoryTags = categories.filter((category, index, list) => {
     const label = (isHindi && category.nameHi ? category.nameHi : category.name)
@@ -674,15 +682,11 @@ const ArticlePage: React.FC<Props> = ({
               ),
             }}
           >
-            {article.content ||
-              (isHindi ? "सामग्री उपलब्ध नहीं है." : "No content available.")}
+            {renderedBody}
           </ReactMarkdown>
         ) : (
           <pre>
-            {decodeEntities(
-              article.content ||
-                (isHindi ? "सामग्री उपलब्ध नहीं है." : "No content available.")
-            )}
+            {decodeEntities(renderedBody)}
           </pre>
         )}
       </div>
@@ -864,6 +868,27 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     };
   }
 
+  let bodyContent: string | null = null;
+  if (article.content) {
+    try {
+      const pool = await loadRelatedCandidatePool();
+      const rewritten = applyRelatedArticleLinks(
+        {
+          slug: article.slug,
+          title: article.title,
+          tags: article.tags,
+          category: article.category,
+          language: article.language,
+          content: article.content,
+        },
+        pool
+      );
+      if (rewritten !== article.content) bodyContent = rewritten;
+    } catch (err) {
+      console.error("Related article pick failed:", err);
+    }
+  }
+
   return {
     props: {
       article: JSON.parse(
@@ -889,6 +914,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         )
       ),
       authorStats,
+      bodyContent,
     },
     revalidate: 3600,
   };

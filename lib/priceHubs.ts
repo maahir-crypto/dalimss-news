@@ -613,12 +613,15 @@ function hubScore(
   return score;
 }
 
-export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
+function classifyPriceHub(
+  article: PriceHubSource,
+  requirePriceSignal: boolean
+): PriceHubSlug | null {
   if (article.language === "hi") return null;
   const title = article.title || "";
   const rawSlug = article.slug || "";
   if (!title.trim() || !rawSlug.trim()) return null;
-  if (!isPriceHubCandidate(article)) return null;
+  if (requirePriceSignal && !isPriceHubCandidate(article)) return null;
 
   const fields = {
     title: scrub(title),
@@ -648,7 +651,7 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
     if (two > car && two > 0) return "two-wheelers";
     if (car > 0 && car >= two) return "cars";
     if (two > 0) return "two-wheelers";
-    if (hasPriceWord(article)) return "cars";
+    if (hasPriceWord(article) || !requirePriceSignal) return "cars";
     return null;
   }
 
@@ -664,7 +667,9 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
   if (winner) return winner;
   // Brand lead is only for reports that use the word price. A rupee amount
   // in a refund note or a "no price yet" demo is not a phone guide.
-  if (!hasPriceWord(article)) return null;
+  // Related-reading fallback may still follow a brand lead when the story
+  // itself is not a price report.
+  if (requirePriceSignal && !hasPriceWord(article)) return null;
   if (leadMatch(PHONE_LEAD, fields.title, fields.slug, article.tags)) {
     return "phones";
   }
@@ -672,6 +677,19 @@ export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
     return "appliances";
   }
   return null;
+}
+
+export function priceHubIdFor(article: PriceHubSource): PriceHubSlug | null {
+  return classifyPriceHub(article, true);
+}
+
+/**
+ * Product family for a related-reading link.
+ * Explainers often skip the word price, so this does not use the price-report gate.
+ * Returns null when no hub pattern matches.
+ */
+export function priceHubFamilyFor(article: PriceHubSource): PriceHubSlug | null {
+  return classifyPriceHub(article, false);
 }
 
 export function brandFromTags(tags: string | null | undefined): string | null {
@@ -692,6 +710,44 @@ export function brandFromTags(tags: string | null | undefined): string | null {
     }
   }
   return null;
+}
+
+/** Lowercase brand keys from tags and the slug, using the alias list. */
+export function brandMatchKeys(
+  tags: string | null | undefined,
+  slug?: string | null
+): string[] {
+  const seen: { [key: string]: boolean } = {};
+  const keys: string[] = [];
+  const add = (value: string) => {
+    const key = value.toLowerCase();
+    if (!key || seen[key]) return;
+    seen[key] = true;
+    keys.push(key);
+  };
+  const addName = (name: string) => {
+    add(name);
+    for (let index = 0; index < BRAND_ALIASES.length; index += 1) {
+      if (BRAND_ALIASES[index].name === name) add(BRAND_ALIASES[index].alias);
+    }
+  };
+  const fromTags = brandFromTags(tags);
+  if (fromTags) addName(fromTags);
+  const slugText = (slug || "")
+    .toLowerCase()
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (slugText) {
+    for (let index = 0; index < BRAND_ALIASES.length; index += 1) {
+      const alias = BRAND_ALIASES[index].alias;
+      if (slugText === alias || slugText.indexOf(`${alias} `) === 0) {
+        addName(BRAND_ALIASES[index].name);
+        break;
+      }
+    }
+  }
+  return keys;
 }
 
 export function compareNewest(
