@@ -349,6 +349,7 @@ const HUB_PATTERNS: Record<
       /\bextension boards?\b/i,
       /\bpower strips?\b/i,
       /\blenses?\b/i,
+      /\b(?:charging|usb|type-c|multi-device|data)[\s-]+cables?\b/i,
     ],
     titleSlug: [],
   },

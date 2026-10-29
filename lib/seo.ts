@@ -198,6 +198,10 @@ export function stripForMeta(content: string, maxLength = 160): string {
  * Document title of at most `maxLength` characters.
  * Cuts on a space so a word is not split, and does not add an ellipsis.
  */
+const DANGLING_TITLE_WORDS = [
+  "from", "to", "and", "or", "of", "for", "vs", "with", "in", "at", "the", "a",
+];
+
 export function trimTitleAtWordBoundary(value: string, maxLength = 60): string {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -207,7 +211,18 @@ export function trimTitleAtWordBoundary(value: string, maxLength = 60): string {
     text.charAt(maxLength) === " " ? maxLength : windowText.lastIndexOf(" ");
   const cut = (boundary > 0 ? text.slice(0, boundary) : windowText).trim();
   const withoutMark = cut.replace(/(?:\u2026|\.\.\.)+$/, "").trim();
-  return withoutMark || cut;
+  const result = withoutMark || cut;
+  // Never end a trimmed title on a dangling word such as "from" or "to".
+  const words = result.split(" ");
+  while (
+    words.length > 1 &&
+    DANGLING_TITLE_WORDS.indexOf(
+      words[words.length - 1].toLowerCase().replace(/[,:;]+$/, "")
+    ) !== -1
+  ) {
+    words.pop();
+  }
+  return words.join(" ").replace(/[,:;]+$/, "").trim() || result;
 }
 
 function normalizeTitleForCompare(value: string): string {

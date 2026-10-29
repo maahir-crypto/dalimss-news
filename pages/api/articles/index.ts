@@ -8,6 +8,7 @@ import { getCategoryBySlug, getCategoryByDbValue } from "@/lib/categories";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
 import { revalidateArticlePaths } from "@/lib/revalidate";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
+import { findRepeatArticle } from "@/lib/findRepeatArticle";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import {
@@ -93,6 +94,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
+      // A repeat post returns the existing article instead of a "-2" copy.
+      const repeat = await findRepeatArticle({ title, content, slug });
+      if (repeat) {
+        return res.status(200).json({ ...repeat, duplicate: true });
+      }
       const finalSlug = await createUniqueArticleSlug(slug || title);
       const normalizedSources = normalizeArticleSources(sourceUrls);
       if (

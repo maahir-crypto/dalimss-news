@@ -10,6 +10,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
 import { revalidateArticlePaths } from "@/lib/revalidate";
+import { findRepeatArticle } from "@/lib/findRepeatArticle";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // 1. Validations
@@ -70,6 +71,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // A repeat post returns the existing article instead of a second copy.
+    const repeat = await findRepeatArticle({ title, content });
+    if (repeat) {
+      return res.status(200).json({ success: true, duplicate: true, article: repeat });
+    }
+
     // Generate slug
     const slug =
       title
