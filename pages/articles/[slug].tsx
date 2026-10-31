@@ -6,6 +6,8 @@ import prisma from "../../lib/prisma";
 import * as RMarkdownModule from "react-markdown";
 import * as rRawModule from "rehype-raw";
 import { rehypeAdSlots } from "@/lib/rehypeAdSlots";
+import { rehypeFigureGallery } from "@/lib/rehypeFigureGallery";
+import ArticleGallery from "@/components/ArticleGallery";
 
 const getDefault = (m: any) =>
   m && typeof m.default === "function" ? m.default : null;
@@ -560,7 +562,7 @@ const ArticlePage: React.FC<Props> = ({
       <div className="article-body prose max-w-none text-gray-800">
         {ReactMarkdown ? (
           <ReactMarkdown
-            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeAdSlots({ after: [3, 7] })]}
+            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] })]}
             components={{
               p: ({ children }: any) => {
                 let text = "";
@@ -672,6 +674,11 @@ const ArticlePage: React.FC<Props> = ({
                
                return <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline underline-offset-2 decoration-1 hover:decoration-2">{children}</a>
               },
+              "figure-gallery": ({ children, count }: any) => (
+                <ArticleGallery count={count} language={article.language}>
+                  {children}
+                </ArticleGallery>
+              ),
               "ad-slot": ({ index }: any) => (
                 <AdSlot
                   key={`${article.slug}-${index}`}
