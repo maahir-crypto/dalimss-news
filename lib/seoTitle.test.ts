@@ -44,4 +44,20 @@ function assertWordBoundary(full: string): void {
   assert.equal(articleBreadcrumbName("   ", MONITOR).includes("..."), false);
 }
 
+{
+  const ampere =
+    "Ampere Nexus electric scooter price in India: variants range from Rs 1.10 lakh to Rs 1.30 lakh";
+  const trimmed = trimTitleAtWordBoundary(ampere, 60);
+  assert.ok(trimmed.length <= 60);
+  assert.equal(/\b(from|to)$/i.test(trimmed), false, trimmed);
+  assert.equal(
+    trimTitleAtWordBoundary("Bike prices drop this week across all dealers from Rs 50,000", 50),
+    "Bike prices drop this week across all dealers"
+  );
+  assert.equal(
+    /\bto$/.test(trimTitleAtWordBoundary(VIVO, 40)),
+    false
+  );
+}
+
 console.log("seoTitle.test.ts ok");

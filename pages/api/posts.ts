@@ -10,6 +10,12 @@ import {
 import { Prisma } from "@prisma/client";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
 import { revalidateArticlePaths } from "@/lib/revalidate";
+import { findRepeatArticle } from "@/lib/findRepeatArticle";
+import {
+  findSameEventArticle,
+  sameEventWarning,
+  wantsSameEventOverride,
+} from "@/lib/findSameEventArticle";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // 1. Validations
@@ -70,6 +76,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // A repeat post returns the existing article instead of a second copy.
+    const repeat = await findRepeatArticle({ title, content });
+    if (repeat) {
+      return res.status(200).json({ success: true, duplicate: true, article: repeat });
+    }
+    // A same-event rewrite from the last 72 hours gets a warning naming the
+    // existing story. A real follow-up can pass allowSameEvent: true.
+    if (!wantsSameEventOverride(req.body)) {
+      const sameEvent = await findSameEventArticle({ title, content, category: category || "General News" });
+      if (sameEvent) {
+        return res.status(409).json(sameEventWarning(sameEvent));
+      }
+    }
+
     // Generate slug
     const slug =
       title

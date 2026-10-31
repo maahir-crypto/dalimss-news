@@ -1,3 +1,4 @@
+import { duplicateCanonicalSlug } from "@/lib/duplicateArticles";
 import React from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { useSession } from "next-auth/react";
@@ -197,7 +198,9 @@ const ArticlePage: React.FC<Props> = ({
   const authorUrl = `${SITE_URL}${authorPath}`;
   const curatedAuthor = newsroomByline ? null : getAuthorBox(authorName);
 
-  const canonicalUrl = `${SITE_URL}${articlePath(article.slug)}`;
+  const canonicalUrl = `${SITE_URL}${articlePath(
+    duplicateCanonicalSlug(article.slug)
+  )}`;
   const plainTitle = decodeEntities(article.title);
   const plainAlt = decodeEntities(article.imageAltText || article.title);
   const breadcrumbTitle = articleBreadcrumbName(article.metaTitle, plainTitle);

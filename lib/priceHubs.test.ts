@@ -594,6 +594,12 @@ const excluded = [
       hub: "gadgets-and-accessories",
     },
     {
+      slug: "ambrane-multi-device-cable-price-list-199-to-499",
+      title: "Ambrane multi-device cable price list: Rs 199 to Rs 499",
+      tags: "Ambrane, Charging cable, Price list, Technology",
+      hub: "gadgets-and-accessories",
+    },
+    {
       slug: "portronics-extension-board-price-list-rs-425-to-rs-2-999-oct-2026",
       title: "Portronics extension board price list: 26 models from Rs 425 to Rs 2,999",
       tags: "Portronics, Extension board, Power strip, Price list, Technology",

@@ -8,6 +8,12 @@ import { getCategoryBySlug, getCategoryByDbValue } from "@/lib/categories";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
 import { revalidateArticlePaths } from "@/lib/revalidate";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
+import { findRepeatArticle } from "@/lib/findRepeatArticle";
+import {
+  findSameEventArticle,
+  sameEventWarning,
+  wantsSameEventOverride,
+} from "@/lib/findSameEventArticle";
 import { normalizeArticleSources } from "@/lib/articleSources";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import {
@@ -93,6 +99,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
+      // A repeat post returns the existing article instead of a "-2" copy.
+      const repeat = await findRepeatArticle({ title, content, slug });
+      if (repeat) {
+        return res.status(200).json({ ...repeat, duplicate: true });
+      }
+      // A same-event rewrite from the last 72 hours gets a warning naming the
+      // existing story. A real follow-up can pass allowSameEvent: true.
+      if (!wantsSameEventOverride(req.body)) {
+        const sameEvent = await findSameEventArticle({ title, content, category: category });
+        if (sameEvent) {
+          return res.status(409).json(sameEventWarning(sameEvent));
+        }
+      }
       const finalSlug = await createUniqueArticleSlug(slug || title);
       const normalizedSources = normalizeArticleSources(sourceUrls);
       if (

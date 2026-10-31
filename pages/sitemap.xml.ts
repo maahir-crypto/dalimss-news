@@ -1,6 +1,7 @@
 // pages/sitemap.xml.ts
 // Indexable https://dalimss.news URLs only. lastmod is a real content date or omitted.
 
+import { isDuplicateArticleCopy } from "@/lib/duplicateArticles";
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { CATEGORIES, getCategoriesByDbValue } from "@/lib/categories";
@@ -170,7 +171,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const articleUrls = new Map<string, UrlEntry & { canonical: boolean }>();
   for (const article of preparedArticles) {
     const slug = canonicalArticleSlug(article.slug);
-    if (!isPublicSlug(slug)) continue;
+    if (!isPublicSlug(slug) || isDuplicateArticleCopy(article.slug)) continue;
     const loc = absoluteUrl(`/articles/${slug}`);
     const canonical = article.slug === slug;
     const existing = articleUrls.get(loc);
