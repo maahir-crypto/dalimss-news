@@ -41,6 +41,34 @@ body {
 }
 
 /*
+ * Phones: AdSense Auto ads drops the same in-page unit between the header and
+ * the nav about 1.2 s after load (measured 412 px tall with margins on a
+ * 412 px wide screen, roughly one viewport width). Main content jumped about
+ * 430 px, which real users feel as a layout shift while they scroll. Hold that
+ * row from first layout on pages that load ads. The ad and its position are
+ * unchanged; only its space is kept ready.
+ */
+@media (max-width: 519.98px) {
+    .ads-on .site-chrome {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(calc(100vw + 10px), auto) auto;
+    }
+
+    .ads-on .site-chrome > header {
+        grid-row: 1;
+    }
+
+    .ads-on .site-chrome > nav {
+        grid-row: 3;
+    }
+
+    .ads-on .site-chrome > .google-auto-placed {
+        grid-row: 2;
+    }
+}
+
+/*
  * English pages keep the Devanagari slot pointed at Inter or Lora, so a
  * short Hindi label in the chrome does not download Noto. Hindi documents
  * and any lang=hi subtree switch that slot to the self-hosted Noto families.

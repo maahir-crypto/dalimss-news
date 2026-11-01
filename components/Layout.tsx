@@ -45,7 +45,7 @@ const Layout = ({ children }: LayoutProps) => {
   const showAds = !isNoAdsPath(pathname);
 
   return (
-    <div className="bg-white min-h-screen text-gray-900 font-sans">
+    <div className={`bg-white min-h-screen text-gray-900 font-sans${showAds ? " ads-on" : ""}`}>
       <Head>
         <title>Dalimss News | Varanasi, Gurugram and India News</title>
         <meta name="description" content="Dalimss News is a digital news publication covering Varanasi, Gurugram, Delhi-NCR and major stories from across India, including crime, civic affairs, education, business, culture and lifestyle." />
