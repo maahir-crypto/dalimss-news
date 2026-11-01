@@ -244,6 +244,12 @@ const BIKE_WORD =
 /** Appliance brands used when the model name is not in the product list. */
 const APPLIANCE_LEAD = /^(?:dyson|luminous|atomberg|voltas|ifb|whirlpool)\b/i;
 
+/**
+ * Smart home and camera brands whose price guides name only the brand and
+ * model (Qubo plugs and bulbs, Insta360, GoPro). Used like APPLIANCE_LEAD.
+ */
+const GADGET_LEAD = /^(?:qubo|insta360|gopro)\b/i;
+
 const HUB_PATTERNS: Record<
   PriceHubSlug,
   { fields: RegExp[]; titleSlug: RegExp[] }
@@ -289,8 +295,15 @@ const HUB_PATTERNS: Record<
       /\btablets?\b/i,
       /\bchromebooks?\b/i,
       /\bgalaxy tab\b/i,
+      /\bdesktops?\b/i,
+      /\ball[- ]in[- ]one pcs?\b/i,
     ],
-    titleSlug: [/\bmacbooks?\b/i, /\bipads?\b/i],
+    titleSlug: [
+      /\bmacbooks?\b/i,
+      /\bipads?\b/i,
+      /\bimacs?\b/i,
+      /\bmac\s+(?:mini|studio)\b/i,
+    ],
   },
   "watches-and-audio": {
     fields: [
@@ -330,6 +343,12 @@ const HUB_PATTERNS: Record<
       /\baccessories\b/i,
       /\bcamera prices?\b/i,
       /\bmirrorless\b/i,
+      /\beos\s+r\d*\b/i,
+      /\bnikon\s+z\s?\d+\b/i,
+      /\b(?:insta360|gopro)\b/i,
+      /\b(?:smart|security|wi-?fi|360)\s+cam(?:era)?s?\b/i,
+      /\bvideo doorbells?\b/i,
+      /\bsmart\s+(?:bulbs?|plugs?|lights?)\b/i,
       /\bdslrs?\b/i,
       /\bplaystations?\b/i,
       /\bps5\b/i,
@@ -676,6 +695,9 @@ function classifyPriceHub(
   }
   if (leadMatch(APPLIANCE_LEAD, fields.title, fields.slug, article.tags)) {
     return "appliances";
+  }
+  if (leadMatch(GADGET_LEAD, fields.title, fields.slug, article.tags)) {
+    return "gadgets-and-accessories";
   }
   return null;
 }
