@@ -1,6 +1,6 @@
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Script from "next/script";
 import { useRouter } from "next/router";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
@@ -43,6 +43,12 @@ function isNoAdsPath(pathname: string): boolean {
 const Layout = ({ children }: LayoutProps) => {
   const { pathname } = useRouter();
   const showAds = !isNoAdsPath(pathname);
+  // Load the AdSense script only on the real site, never on preview,
+  // vercel.app or proxied copies, so stray traffic is not counted.
+  const [onProdHost, setOnProdHost] = useState(false);
+  useEffect(() => {
+    setOnProdHost(/(^|\.)dalimss\.news$/.test(window.location.hostname));
+  }, []);
 
   return (
     <div className={`bg-white min-h-screen text-gray-900 font-sans${showAds ? " ads-on" : ""}`}>
@@ -67,7 +73,7 @@ const Layout = ({ children }: LayoutProps) => {
         <link rel="alternate" type="application/rss+xml" title="World News Feed" href="https://dalimss.news/world/feed.xml" />
         <link rel="alternate" type="application/rss+xml" title="Dalimss News OTT" href="https://dalimss.news/ott/feed.xml" />
       </Head>
-      {showAds ? (
+      {showAds && onProdHost ? (
         <Script
           id="google-adsense"
           strategy="afterInteractive"
