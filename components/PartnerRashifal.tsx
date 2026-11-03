@@ -63,3 +63,21 @@ export function PartnerSidebar({ lang }: { lang: "hi" | "en" }) {
     </div>
   );
 }
+
+/** One small text line at the end of price guides. No image, no iframe. */
+export function PartnerPriceLine({ lang }: { lang: "hi" | "en" }) {
+  const hi = lang === "hi";
+  return (
+    <p className="partner-price-line my-6 text-sm text-gray-600" aria-label="Partner">
+      <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Partner:</span>
+      <a
+        href="https://pocketjyotish.in/rashifal/?utm_source=dalimss&utm_medium=price_guide"
+        target="_blank"
+        rel={REL}
+        className="text-blue-700 underline underline-offset-2"
+      >
+        {hi ? "Pocket Jyotish पर अपना मुफ्त दैनिक राशिफल देखें" : "Check your free daily rashifal on Pocket Jyotish"}
+      </a>
+    </p>
+  );
+}
