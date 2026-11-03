@@ -107,4 +107,14 @@ for (const name of ["Jio", "Airtel", "Vi", "Tata Play", "Dish TV"]) {
 assert.equal(brands.has("Tata"), false);
 assert.equal(brands.has(null), false);
 
+// A known "-2" duplicate copy must not be listed next to its original.
+const original = rows.find((row) => row.slug === "jiofiber-prepaid-ott-999-1499-8499");
+assert.ok(original);
+const withCopy = articlesForHub(
+  [...rows, { ...original, slug: "jiofiber-prepaid-ott-999-1499-8499-2" }],
+  PLAN_HUB_SLUG
+);
+assert.equal(withCopy.length, listed.length);
+assert.equal(withCopy.some((row) => row.slug.endsWith("-8499-2")), false);
+
 console.log(`priceHubsPlans: ${cases.length} cases ok, ${listed.length} on the plan hub`);

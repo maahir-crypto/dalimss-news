@@ -1,3 +1,4 @@
+import { isDuplicateArticleCopy } from "@/lib/duplicateArticles";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { LISTING_PAGE_SIZE } from "@/lib/pagination";
 import {
@@ -894,6 +895,8 @@ export function articlesForHub<T extends PriceHubArticle>(
   for (let index = 0; index < sorted.length; index += 1) {
     const article = sorted[index];
     if (priceHubIdFor(article) !== hubSlug) continue;
+    // Accidental "-2" copies canonicalize to the original, so list only the original.
+    if (isDuplicateArticleCopy(article.slug)) continue;
     const slug = canonicalArticleSlug(article.slug);
     if (!isPublicSlug(slug) || seen.has(slug)) continue;
     seen.add(slug);
