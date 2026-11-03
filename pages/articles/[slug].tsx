@@ -97,7 +97,7 @@ import { findArticleRedirectSlug } from "@/lib/legacySlug";
 import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
-import { PartnerRashifal, PartnerEndCard, PartnerSidebar } from "@/components/PartnerRashifal";
+import { PartnerRashifal, PartnerEndCard, PartnerSidebar, PartnerPriceLine } from "@/components/PartnerRashifal";
 import { partnerRashifalFor, rehypePartnerSlot } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
@@ -118,7 +118,7 @@ import {
 } from "@/lib/seo";
 import { getCategoriesByDbValue } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
-import { priceHubLinkForArticle } from "@/lib/priceHubs";
+import { priceHubLinkForArticle, priceHubIdFor } from "@/lib/priceHubs";
 import { applyRelatedArticleLinks } from "@/lib/relatedArticles";
 import { loadRelatedCandidatePool } from "@/lib/relatedCandidatePool";
 import { normalizeImageCaption } from "@/lib/imageCaption";
@@ -226,6 +226,7 @@ const ArticlePage: React.FC<Props> = ({
   );
   const isHindi = article.language === "hi";
   const partner = partnerRashifalFor(article);
+  const showPricePartner = !partner.show && priceHubIdFor(article) !== null;
   const renderedBody =
     bodyContent ||
     article.content ||
@@ -706,6 +707,7 @@ const ArticlePage: React.FC<Props> = ({
       </div>
 
       {partner.show && <PartnerEndCard lang={partner.lang} />}
+      {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} />}
 
       {!newsroomByline && (
         <AuthorBox
