@@ -1,20 +1,21 @@
 import React from "react";
 
 const REL = "sponsored noopener";
+const tag = (slug: string) => `utm_content=${encodeURIComponent(slug)}`;
 const label = (hi: boolean) => (
   <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
     Partner
   </span>
 );
 
-export function PartnerRashifal({ sign, lang }: { sign: string; lang: "hi" | "en" }) {
+export function PartnerRashifal({ sign, lang, slug }: { sign: string; lang: "hi" | "en"; slug: string }) {
   const hi = lang === "hi";
   return (
     <aside className="partner-rashifal my-6 mx-auto w-full" style={{ maxWidth: 360 }} aria-label="Partner">
       {label(hi)}
       <div style={{ minHeight: 440, height: 440 }}>
         <iframe
-          src={`https://pocketjyotish.in/widget/rashifal?sign=${encodeURIComponent(sign)}&lang=${lang}`}
+          src={`https://pocketjyotish.in/widget/rashifal?sign=${encodeURIComponent(sign)}&lang=${lang}&${tag(slug)}`}
           title="Aaj ka Rashifal, Pocket Jyotish"
           loading="lazy"
           width="100%"
@@ -26,7 +27,7 @@ export function PartnerRashifal({ sign, lang }: { sign: string; lang: "hi" | "en
   );
 }
 
-export function PartnerEndCard({ lang }: { lang: "hi" | "en" }) {
+export function PartnerEndCard({ lang, slug }: { lang: "hi" | "en"; slug: string }) {
   const hi = lang === "hi";
   const cls = "font-semibold text-blue-700 underline underline-offset-2";
   return (
@@ -34,11 +35,11 @@ export function PartnerEndCard({ lang }: { lang: "hi" | "en" }) {
       {label(hi)}
       <p className="m-0">
         {hi ? "हमारी पार्टनर साइट पर पढ़ें: " : "On our partner site: "}
-        <a href="https://pocketjyotish.in/rashifal/" target="_blank" rel={REL} className={cls}>
+        <a href={`https://pocketjyotish.in/rashifal/?${tag(slug)}`} target="_blank" rel={REL} className={cls}>
           {hi ? "आज का राशिफल" : "Today's rashifal"}
         </a>
         {hi ? " और " : " and "}
-        <a href="https://pocketjyotish.in/milan/" target="_blank" rel={REL} className={cls}>
+        <a href={`https://pocketjyotish.in/milan/?${tag(slug)}`} target="_blank" rel={REL} className={cls}>
           {hi ? "कुंडली मिलान" : "kundli milan"}
         </a>
         .
@@ -48,7 +49,7 @@ export function PartnerEndCard({ lang }: { lang: "hi" | "en" }) {
 }
 
 /** Desktop only. Hidden below 1536px so phones never get it. */
-export function PartnerSidebar({ lang }: { lang: "hi" | "en" }) {
+export function PartnerSidebar({ lang, slug }: { lang: "hi" | "en"; slug: string }) {
   const hi = lang === "hi";
   return (
     <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
@@ -56,7 +57,7 @@ export function PartnerSidebar({ lang }: { lang: "hi" | "en" }) {
         {label(hi)}
         <p className="mb-2 font-semibold text-gray-900">{hi ? "आज का राशिफल" : "Aaj ka Rashifal"}</p>
         <p className="mb-3">{hi ? "अपनी राशि का दैनिक फल हमारी पार्टनर साइट पर देखें." : "Read your daily sign forecast on our partner site."}</p>
-        <a href="https://pocketjyotish.in/rashifal/" target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
+        <a href={`https://pocketjyotish.in/rashifal/?${tag(slug)}`} target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
           {hi ? "राशिफल देखें" : "See rashifal"}
         </a>
       </div>
@@ -65,13 +66,13 @@ export function PartnerSidebar({ lang }: { lang: "hi" | "en" }) {
 }
 
 /** One small text line at the end of price guides. No image, no iframe. */
-export function PartnerPriceLine({ lang }: { lang: "hi" | "en" }) {
+export function PartnerPriceLine({ lang, slug }: { lang: "hi" | "en"; slug: string }) {
   const hi = lang === "hi";
   return (
     <p className="partner-price-line my-6 text-sm text-gray-600" aria-label="Partner">
       <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Partner:</span>
       <a
-        href="https://pocketjyotish.in/rashifal/?utm_source=dalimss&utm_medium=price_guide"
+        href={`https://pocketjyotish.in/rashifal/?utm_source=dalimss&utm_medium=price_guide&${tag(slug)}`}
         target="_blank"
         rel={REL}
         className="text-blue-700 underline underline-offset-2"

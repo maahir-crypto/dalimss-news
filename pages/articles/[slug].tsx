@@ -683,7 +683,7 @@ const ArticlePage: React.FC<Props> = ({
                   {children}
                 </ArticleGallery>
               ),
-              "partner-slot": () => <PartnerRashifal sign={partner.sign} lang={partner.lang} />,
+              "partner-slot": () => <PartnerRashifal sign={partner.sign} lang={partner.lang} slug={article.slug} />,
               "ad-slot": ({ index }: any) => (
                 <AdSlot
                   key={`${article.slug}-${index}`}
@@ -706,8 +706,8 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
-      {partner.show && <PartnerEndCard lang={partner.lang} />}
-      {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} />}
+      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} />}
+      {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} slug={article.slug} />}
 
       {!newsroomByline && (
         <AuthorBox
@@ -774,7 +774,7 @@ const ArticlePage: React.FC<Props> = ({
         minHeight={280}
       />
 
-      {partner.show && <PartnerSidebar lang={partner.lang} />}
+      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} />}
 
       {/* RELATED ARTICLES */}
       <RelatedArticles
