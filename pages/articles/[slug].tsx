@@ -97,6 +97,8 @@ import { findArticleRedirectSlug } from "@/lib/legacySlug";
 import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
+import { PartnerRashifal, PartnerEndCard, PartnerSidebar } from "@/components/PartnerRashifal";
+import { partnerRashifalFor, rehypePartnerSlot } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
   absoluteImageUrl,
@@ -223,6 +225,7 @@ const ArticlePage: React.FC<Props> = ({
     curatedAuthor?.guest && visibleSources.length === 0
   );
   const isHindi = article.language === "hi";
+  const partner = partnerRashifalFor(article);
   const renderedBody =
     bodyContent ||
     article.content ||
@@ -254,7 +257,7 @@ const ArticlePage: React.FC<Props> = ({
 
   return (
       <article
-      className="mx-auto max-w-3xl px-6 py-8 text-gray-900"
+      className="relative mx-auto max-w-3xl px-6 py-8 text-gray-900"
       lang={article.language === "hi" ? "hi" : "en"}
     >
       <Head>
@@ -562,7 +565,7 @@ const ArticlePage: React.FC<Props> = ({
       <div className="article-body prose max-w-none text-gray-800">
         {ReactMarkdown ? (
           <ReactMarkdown
-            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] })]}
+            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: partner.show, after: 2 })]}
             components={{
               p: ({ children }: any) => {
                 let text = "";
@@ -679,6 +682,7 @@ const ArticlePage: React.FC<Props> = ({
                   {children}
                 </ArticleGallery>
               ),
+              "partner-slot": () => <PartnerRashifal sign={partner.sign} lang={partner.lang} />,
               "ad-slot": ({ index }: any) => (
                 <AdSlot
                   key={`${article.slug}-${index}`}
@@ -700,6 +704,8 @@ const ArticlePage: React.FC<Props> = ({
           </pre>
         )}
       </div>
+
+      {partner.show && <PartnerEndCard lang={partner.lang} />}
 
       {!newsroomByline && (
         <AuthorBox
@@ -765,6 +771,8 @@ const ArticlePage: React.FC<Props> = ({
         layout={undefined}
         minHeight={280}
       />
+
+      {partner.show && <PartnerSidebar lang={partner.lang} />}
 
       {/* RELATED ARTICLES */}
       <RelatedArticles
