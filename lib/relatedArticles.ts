@@ -35,6 +35,7 @@ const HUB_GUIDE_LABEL: { [slug: string]: string } = {
   "watches-and-audio": "Watch and audio price guide",
   "tvs-and-projectors": "TV and projector price guide",
   "gadgets-and-accessories": "Gadget and accessory price guide",
+  "mobile-and-broadband-plans": "Mobile, broadband and DTH plan guide",
 };
 
 /**

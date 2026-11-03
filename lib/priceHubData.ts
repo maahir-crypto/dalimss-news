@@ -11,6 +11,19 @@ const pricingText = {
   mode: "insensitive" as const,
 };
 
+/** Plan guides often say prepaid, recharge or DTH instead of price. */
+const planWords = [
+  "prepaid",
+  "postpaid",
+  "recharge",
+  "broadband",
+  "tariff",
+  "DTH",
+  "mobile plans",
+  "internet plans",
+  "data packs",
+];
+
 const productDesk = {
   OR: [
     { category: { contains: "Technology", mode: "insensitive" as const } },
@@ -76,6 +89,17 @@ export async function loadPriceHubCandidates(): Promise<PriceHubArticle[]> {
                     { tags: { contains: "Rs ", mode: "insensitive" } },
                     { tags: { contains: "₹" } },
                   ],
+                },
+              ],
+            },
+            {
+              AND: [
+                { category: { contains: "Technology", mode: "insensitive" as const } },
+                {
+                  OR: planWords.flatMap((word) => [
+                    { title: { contains: word, mode: "insensitive" as const } },
+                    { tags: { contains: word, mode: "insensitive" as const } },
+                  ]),
                 },
               ],
             },

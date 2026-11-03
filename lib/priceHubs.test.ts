@@ -152,6 +152,11 @@ const gadget = guide(
   "Portronics charger price list: 20W from Rs 399, 65W from Rs 1,249",
   "Portronics, Charger, GaN charger, Price list, Technology"
 );
+const plan = guide(
+  "airtel-xstream-fiber-price-list-499-to-3999",
+  "Airtel Xstream Fiber price list: Rs 499 to Rs 3,999",
+  "Airtel, Xstream Fiber, Broadband, Wi-Fi, IPTV, Internet plans"
+);
 const excluded = [
   guide(
     "app-store-indie-games-week-india-prices-device-limits",
@@ -246,6 +251,7 @@ const excluded = [
     watch,
     tv,
     gadget,
+    plan,
     ...excluded,
   ];
   const summaries = priceHubSummaries(rows);
