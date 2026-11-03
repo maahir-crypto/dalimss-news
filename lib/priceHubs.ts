@@ -24,7 +24,10 @@ export type PriceHubSlug =
   | "laptops-and-tablets"
   | "watches-and-audio"
   | "tvs-and-projectors"
-  | "gadgets-and-accessories";
+  | "gadgets-and-accessories"
+  | "mobile-and-broadband-plans";
+
+export const PLAN_HUB_SLUG: PriceHubSlug = "mobile-and-broadband-plans";
 
 export type PriceHubConfig = {
   slug: PriceHubSlug;
@@ -175,6 +178,21 @@ export const PRICE_HUBS: PriceHubConfig[] = [
       "The date beside each link is when that report was last updated.",
     ],
   },
+  {
+    slug: "mobile-and-broadband-plans",
+    path: "/prices/mobile-and-broadband-plans",
+    h1: "Mobile, broadband and DTH plan prices",
+    navLabel: "Mobile, broadband and DTH plans",
+    moreLabel: "mobile, broadband and DTH plan",
+    llmsLabel: "Mobile, broadband and DTH plan prices",
+    titleLead: "Mobile, Broadband, DTH Plan Prices",
+    description:
+      "Prepaid, postpaid, broadband and DTH plan guides from Dalimss News, newest first. Each link is a report already published on this site.",
+    intro: [
+      "This page lists Dalimss News guides to prepaid, postpaid, broadband and DTH plan prices, newest first.",
+      "The date beside each link is when that report was last updated.",
+    ],
+  },
 ];
 
 export const PRICE_INDEX = {
@@ -249,6 +267,37 @@ const APPLIANCE_LEAD = /^(?:dyson|luminous|atomberg|voltas|ifb|whirlpool)\b/i;
  * model (Qubo plugs and bulbs, Insta360, GoPro). Used like APPLIANCE_LEAD.
  */
 const GADGET_LEAD = /^(?:qubo|insta360|gopro)\b/i;
+
+/**
+ * Telecom, broadband and DTH plan guides. Matched by operator name plus a
+ * plan word, before the product hubs, so a DTH fee guide that says "TV" is
+ * not filed as a television. Vi is matched case-sensitive in the title and
+ * tags, and only at the start of the slug, so "vi" inside a slug is ignored.
+ */
+const PLAN_OPERATOR =
+  /\b(?:jio|jiofiber|jio\s?home|jio\s?airfiber|airfiber|airtel|xstream|vodafone idea|bsnl|mtnl|tata play|dish\s?tv|d2h|sun direct|dth)\b/i;
+const PLAN_VI = /\bVi\b/;
+const PLAN_CONTEXT =
+  /\b(?:plans?|prepaid|postpaid|recharges?|tariffs?|data\s+(?:packs?|add-?ons?|vouchers?)|add-?ons?|broadband|fib(?:er|re)|airfiber|jiofiber|dth|channel\s+packs?|set-?top\s+box(?:es)?|ott)\b/i;
+/** A plan word in the title or slug stands in for the price word. */
+const PLAN_SIGNAL = /\b(?:plans?|prepaid|postpaid|recharges?|tariffs?)\b/i;
+/**
+ * Operator news that is not a plan price guide: IPOs, apps and services
+ * with their own fees, feature phones, devices, and roaming policy.
+ */
+const PLAN_EXCLUDE =
+  /\b(?:ipo|drhp|jioshield|jiohotstar|jiocinema|jiosaavn|jiomart|jiobharat|jioextender|jiophone|roaming|e-?sim)\b/i;
+
+const PLAN_BRANDS: { name: string; pattern: RegExp }[] = [
+  { name: "Jio", pattern: /\bjio(?:fiber|home|\s?airfiber)?\b/i },
+  { name: "Airtel", pattern: /\b(?:airtel|xstream)\b/i },
+  { name: "Vi", pattern: /\b(?:Vi|VI|[Vv]odafone [Ii]dea)\b/ },
+  { name: "BSNL", pattern: /\bbsnl\b/i },
+  { name: "Tata Play", pattern: /\btata play\b/i },
+  { name: "Dish TV", pattern: /\bdish\s?tv\b/i },
+  { name: "d2h", pattern: /\bd2h\b/i },
+  { name: "Sun Direct", pattern: /\bsun direct\b/i },
+];
 
 const HUB_PATTERNS: Record<
   PriceHubSlug,
@@ -382,6 +431,8 @@ const HUB_PATTERNS: Record<
     ],
     titleSlug: [/\biphones?\b/i],
   },
+  // Matched by isPlanGuide, not by score.
+  "mobile-and-broadband-plans": { fields: [], titleSlug: [] },
   cars: {
     fields: [
       /\bcars?\b/i,
@@ -633,6 +684,54 @@ function hubScore(
   return score;
 }
 
+/**
+ * A mobile, broadband or DTH plan guide: an operator name, a plan word, and
+ * a price word, a rupee figure, or a plan word in the title or slug. Only the
+ * tech desk. The gate applies in both modes, so operator news that is not a
+ * plan guide keeps its current related-reading family.
+ */
+function isPlanGuide(article: PriceHubSource): boolean {
+  if (!/\btechnology\b/i.test(article.category || "")) return false;
+  if (/\bautomotive\b/i.test(article.category || "")) return false;
+  const title = article.title || "";
+  const slugText = (article.slug || "").replace(/-/g, " ");
+  const tags = article.tags || "";
+  const all = `${title}\n${slugText}\n${tags}`;
+  if (PLAN_EXCLUDE.test(all)) return false;
+  const operator =
+    PLAN_OPERATOR.test(all) ||
+    PLAN_VI.test(title) ||
+    PLAN_VI.test(tags) ||
+    /^vi\b/i.test(slugText);
+  if (!operator) return false;
+  if (!PLAN_CONTEXT.test(all)) return false;
+  // A phone sold with a plan offer stays on the phone hub.
+  const phoneWords = HUB_PATTERNS.phones;
+  if (
+    (patternHit(phoneWords.fields, title) || patternHit(phoneWords.titleSlug, title)) &&
+    !PLAN_CONTEXT.test(title)
+  ) {
+    return false;
+  }
+  return (
+    hasPriceWord(article) ||
+    hasRupeeSignal(article) ||
+    PLAN_SIGNAL.test(title) ||
+    PLAN_SIGNAL.test(slugText)
+  );
+}
+
+/** Operator name for grouping on the plan hub. */
+export function planBrandFor(article: PriceHubSource): string | null {
+  const sources = [...splitTags(article.tags), article.title || ""];
+  for (let index = 0; index < sources.length; index += 1) {
+    for (let brand = 0; brand < PLAN_BRANDS.length; brand += 1) {
+      if (PLAN_BRANDS[brand].pattern.test(sources[index])) return PLAN_BRANDS[brand].name;
+    }
+  }
+  return null;
+}
+
 function classifyPriceHub(
   article: PriceHubSource,
   requirePriceSignal: boolean
@@ -641,6 +740,7 @@ function classifyPriceHub(
   const title = article.title || "";
   const rawSlug = article.slug || "";
   if (!title.trim() || !rawSlug.trim()) return null;
+  if (isPlanGuide(article)) return PLAN_HUB_SLUG;
   if (requirePriceSignal && !isPriceHubCandidate(article)) return null;
 
   const fields = {
@@ -800,7 +900,8 @@ export function articlesForHub<T extends PriceHubArticle>(
     matched.push({
       ...article,
       slug,
-      brand: brandFromTags(article.tags),
+      brand:
+        hubSlug === PLAN_HUB_SLUG ? planBrandFor(article) : brandFromTags(article.tags),
     });
   }
 
