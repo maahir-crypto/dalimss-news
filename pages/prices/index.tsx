@@ -1,3 +1,5 @@
+import LatestStories from "@/components/LatestStories";
+import { latestStories, type LatestStory } from "@/lib/latestStories";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
@@ -11,6 +13,7 @@ import {
   jsonLdHtml,
   priceDocumentTitle,
   priceHubSummaries,
+  priceHubIdFor,
 } from "@/lib/priceHubs";
 import { SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -23,9 +26,10 @@ type HubRow = {
 
 interface Props {
   hubs: HubRow[];
+  latestArticles: LatestStory[];
 }
 
-export default function PriceIndexPage({ hubs }: Props) {
+export default function PriceIndexPage({ hubs, latestArticles }: Props) {
   const title = priceDocumentTitle(PRICE_INDEX.titleLead);
   const canonical = `${SITE_URL}${PRICE_INDEX.path}`;
   const jsonLd = collectionPageJsonLd({
@@ -85,6 +89,7 @@ export default function PriceIndexPage({ hubs }: Props) {
             </li>
           ))}
         </ul>
+        <LatestStories stories={latestArticles} />
       </div>
     </>
   );
@@ -94,11 +99,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({
   req,
   res,
 }) => {
-  const summaries = priceHubSummaries(await loadPriceHubCandidates());
+  const candidates = await loadPriceHubCandidates();
+  const summaries = priceHubSummaries(candidates);
   if (summaries.length === 0) return { notFound: true };
   setPublicPageCache(req, res);
   return {
     props: {
+      latestArticles: latestStories(candidates.filter((article) => priceHubIdFor(article) !== null)).map(({ slug, title }) => ({ slug, title })),
       hubs: summaries.map((summary) => ({
         slug: summary.hub.slug,
         path: summary.hub.path,

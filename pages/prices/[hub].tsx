@@ -1,3 +1,5 @@
+import LatestStories from "@/components/LatestStories";
+import { latestStories, type LatestStory } from "@/lib/latestStories";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Link from "next/link";
@@ -42,6 +44,7 @@ interface Props {
   totalPages: number;
   showUngroupedHeading: boolean;
   groups: Group[];
+  latestArticles: LatestStory[];
 }
 
 export default function PriceHubPage({
@@ -54,6 +57,7 @@ export default function PriceHubPage({
   totalPages,
   showUngroupedHeading,
   groups,
+  latestArticles,
 }: Props) {
   const title = priceDocumentTitle(
     priceHubBySlug(slug)?.titleLead || h1,
@@ -168,6 +172,8 @@ export default function PriceHubPage({
           </section>
         ))}
 
+        <LatestStories stories={latestArticles} />
+
         <Pagination page={page} totalPages={totalPages} pathname={path} />
         <p className="mt-6 text-sm">
           <a href={`${path}.csv`} className="font-semibold text-red-700 hover:text-red-800">
@@ -199,6 +205,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   setPublicPageCache(context.req, context.res);
   return {
     props: {
+      latestArticles: latestStories(ordered).map(({ slug, title }) => ({ slug, title })),
       slug: hub.slug,
       path: hub.path,
       h1: hub.h1,

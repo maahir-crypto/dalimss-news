@@ -1,3 +1,5 @@
+import { isOptimizableImageSrc } from "./optimizableImage";
+
 type HastNode = {
   type: string;
   tagName?: string;
@@ -82,7 +84,17 @@ function lazyLoad(node: HastNode) {
     const k = kids[i];
     if (isElement(k, "img")) {
       k.properties = k.properties || {};
-      if (!k.properties.loading) k.properties.loading = "lazy";
+      k.properties.loading = "lazy";
+      const src = k.properties.src;
+      if (typeof src === "string" && isOptimizableImageSrc(src) && !/\.svg(?:[?#]|$)/i.test(src)) {
+        // These widths are supported by the default Next image configuration.
+        const widths = [256, 384, 640, 750, 828, 1080, 1200, 1920];
+        const imageUrl = (width: number) => `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=70`;
+        k.properties["data-original-src"] = src;
+        k.properties.src = imageUrl(750);
+        k.properties.srcSet = widths.map((width) => `${imageUrl(width)} ${width}w`).join(", ");
+        k.properties.sizes = "(max-width: 767px) 50vw, 256px";
+      }
       if (!k.properties.decoding) k.properties.decoding = "async";
     } else if (k.children) lazyLoad(k);
   }
