@@ -7,6 +7,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { getCategoryBySlug, getCategoryByDbValue } from "@/lib/categories";
 import { indexNowUrlsForArticle, notifyIndexNow } from "@/lib/indexnow";
 import { revalidateArticlePaths } from "@/lib/revalidate";
+import { articleCreateFields } from "@/lib/articleCreateInput";
 import { createUniqueArticleSlug } from "@/lib/articleSlugs";
 import { findRepeatArticle } from "@/lib/findRepeatArticle";
 import {
@@ -44,7 +45,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
        return res.status(403).json({ error: "Forbidden: Admins or Editors only" });
     }
 
-    const { title, content, mediaUrl, mediaType, mediaItems, category, customAuthor, metaTitle, metaDescription, focusKeyword, tags, imageAltText, imageCaption, slug, sourceUrl, sourceUrls, reportingBasis, language } = req.body;
+    const draft = articleCreateFields(req.body);
+    const {
+      title,
+      content,
+      mediaUrl,
+      mediaType,
+      mediaItems,
+      category,
+      customAuthor,
+      metaTitle,
+      metaDescription,
+      focusKeyword,
+      tags,
+      imageAltText,
+      imageCaption,
+      slug,
+      sourceUrl,
+      rawSources,
+      sourceUrls,
+      reportingBasis,
+      language,
+    } = draft;
 
     if (!title || title.trim().length < 3) {
       return res.status(400).json({ error: "Title is required" });
@@ -54,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Content is too short" });
     }
 
-    const byline = canonicalAuthorName(String(customAuthor || ""));
+    const byline = canonicalAuthorName(customAuthor);
     if (byline.length < 2 || /\b(admin|ai|bot|automation)\b/i.test(byline)) {
       return res.status(400).json({
         error: "An accountable public byline is required; administrative or automated bylines are not accepted",
@@ -113,16 +135,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
       const finalSlug = await createUniqueArticleSlug(slug || title);
-      const normalizedSources = normalizeArticleSources(sourceUrls);
       if (
-        Array.isArray(sourceUrls) &&
-        sourceUrls.length > 0 &&
-        normalizedSources.length !== sourceUrls.length
+        Array.isArray(rawSources) &&
+        rawSources.length > 0 &&
+        sourceUrls.length !== rawSources.length
       ) {
         return res.status(400).json({
           error: "Every source needs a descriptive label and a valid HTTP(S) URL",
         });
       }
+
+      const authorId =
+        typeof session.user.id === "string" && session.user.id
+          ? session.user.id
+          : null;
 
       const article = await prisma.article.create({
         data: {
@@ -130,13 +156,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           content,
           slug: finalSlug,
           sourceUrl,
-          sourceUrls: normalizedSources as unknown as Prisma.InputJsonValue,
+          sourceUrls: sourceUrls as unknown as Prisma.InputJsonValue,
           reportingBasis: reportingBasis.trim(),
           language,
           mediaUrl,
           mediaType,
-          mediaItems: mediaItems || undefined,
-          category, // ✅ Added Category
+          ...(mediaItems !== undefined ? { mediaItems } : {}),
+          category,
           customAuthor: byline,
           metaTitle: cleanMetaTitle,
           metaDescription: cleanMetaDescription,
@@ -145,7 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           imageAltText: stripForMeta(imageAltText || "", 200),
           imageCaption: stripForMeta(imageCaption || "", 240),
           readTimeInMinutes: readTimeMinutes(content),
-          authorId: session.user.id ?? null,
+          authorId,
         },
       });
 

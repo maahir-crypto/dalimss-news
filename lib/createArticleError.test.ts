@@ -3,6 +3,7 @@ import {
   articleCreateFailureResponse,
   describeArticleCreateError,
   shortDatabaseError,
+  validationErrorDetail,
 } from "./createArticleError";
 
 {
@@ -38,17 +39,36 @@ import {
 }
 
 {
+  const message = [
+    "Invalid `prisma.article.create()` invocation:",
+    "",
+    "{",
+    "  data: {",
+    '    title: "iPhone 18 Pro Reliance Digital price",',
+    '    content: "<p>secret draft text that must not leak to the admin response</p>",',
+    "    tags: [",
+    '      "iPhone",',
+    '      "Reliance Digital"',
+    "    ],",
+    "    ~~~~~~~~~~~~~~~~~~~~",
+    "  }",
+    "}",
+    "",
+    "Argument `tags`: Invalid value provided. Expected String or Null, provided (String, String).",
+  ].join("\n");
   const body = articleCreateFailureResponse(
-    {
-      name: "PrismaClientValidationError",
-      message: "Invalid invocation. Argument tags. Article body: secret draft text",
-    },
+    { name: "PrismaClientValidationError", message },
     true
   );
 
   assert.equal(body.code, "VALIDATION");
-  assert.equal(body.detail, "The article payload was rejected before it was saved.");
-  assert.equal(JSON.stringify(body).includes("secret draft"), false);
+  assert.equal(
+    body.detail,
+    "Argument `tags`: Invalid value provided. Expected String or Null, provided (String, String)."
+  );
+  assert.equal(body.detail.includes("secret draft"), false);
+  assert.ok(body.detail.length <= 300);
+  assert.equal(validationErrorDetail(message), body.detail);
 }
 
 {
