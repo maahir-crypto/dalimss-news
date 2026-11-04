@@ -1,3 +1,4 @@
+import LatestStories from "@/components/LatestStories";
 import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
@@ -16,6 +17,7 @@ export default function TopicHubPage({
   hub,
   articles,
   latestUpdate,
+  latestArticles,
 }: TopicHubProps) {
   const canonicalUrl = `${SITE_URL}${hub.canonicalPath}`;
   const pageTitle = `${hub.title} - Latest Verified Updates | ${SITE_NAME}`;
@@ -119,6 +121,8 @@ export default function TopicHubPage({
             Latest update: {latestUpdateLabel}
           </p>
         </header>
+
+        <LatestStories stories={latestArticles} />
 
         {articles.length === 0 ? (
           <section className="py-16 text-center">

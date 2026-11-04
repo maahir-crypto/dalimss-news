@@ -69,4 +69,22 @@ assert.equal(isPhotoFigure({ type: "element", tagName: "figure", children: [{ ty
 
 assert.deepEqual(findFigureRuns([fig(1) as any, ws(), fig(2) as any, ws(), fig(3) as any, ws()]), [[0, 4]]);
 
+// Responsive sources are only generated for hosts allowed by Next.
+{
+  const figures = [fig(1), fig(2), fig(3)];
+  figures[0].children[0].properties = { src: "https://example.com/large.jpg", alt: "External" };
+  figures[2].children[0].properties = { src: "/diagram.svg", alt: "Diagram" };
+  const tree = run({ type: "root", children: figures });
+  const external = tree.children[0].children[0].children[0].properties;
+  const optimized = tree.children[0].children[1].children[0].properties;
+  assert.equal(external.src, "https://example.com/large.jpg");
+  assert.equal(external.srcSet, undefined);
+  assert.equal(external.loading, "lazy");
+  assert.equal(tree.children[0].children[2].children[0].properties.src, "/diagram.svg");
+  assert.equal(optimized["data-original-src"], "/2.jpg");
+  assert.match(optimized.srcSet, /w=384&q=70 384w/);
+  assert.equal(optimized.sizes, "(max-width: 767px) 50vw, 256px");
+  assert.equal(optimized.loading, "lazy");
+}
+
 console.log("rehypeFigureGallery tests passed");

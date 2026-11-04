@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Photo = { src: string; alt: string; caption: string };
@@ -30,7 +32,7 @@ export default function ArticleGallery({ children, count, language }: Props) {
       const im = f.querySelector("img");
       const cap = f.querySelector("figcaption");
       return {
-        src: (im && (im.currentSrc || im.getAttribute("src"))) || "",
+        src: (im && (im.getAttribute("data-original-src") || im.getAttribute("src"))) || "",
         alt: (im && im.getAttribute("alt")) || "",
         caption: (cap && cap.textContent) || "",
       };
@@ -154,7 +156,12 @@ export default function ArticleGallery({ children, count, language }: Props) {
           </button>
           <figure className="article-lightbox__figure">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photo.src} alt={photo.alt} />
+            {isOptimizableImageSrc(photo.src) ? (
+              <Image src={photo.src} alt={photo.alt} width={1536} height={1024}
+                sizes="(max-width: 768px) 100vw, 90vw" loading="lazy" quality={70} />
+            ) : (
+              <img src={photo.src} alt={photo.alt} loading="lazy" />
+            )}
             <figcaption>
               {photo.caption}
               <span className="article-lightbox__count">

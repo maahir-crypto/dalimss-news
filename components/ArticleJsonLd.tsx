@@ -12,7 +12,6 @@ import {
   stripForMeta,
   canonicalAuthorName,
   articleMetaDescription,
-  articleModifiedAt,
   isNewsroomByline,
 } from "@/lib/seo";
 import { normalizeArticleSources } from "@/lib/articleSources";
@@ -68,9 +67,8 @@ export function ArticleJsonLd({
   ];
 
   const description = descriptionOverride ?? articleMetaDescription(article);
-  const modifiedAt =
-    articleModifiedAt(article.createdAt, article.updatedAt) ||
-    new Date(article.createdAt);
+  const publishedAt = article.publishedAt || article.createdAt;
+  const modifiedAt = article.updatedAt || publishedAt;
   const displayCaption = normalizeImageCaption(
     decodeEntities(article.imageCaption),
     {
@@ -79,7 +77,7 @@ export function ArticleJsonLd({
     }
   );
   const profileSameAs = authorSameAsUrls(authorProfile);
-  // Article rows do not store pixel size. 1200×630 matches the Open Graph
+  // Article rows do not store pixel size. 1200×675 matches the Open Graph
   // image dimensions already declared on article pages.
   const image = !imageUrl
     ? []
@@ -89,7 +87,7 @@ export function ArticleJsonLd({
             "@type": "ImageObject",
             url: imageUrl,
             width: 1200,
-            height: 630,
+            height: 675,
             caption: displayCaption.text,
             description: "AI-generated illustration for Dalimss News.",
             creditText: "AI-generated illustration for Dalimss News",
@@ -105,7 +103,7 @@ export function ArticleJsonLd({
             "@type": "ImageObject",
             url: imageUrl,
             width: 1200,
-            height: 630,
+            height: 675,
           },
         ];
 
@@ -119,7 +117,7 @@ export function ArticleJsonLd({
     headline: stripForMeta(article.title || article.metaTitle || "", 110),
     description,
     image,
-    datePublished: toISOWithTZ(article.createdAt),
+    datePublished: toISOWithTZ(publishedAt),
     dateModified: toISOWithTZ(modifiedAt),
     inLanguage: article.language === "hi" ? "hi" : "en-IN",
     articleSection: article.category || "News",
@@ -137,6 +135,7 @@ export function ArticleJsonLd({
       ? authorProfile.contributors.map((person) => ({
           "@type": "Person",
           name: person.name,
+          url: authorUrl || `${SITE_URL}/authors`,
           jobTitle: person.jobTitle,
           // Guests are affiliated with their own institution, not Dalimss News.
           affiliation: {
@@ -145,9 +144,9 @@ export function ArticleJsonLd({
           },
         }))
       : {
-      "@type": newsroomByline ? "Organization" : "Person",
+      "@type": "Person",
       name: authorName,
-      ...(authorUrl ? { url: authorUrl } : {}),
+      url: authorUrl || `${SITE_URL}/authors`,
       ...(authorProfile && !newsroomByline
         ? {
             "@type": "Person",

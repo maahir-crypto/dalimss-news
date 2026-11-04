@@ -1,3 +1,5 @@
+import { DUPLICATE_ARTICLE_CANONICALS } from "@/lib/duplicateArticles";
+import { latestStories, type LatestStory } from "@/lib/latestStories";
 import { GetStaticProps } from "next";
 import prisma from "@/lib/prisma";
 import { Article } from "@/types";
@@ -20,6 +22,7 @@ export type TopicHubProps = {
   hub: TopicHubConfig;
   articles: Article[];
   latestUpdate: string | null;
+  latestArticles: LatestStory[];
 };
 
 export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
@@ -297,6 +300,24 @@ export function makeTopicHubStaticProps(
         },
       });
 
+      const latestRows = await prisma.article.findMany({
+        where: {
+          AND: [
+            { NOT: { language: "hi" } },
+            {
+              OR: hub.keywords.flatMap((keyword) => [
+                { category: { contains: keyword, mode: "insensitive" as const } },
+                { slug: { contains: keyword.replace(/\s+/g, "-"), mode: "insensitive" as const } },
+              ]),
+            },
+          ],
+          slug: { notIn: Object.keys(DUPLICATE_ARTICLE_CANONICALS) },
+        },
+        select: { slug: true, title: true, createdAt: true },
+        orderBy: [{ createdAt: "desc" }, { slug: "asc" }],
+        take: 5,
+      });
+
       const serializedArticles: Article[] = articles.map((article) => ({
         id: article.id,
         slug: article.slug,
@@ -323,6 +344,7 @@ export function makeTopicHubStaticProps(
           hub,
           articles: serializedArticles,
           latestUpdate: articles[0]?.updatedAt.toISOString() || null,
+          latestArticles: latestStories(latestRows).map(({ slug, title }) => ({ slug, title })),
         },
         revalidate: LISTING_REVALIDATE_SECONDS,
       };
@@ -330,7 +352,7 @@ export function makeTopicHubStaticProps(
       console.error(`Error fetching topic hub ${slug}:`, error);
       if (process.env.DATABASE_URL) throw error;
       return {
-        props: { hub, articles: [], latestUpdate: null },
+        props: { hub, articles: [], latestUpdate: null, latestArticles: [] },
         revalidate: LISTING_REVALIDATE_SECONDS,
       };
     }

@@ -1,4 +1,6 @@
-import { duplicateCanonicalSlug } from "@/lib/duplicateArticles";
+import LatestStories from "@/components/LatestStories";
+import { latestStories, type LatestStory } from "@/lib/latestStories";
+import { DUPLICATE_ARTICLE_CANONICALS, duplicateCanonicalSlug } from "@/lib/duplicateArticles";
 import React from "react";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { useSession } from "next-auth/react";
@@ -81,6 +83,7 @@ interface Article {
 interface Props {
   article?: Article | null;
   relatedArticles: RelatedArticleData[];
+  latestArticles: LatestStory[];
   authorStats?: AuthorPublicationStats | null;
   bodyContent?: string | null;
 }
@@ -137,6 +140,7 @@ import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 const ArticlePage: React.FC<Props> = ({
   article,
   relatedArticles,
+  latestArticles,
   authorStats = null,
   bodyContent = null,
 }) => {
@@ -151,12 +155,10 @@ const ArticlePage: React.FC<Props> = ({
   }
 
   const seoDescription = articleMetaDescription(article);
-  const modifiedAt = articleModifiedAt(article.createdAt, article.updatedAt);
-  const showUpdated = articleWasMeaningfullyUpdated(
-    article.createdAt,
-    article.updatedAt
-  );
-  const publishedLabel = formatDateIST(article.createdAt, {
+  const publishedAt = article.publishedAt || article.createdAt;
+  const modifiedAt = articleModifiedAt(publishedAt, article.updatedAt);
+  const showUpdated = articleWasMeaningfullyUpdated(publishedAt, article.updatedAt);
+  const publishedLabel = formatDateIST(publishedAt, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -264,6 +266,7 @@ const ArticlePage: React.FC<Props> = ({
       <Head>
         <title>{documentTitle}</title>
         <meta name="description" content={seoDescription} />
+        <meta name="robots" key="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <link rel="canonical" href={canonicalUrl} />
         {alternates.map((alternate) => (
           <link
@@ -283,12 +286,12 @@ const ArticlePage: React.FC<Props> = ({
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:secure_url" content={ogImageUrl} />
         <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:height" content="675" />
         <meta property="og:image:alt" content={plainAlt} />
         <meta property="og:locale" content={article.language === "hi" ? "hi_IN" : "en_IN"} />
         
         {/* Article specific Meta tags */}
-        <meta property="article:published_time" content={toISOWithTZ(article.createdAt)} />
+        <meta property="article:published_time" content={toISOWithTZ(publishedAt)} />
         <meta property="article:modified_time" content={toISOWithTZ(modifiedAt || article.createdAt)} />
         {article.customAuthor && <meta property="article:author" content={authorName} />}
         {article.category && <meta property="article:section" content={article.category} />}
@@ -422,7 +425,7 @@ const ArticlePage: React.FC<Props> = ({
               {isHindi ? authorName : `By ${authorName}`}
             </a>
             <span className="text-gray-300" aria-hidden="true">·</span>
-            <time dateTime={toISOWithTZ(article.createdAt)} className="text-gray-500">
+            <time dateTime={toISOWithTZ(publishedAt)} className="text-gray-500">
               {publishedLabel} IST
             </time>
             {showUpdated && modifiedAt && (
@@ -776,6 +779,8 @@ const ArticlePage: React.FC<Props> = ({
 
       {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} />}
 
+      <LatestStories stories={latestArticles} heading="Latest" />
+
       {/* RELATED ARTICLES */}
       <RelatedArticles
         articles={relatedArticles}
@@ -807,6 +812,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   let article = null;
   let relatedArticles: any[] = [];
+  let latestArticles: LatestStory[] = [];
   let authorStats: AuthorPublicationStats | null = null;
 
   try {
@@ -817,6 +823,19 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     // Fetch related articles from the same category
     if (article && article.category) {
       const categoryList = article.category.split(",").map((c) => c.trim()).filter(Boolean);
+      const latestRows = await prisma.article.findMany({
+        where: {
+          OR: categoryList.map((category) => ({
+            category: { contains: category, mode: "insensitive" as const },
+          })),
+          ...(article.language === "hi" ? { language: "hi" } : { NOT: { language: "hi" } }),
+          slug: { notIn: [article.slug, duplicateCanonicalSlug(article.slug), ...Object.keys(DUPLICATE_ARTICLE_CANONICALS)] },
+        },
+        select: { slug: true, title: true, createdAt: true },
+        orderBy: [{ createdAt: "desc" }, { slug: "asc" }],
+        take: 5,
+      });
+      latestArticles = latestStories(latestRows, article.slug).map(({ slug, title }) => ({ slug, title }));
       relatedArticles = await prisma.article.findMany({
         where: {
           AND: [
@@ -933,6 +952,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
           }))
         )
       ),
+      latestArticles,
       authorStats,
       bodyContent,
     },

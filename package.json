@@ -8,7 +8,7 @@
     "build": "prisma generate && export DIRECT_URL=\"${DIRECT_URL:=$DATABASE_URL}\" && prisma db push && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx lib/readTime.test.ts && tsx lib/indexnow.test.ts && tsx lib/createArticleError.test.ts && tsx lib/seoTitle.test.ts && tsx lib/llmsDocument.test.ts && tsx lib/llmsPriceGuides.test.ts && tsx lib/priceHubs.test.ts && tsx lib/relatedArticles.test.ts && tsx lib/relatedCandidatePool.test.ts && tsx lib/duplicateArticles.test.ts && tsx lib/rehypeFigureGallery.test.ts && tsx lib/priceHubsCameras.test.ts && tsx lib/priceHubsPlans.test.ts",
+    "test": "node --import tsx lib/readTime.test.ts && node --import tsx lib/indexnow.test.ts && node --import tsx lib/createArticleError.test.ts && node --import tsx lib/seoTitle.test.ts && node --import tsx lib/llmsDocument.test.ts && node --import tsx lib/llmsPriceGuides.test.ts && node --import tsx lib/priceHubs.test.ts && node --import tsx lib/relatedArticles.test.ts && node --import tsx lib/relatedCandidatePool.test.ts && node --import tsx lib/duplicateArticles.test.ts && node --import tsx lib/rehypeFigureGallery.test.ts && node --import tsx lib/priceHubsCameras.test.ts && node --import tsx lib/priceHubsPlans.test.ts && node --import tsx lib/latestStories.test.ts && node --import tsx lib/internalArticleLinks.test.ts",
     "backfill:read-time": "tsx scripts/backfill-read-time.ts"
   },
   "dependencies": {
