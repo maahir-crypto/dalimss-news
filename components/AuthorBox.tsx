@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { formatAuthorRole, type AuthorBoxProfile } from "@/lib/authorBoxes";
 import { AuthorProfileLinks } from "@/components/AuthorProfileLinks";
+import { isOptimizableImageSrc } from "@/lib/optimizableImage";
 
 export interface AuthorFallback {
   name: string;
@@ -122,14 +124,27 @@ export function AuthorBox({
       <h2 className="mb-4 text-base font-bold text-gray-900">{heading}</h2>
       <div className="flex flex-col items-start gap-4 sm:flex-row">
         {showPhoto && author ? (
-          <img
-            src={author.photoUrl}
-            alt={author.photoAlt}
-            width={80}
-            height={80}
-            loading="lazy"
-            className="h-20 w-20 shrink-0 rounded-full object-cover"
-          />
+          isOptimizableImageSrc(author.photoUrl) ? (
+            <Image
+              src={author.photoUrl}
+              alt={author.photoAlt}
+              width={80}
+              height={80}
+              sizes="80px"
+              quality={70}
+              loading="lazy"
+              className="h-20 w-20 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <img
+              src={author.photoUrl}
+              alt={author.photoAlt}
+              width={80}
+              height={80}
+              loading="lazy"
+              className="h-20 w-20 shrink-0 rounded-full object-cover"
+            />
+          )
         ) : (
           <div
             aria-hidden="true"
