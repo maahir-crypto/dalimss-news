@@ -1,8 +1,9 @@
 import React from "react";
+import { diwaliPartnerHref } from "@/lib/partnerRashifal";
 
 const REL = "sponsored noopener";
 const tag = (slug: string) => `utm_content=${encodeURIComponent(slug)}`;
-const label = (hi: boolean) => (
+const label = (_hi: boolean) => (
   <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">
     Partner
   </span>
@@ -27,9 +28,31 @@ export function PartnerRashifal({ sign, lang, slug }: { sign: string; lang: "hi"
   );
 }
 
-export function PartnerEndCard({ lang, slug }: { lang: "hi" | "en"; slug: string }) {
+export function PartnerEndCard({
+  lang,
+  slug,
+  diwaliCta = false,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+  diwaliCta?: boolean;
+}) {
   const hi = lang === "hi";
   const cls = "font-semibold text-blue-700 underline underline-offset-2";
+  if (diwaliCta) {
+    return (
+      <aside className="partner-endcard my-8 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" aria-label="Partner">
+        {label(hi)}
+        <p className="m-0">
+          {hi ? "हमारी पार्टनर साइट पर पढ़ें: " : "On our partner site: "}
+          <a href={diwaliPartnerHref(slug)} target="_blank" rel={REL} className={cls}>
+            {hi ? "दिवाली 2026 मुहूर्त गाइड" : "Diwali 2026 muhurat guide"}
+          </a>
+          .
+        </p>
+      </aside>
+    );
+  }
   return (
     <aside className="partner-endcard my-8 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" aria-label="Partner">
       {label(hi)}
@@ -49,8 +72,34 @@ export function PartnerEndCard({ lang, slug }: { lang: "hi" | "en"; slug: string
 }
 
 /** Desktop only. Hidden below 1536px so phones never get it. */
-export function PartnerSidebar({ lang, slug }: { lang: "hi" | "en"; slug: string }) {
+export function PartnerSidebar({
+  lang,
+  slug,
+  diwaliCta = false,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+  diwaliCta?: boolean;
+}) {
   const hi = lang === "hi";
+  if (diwaliCta) {
+    return (
+      <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
+        <div className="sticky top-24 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
+          {label(hi)}
+          <p className="mb-2 font-semibold text-gray-900">{hi ? "दिवाली मुहूर्त" : "Diwali muhurat"}</p>
+          <p className="mb-3">
+            {hi
+              ? "दिवाली और लक्ष्मी पूजा का मुहूर्त हमारी पार्टनर साइट पर देखें."
+              : "See Diwali and Lakshmi Puja muhurat timings on our partner site."}
+          </p>
+          <a href={diwaliPartnerHref(slug)} target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
+            {hi ? "दिवाली गाइड देखें" : "See Diwali guide"}
+          </a>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
       <div className="sticky top-24 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
