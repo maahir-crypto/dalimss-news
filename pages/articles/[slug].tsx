@@ -101,7 +101,7 @@ import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
 import { PartnerRashifal, PartnerEndCard, PartnerSidebar, PartnerPriceLine } from "@/components/PartnerRashifal";
-import { partnerRashifalFor, rehypePartnerSlot } from "@/lib/partnerRashifal";
+import { partnerRashifalFor, rehypePartnerSlot, useDiwaliPartnerCta } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
   absoluteImageUrl,
@@ -228,6 +228,7 @@ const ArticlePage: React.FC<Props> = ({
   );
   const isHindi = article.language === "hi";
   const partner = partnerRashifalFor(article);
+  const diwaliCta = partner.show && useDiwaliPartnerCta(article);
   const showPricePartner = !partner.show && priceHubIdFor(article) !== null;
   const renderedBody =
     bodyContent ||
@@ -709,7 +710,7 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
-      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} />}
+      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} />}
       {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} slug={article.slug} />}
 
       {!newsroomByline && (
@@ -777,7 +778,7 @@ const ArticlePage: React.FC<Props> = ({
         minHeight={280}
       />
 
-      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} />}
+      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} />}
 
       <LatestStories stories={latestArticles} heading="Latest" />
 
