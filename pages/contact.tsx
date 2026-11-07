@@ -20,8 +20,16 @@ import {
 const contactCards = [
   {
     icon: EnvelopeIcon,
-    title: "Email Us",
-    description: "For general inquiries and feedback",
+    title: "General Enquiries & App Support",
+    description: "Contact the Dalimss News team for help with our app",
+    value: "info@dalimss.news",
+    href: "mailto:info@dalimss.news",
+    action: "Send Email",
+  },
+  {
+    icon: EnvelopeIcon,
+    title: "Editorial & Corrections",
+    description: "News tips, editorial feedback and corrections",
     value: "editor@dalimss.news",
     href: "mailto:editor@dalimss.news",
     action: "Send Email",
@@ -30,8 +38,8 @@ const contactCards = [
     icon: PhoneIcon,
     title: "Call Us",
     description: "Mon–Sat, 9:00 AM – 6:00 PM IST",
-    value: "+91 63927 52976",
-    href: "tel:+916392752976",
+    value: "+91 9309123123",
+    href: "tel:+919309123123",
     action: "Call Now",
   },
 ];
