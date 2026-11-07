@@ -29,6 +29,41 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/varanasi",
+        destination: "/varanasi-news",
+        permanent: true,
+      },
+      {
+        source: "/gurugram",
+        destination: "/gurugram-news",
+        permanent: true,
+      },
+      {
+        source: "/gurgaon",
+        destination: "/gurugram-news",
+        permanent: true,
+      },
+      {
+        source: "/technology",
+        destination: "/category/technology",
+        permanent: true,
+      },
+      {
+        source: "/world",
+        destination: "/category/world",
+        permanent: true,
+      },
+      {
+        source: "/lifestyle",
+        destination: "/category/lifestyle",
+        permanent: true,
+      },
+      {
+        source: "/automotive",
+        destination: "/category/automotive",
+        permanent: true,
+      },
+      {
         source: "/gurgaon-news",
         destination: "/gurugram-news",
         permanent: true,

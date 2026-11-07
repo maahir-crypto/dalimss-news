@@ -125,7 +125,7 @@ export default function AboutPage() {
   };
   const pageTitle = `About ${SITE_NAME} | Varanasi, Gurugram, Tech and Auto News`;
   const pageDescription =
-    "Learn about Dalimss News, a digital news publication reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, with technology and automotive coverage and major developments across India.";
+    "Dalimss News is a digital news publication reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, plus technology, auto and India news.";
 
   return (
     <>
