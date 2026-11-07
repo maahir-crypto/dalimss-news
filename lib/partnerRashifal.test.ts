@@ -11,8 +11,8 @@ import {
 } from "./partnerRashifal";
 
 describe("Diwali partner CTA window", () => {
-  it("keeps the until-date constant at 8 Nov 2026 IST", () => {
-    assert.equal(DIWALI_PARTNER_CTA_UNTIL_IST, "2026-11-08");
+  it("keeps the until-date constant at 11 Nov 2026 IST", () => {
+    assert.equal(DIWALI_PARTNER_CTA_UNTIL_IST, "2026-11-11");
   });
 
   it("is active on 6 Nov 2026 afternoon IST", () => {
@@ -20,19 +20,19 @@ describe("Diwali partner CTA window", () => {
     assert.equal(isDiwaliPartnerCtaActive(new Date("2026-11-06T09:30:00Z")), true);
   });
 
-  it("is still active late on 8 Nov 2026 IST", () => {
-    // 8 Nov 2026 23:30 IST = 18:00 UTC
-    assert.equal(isDiwaliPartnerCtaActive(new Date("2026-11-08T18:00:00Z")), true);
+  it("is still active through the final millisecond of 11 Nov 2026 IST", () => {
+    // 11 Nov 2026 23:59:59.999 IST = 18:29:59.999 UTC
+    assert.equal(isDiwaliPartnerCtaActive(new Date("2026-11-11T18:29:59.999Z")), true);
   });
 
-  it("reverts on 9 Nov 2026 IST", () => {
-    // 9 Nov 2026 00:30 IST = 2026-11-08T19:00:00Z
-    assert.equal(isDiwaliPartnerCtaActive(new Date("2026-11-08T19:00:00Z")), false);
+  it("reverts at midnight on 12 Nov 2026 IST", () => {
+    // 12 Nov 2026 00:00 IST = 2026-11-11T18:30:00Z
+    assert.equal(isDiwaliPartnerCtaActive(new Date("2026-11-11T18:30:00Z")), false);
   });
 
   it("formats IST calendar dates as YYYY-MM-DD", () => {
-    assert.equal(istCalendarDate(new Date("2026-11-08T18:00:00Z")), "2026-11-08");
-    assert.equal(istCalendarDate(new Date("2026-11-08T19:00:00Z")), "2026-11-09");
+    assert.equal(istCalendarDate(new Date("2026-11-11T18:29:59.999Z")), "2026-11-11");
+    assert.equal(istCalendarDate(new Date("2026-11-11T18:30:00Z")), "2026-11-12");
   });
 });
 
@@ -59,7 +59,7 @@ describe("Diwali festival story match", () => {
   it("turns on only when both festival match and window are true", () => {
     const article = { title: "Diwali muhurat 2026", slug: "diwali-muhurat-2026" };
     assert.equal(useDiwaliPartnerCta(article, new Date("2026-11-06T09:30:00Z")), true);
-    assert.equal(useDiwaliPartnerCta(article, new Date("2026-11-08T19:00:00Z")), false);
+    assert.equal(useDiwaliPartnerCta(article, new Date("2026-11-11T18:30:00Z")), false);
     assert.equal(
       useDiwaliPartnerCta({ title: "Mesh rashifal today" }, new Date("2026-11-06T09:30:00Z")),
       false

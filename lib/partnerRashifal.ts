@@ -12,9 +12,9 @@ const DIWALI_FESTIVAL_HI = /(दिवाली|दीपावली|धनत�
 /**
  * Inclusive last Asia/Calcutta calendar day for the Diwali Partner CTA.
  * After this day, EndCard and Sidebar revert to the usual rashifal / milan links.
- * Pocket Jyotish asked to revert after 9 Nov; end of 8 Nov IST matches that.
+ * Maahir approved the extension through 11 Nov 2026 IST; revert on 12 Nov.
  */
-export const DIWALI_PARTNER_CTA_UNTIL_IST = "2026-11-08";
+export const DIWALI_PARTNER_CTA_UNTIL_IST = "2026-11-11";
 
 // TODO(dev-deepawali-2026): Around 24 Nov 2026, add a similar date window that
 // swaps EndCard/Sidebar to
