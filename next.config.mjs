@@ -3,6 +3,9 @@ const nextConfig = {
   reactStrictMode: true,
 
   images: {
+    // Drop 2048/3840: lead/avatar sizes caps are far lower, but default
+    // deviceSizes still emit w=3840 in srcset and hurt CWV page weight.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
