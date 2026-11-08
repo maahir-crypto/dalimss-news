@@ -64,6 +64,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/education",
+        destination: "/category/education",
+        permanent: true,
+      },
+      {
         source: "/gurgaon-news",
         destination: "/gurugram-news",
         permanent: true,

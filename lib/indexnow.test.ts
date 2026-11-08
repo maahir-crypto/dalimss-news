@@ -392,6 +392,11 @@ async function main() {
       assert.equal(rule.destination.includes(":path*"), true);
     }
   }
+
+  const education = redirects.find((rule) => rule.source === "/education");
+  assert.ok(education);
+  assert.equal(education.destination, "/category/education");
+  assert.equal(education.permanent, true);
 }
 
 {
