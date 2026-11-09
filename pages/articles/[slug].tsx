@@ -86,6 +86,8 @@ interface Props {
   latestArticles: LatestStory[];
   authorStats?: AuthorPublicationStats | null;
   bodyContent?: string | null;
+  /** Partner test flags, fixed at build/revalidate time so HTML and hydration agree. */
+  partnerTests?: { inline: boolean; techAuto: boolean } | null;
 }
 
 import Head from "next/head";
@@ -100,8 +102,24 @@ import { findArticleRedirectSlug } from "@/lib/legacySlug";
 import { articlePath, categoryPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
-import { PartnerRashifal, PartnerEndCard, PartnerSidebar, PartnerPriceLine } from "@/components/PartnerRashifal";
-import { partnerRashifalFor, rehypePartnerSlot, useDiwaliPartnerCta } from "@/lib/partnerRashifal";
+import {
+  PartnerRashifal,
+  PartnerEndCard,
+  PartnerSidebar,
+  PartnerPriceLine,
+  PartnerInlineCard,
+  PartnerTechAutoLine,
+} from "@/components/PartnerRashifal";
+import {
+  isPartnerInlineTestActive,
+  isPartnerTechAutoTestActive,
+  partnerInlineVariant,
+  partnerRashifalFor,
+  rehypePartnerInlineCard,
+  rehypePartnerSlot,
+  isTechAutoTestStory,
+  useDiwaliPartnerCta,
+} from "@/lib/partnerRashifal";
 import {
   SITE_URL,
   absoluteImageUrl,
@@ -143,6 +161,7 @@ const ArticlePage: React.FC<Props> = ({
   latestArticles,
   authorStats = null,
   bodyContent = null,
+  partnerTests = null,
 }) => {
   const { data: session } = useSession();
   
@@ -230,6 +249,23 @@ const ArticlePage: React.FC<Props> = ({
   const partner = partnerRashifalFor(article);
   const diwaliCta = partner.show && useDiwaliPartnerCta(article);
   const showPricePartner = !partner.show && priceHubIdFor(article) !== null;
+  // 7-day inline card A/B test (variant by slug hash, server-side, no cookies).
+  const inlineTestOn = partner.show && Boolean(partnerTests?.inline);
+  const partnerVariant = inlineTestOn ? partnerInlineVariant(article.slug) : null;
+  const showInlineCard = partnerVariant === "b";
+  // Tech/auto 7-day end line. Only when a block (author box or sources) sits
+  // between it and the below-article ad slot.
+  const blockBeforeBelowAd =
+    !newsroomByline ||
+    guestWithoutSources ||
+    Boolean(article.reportingBasis) ||
+    visibleSources.length > 0;
+  const showTechAutoLine =
+    !partner.show &&
+    !showPricePartner &&
+    Boolean(partnerTests?.techAuto) &&
+    blockBeforeBelowAd &&
+    isTechAutoTestStory(article);
   const renderedBody =
     bodyContent ||
     article.content ||
@@ -570,7 +606,7 @@ const ArticlePage: React.FC<Props> = ({
       <div className="article-body prose max-w-none text-gray-800">
         {ReactMarkdown ? (
           <ReactMarkdown
-            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: partner.show, after: 2 })]}
+            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: partner.show, after: 2 }), rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 })]}
             components={{
               p: ({ children }: any) => {
                 let text = "";
@@ -688,6 +724,7 @@ const ArticlePage: React.FC<Props> = ({
                 </ArticleGallery>
               ),
               "partner-slot": () => <PartnerRashifal sign={partner.sign} lang={partner.lang} slug={article.slug} />,
+              "partner-inline-card": () => <PartnerInlineCard lang={partner.lang} slug={article.slug} />,
               "ad-slot": ({ index }: any) => (
                 <AdSlot
                   key={`${article.slug}-${index}`}
@@ -710,8 +747,9 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
-      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} />}
+      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} variant={partnerVariant} />}
       {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} slug={article.slug} />}
+      {showTechAutoLine && <PartnerTechAutoLine slug={article.slug} />}
 
       {!newsroomByline && (
         <AuthorBox
@@ -778,7 +816,7 @@ const ArticlePage: React.FC<Props> = ({
         minHeight={280}
       />
 
-      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} />}
+      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} variant={partnerVariant} />}
 
       <LatestStories stories={latestArticles} heading="Latest" />
 
@@ -956,6 +994,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       latestArticles,
       authorStats,
       bodyContent,
+      partnerTests: {
+        inline: isPartnerInlineTestActive(),
+        techAuto: isPartnerTechAutoTestActive(),
+      },
     },
     revalidate: 3600,
   };
