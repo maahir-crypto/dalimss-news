@@ -120,7 +120,7 @@ export const PARTNER_CAMPAIGN_EVERGREEN = "partner_evergreen";
 export const PARTNER_CAMPAIGN_DIWALI = "diwali_2026";
 export const PARTNER_CAMPAIGN_TECH_AUTO = "tech_auto_test";
 
-export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline";
+export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline";
 export type PartnerVariant = "a" | "b";
 
 export function partnerHref(opts: {
@@ -148,6 +148,148 @@ export function diwaliPartnerHref(
   variant?: PartnerVariant | null
 ): string {
   return partnerHref({ path: "/diwali-2026/", medium, campaign: PARTNER_CAMPAIGN_DIWALI, slug, variant });
+}
+
+// ---------------------------------------------------------------------------
+// Time-boxed festival guide CTAs (one named Dalimss News festival guide each).
+// ---------------------------------------------------------------------------
+
+/**
+ * Inclusive last Asia/Calcutta day for each festival guide CTA. From 00:00 IST
+ * on the next day the story falls back to the evergreen rashifal links.
+ * Maahir approved Govardhan Puja through 10 Nov and Bhai Dooj through 11 Nov 2026.
+ */
+export const GOVARDHAN_PARTNER_CTA_UNTIL_IST = "2026-11-10";
+export const BHAI_DOOJ_PARTNER_CTA_UNTIL_IST = "2026-11-11";
+/** Dormant: no Dalimss News guide exists yet, so its slug list is empty. */
+export const AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST = "2026-11-18";
+
+export const PARTNER_CAMPAIGN_GOVARDHAN = "govardhan_2026";
+export const PARTNER_CAMPAIGN_BHAI_DOOJ = "bhai_dooj_2026";
+export const PARTNER_CAMPAIGN_AKSHAYA_NAVAMI = "akshaya_navami_2026";
+
+export type FestivalPartnerId = "govardhan_2026" | "bhai_dooj_2026" | "akshaya_navami_2026";
+
+export type FestivalPartnerCta = {
+  id: FestivalPartnerId;
+  /** Pocket Jyotish path. Linked only, never embedded. */
+  path: string;
+  campaign: string;
+  untilIst: string;
+  /** Exact festival-guide slugs. Exact match only, no keyword matching. */
+  slugs: readonly string[];
+  text: {
+    en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string; line: string };
+    hi: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string; line: string };
+  };
+};
+
+export const FESTIVAL_PARTNER_CTAS: readonly FestivalPartnerCta[] = [
+  {
+    id: "govardhan_2026",
+    path: "/govardhan-puja-2026/",
+    campaign: PARTNER_CAMPAIGN_GOVARDHAN,
+    untilIst: GOVARDHAN_PARTNER_CTA_UNTIL_IST,
+    slugs: ["govardhan-puja-10-november-2026-varanasi-gurugram"],
+    text: {
+      en: {
+        endCard: "Govardhan Puja 2026 muhurat guide",
+        sidebarTitle: "Govardhan Puja muhurat",
+        sidebarBody: "See Govardhan Puja and Annakut timings on our partner site.",
+        sidebarLink: "See Govardhan Puja guide",
+        line: "Govardhan Puja 2026 guide",
+      },
+      hi: {
+        endCard: "गोवर्धन पूजा 2026 मुहूर्त गाइड",
+        sidebarTitle: "गोवर्धन पूजा मुहूर्त",
+        sidebarBody: "गोवर्धन पूजा और अन्नकूट का मुहूर्त हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गोवर्धन पूजा गाइड देखें",
+        line: "गोवर्धन पूजा 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "bhai_dooj_2026",
+    path: "/bhai-dooj-2026/",
+    campaign: PARTNER_CAMPAIGN_BHAI_DOOJ,
+    untilIst: BHAI_DOOJ_PARTNER_CTA_UNTIL_IST,
+    slugs: ["bhai-dooj-11-november-2026-varanasi-gurugram"],
+    text: {
+      en: {
+        endCard: "Bhai Dooj 2026 tilak muhurat guide",
+        sidebarTitle: "Bhai Dooj muhurat",
+        sidebarBody: "See Bhai Dooj tilak timings on our partner site.",
+        sidebarLink: "See Bhai Dooj guide",
+        line: "Bhai Dooj 2026 guide",
+      },
+      hi: {
+        endCard: "भाई दूज 2026 तिलक मुहूर्त गाइड",
+        sidebarTitle: "भाई दूज मुहूर्त",
+        sidebarBody: "भाई दूज के तिलक का समय हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "भाई दूज गाइड देखें",
+        line: "भाई दूज 2026 गाइड",
+      },
+    },
+  },
+  {
+    // Dormant until a matching Dalimss News Akshaya Navami / Gopashtami guide
+    // exists and Maahir approves it. Empty slug list = shows on no story.
+    id: "akshaya_navami_2026",
+    path: "/akshaya-navami-2026/",
+    campaign: PARTNER_CAMPAIGN_AKSHAYA_NAVAMI,
+    untilIst: AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST,
+    slugs: [],
+    text: {
+      en: {
+        endCard: "Akshaya Navami 2026 muhurat guide",
+        sidebarTitle: "Akshaya Navami muhurat",
+        sidebarBody: "See Gopashtami and Akshaya Navami timings on our partner site.",
+        sidebarLink: "See Akshaya Navami guide",
+        line: "Akshaya Navami 2026 guide",
+      },
+      hi: {
+        endCard: "अक्षय नवमी 2026 मुहूर्त गाइड",
+        sidebarTitle: "अक्षय नवमी मुहूर्त",
+        sidebarBody: "गोपाष्टमी और अक्षय नवमी का मुहूर्त हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "अक्षय नवमी गाइड देखें",
+        line: "अक्षय नवमी 2026 गाइड",
+      },
+    },
+  },
+];
+
+export function getFestivalPartnerCta(id: string | null | undefined): FestivalPartnerCta | null {
+  if (!id) return null;
+  return FESTIVAL_PARTNER_CTAS.find((c) => c.id === id) ?? null;
+}
+
+/**
+ * The festival CTA for this story right now, or null. Exact slug match only,
+ * the story must be partner-eligible, hard news is always excluded, and the
+ * campaign must be inside its IST window.
+ */
+export function festivalPartnerCtaFor(a: StoryFields, now: Date = new Date()): FestivalPartnerCta | null {
+  if (!a.slug) return null;
+  if (isHardNewsStory(a) || !isPartnerEligibleStory(a)) return null;
+  const today = istCalendarDate(now);
+  return FESTIVAL_PARTNER_CTAS.find((c) => c.slugs.includes(a.slug as string) && today <= c.untilIst) ?? null;
+}
+
+/** Seconds until 00:00 IST after the campaign's last day (min 1), for ISR revalidate. */
+export function secondsUntilFestivalCtaExpiry(cta: FestivalPartnerCta, now: Date = new Date()): number {
+  const [y, m, d] = cta.untilIst.split("-").map(Number);
+  // 00:00 IST on the next day = 18:30 UTC on the last day.
+  const end = Date.UTC(y, m - 1, d, 18, 30, 0, 0);
+  return Math.max(1, Math.ceil((end - now.getTime()) / 1000));
+}
+
+export function festivalPartnerHref(
+  cta: FestivalPartnerCta,
+  slug: string,
+  medium: PartnerMedium,
+  variant?: PartnerVariant | null
+): string {
+  return partnerHref({ path: cta.path, medium, campaign: cta.campaign, slug, variant });
 }
 
 // ---------------------------------------------------------------------------
