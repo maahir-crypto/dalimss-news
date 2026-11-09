@@ -1,6 +1,8 @@
 import React from "react";
 import {
   diwaliPartnerHref,
+  festivalPartnerHref,
+  getFestivalPartnerCta,
   partnerHref,
   PARTNER_CAMPAIGN_EVERGREEN,
   PARTNER_CAMPAIGN_TECH_AUTO,
@@ -44,15 +46,33 @@ export function PartnerEndCard({
   lang,
   slug,
   diwaliCta = false,
+  festivalCtaId = null,
   variant = null,
 }: {
   lang: "hi" | "en";
   slug: string;
   diwaliCta?: boolean;
+  festivalCtaId?: string | null;
   variant?: PartnerVariant | null;
 }) {
   const hi = lang === "hi";
   const cls = "font-semibold text-blue-700 underline underline-offset-2";
+  const festival = getFestivalPartnerCta(festivalCtaId);
+  if (festival) {
+    const t = hi ? festival.text.hi : festival.text.en;
+    return (
+      <aside className="partner-endcard my-8 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" aria-label="Partner">
+        {label(hi)}
+        <p className="m-0">
+          {hi ? "हमारी पार्टनर साइट पर पढ़ें: " : "On our partner site: "}
+          <a href={festivalPartnerHref(festival, slug, "widget", variant)} target="_blank" rel={REL} className={cls}>
+            {t.endCard}
+          </a>
+          .
+        </p>
+      </aside>
+    );
+  }
   if (diwaliCta) {
     return (
       <aside className="partner-endcard my-8 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" aria-label="Partner">
@@ -90,11 +110,13 @@ export function PartnerSidebar({
   lang,
   slug,
   diwaliCta = false,
+  festivalCtaId = null,
   variant = null,
 }: {
   lang: "hi" | "en";
   slug: string;
   diwaliCta?: boolean;
+  festivalCtaId?: string | null;
   variant?: PartnerVariant | null;
 }) {
   const hi = lang === "hi";
@@ -113,6 +135,23 @@ export function PartnerSidebar({
       </a>
     </p>
   );
+  const festival = getFestivalPartnerCta(festivalCtaId);
+  if (festival) {
+    const t = hi ? festival.text.hi : festival.text.en;
+    return (
+      <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
+        <div className="sticky top-24 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
+          {label(hi)}
+          <p className="mb-2 font-semibold text-gray-900">{t.sidebarTitle}</p>
+          <p className="mb-3">{t.sidebarBody}</p>
+          <a href={festivalPartnerHref(festival, slug, "sidebar", variant)} target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
+            {t.sidebarLink}
+          </a>
+          {kundliLine}
+        </div>
+      </div>
+    );
+  }
   if (diwaliCta) {
     return (
       <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
@@ -208,6 +247,41 @@ export function PartnerTechAutoLine({ slug }: { slug: string }) {
         className="text-blue-700 underline underline-offset-2"
       >
         Check your free kundli
+      </a>
+    </p>
+  );
+}
+
+/**
+ * Festival guide CTA: one labeled sponsored text line, rendered between the
+ * article body and the end card (never next to an ad slot; the body never
+ * ends in an ad). Server-rendered with a reserved line height. Link only, no
+ * iframe or embed of the festival page.
+ */
+export function PartnerFestivalLine({
+  lang,
+  slug,
+  festivalCtaId,
+  variant = null,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+  festivalCtaId: string | null | undefined;
+  variant?: PartnerVariant | null;
+}) {
+  const festival = getFestivalPartnerCta(festivalCtaId);
+  if (!festival) return null;
+  const t = lang === "hi" ? festival.text.hi : festival.text.en;
+  return (
+    <p className="partner-festival-line my-6 text-sm text-gray-600" style={{ minHeight: "1.5rem" }} aria-label="Partner">
+      <span className="mr-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Partner:</span>
+      <a
+        href={festivalPartnerHref(festival, slug, "inline", variant)}
+        target="_blank"
+        rel={REL}
+        className="text-blue-700 underline underline-offset-2"
+      >
+        {t.line}
       </a>
     </p>
   );

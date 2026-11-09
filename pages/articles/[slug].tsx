@@ -88,6 +88,8 @@ interface Props {
   bodyContent?: string | null;
   /** Partner test flags, fixed at build/revalidate time so HTML and hydration agree. */
   partnerTests?: { inline: boolean; techAuto: boolean } | null;
+  /** Festival guide CTA id, fixed at build/revalidate time so HTML and hydration agree. */
+  festivalCtaId?: string | null;
 }
 
 import Head from "next/head";
@@ -109,6 +111,7 @@ import {
   PartnerPriceLine,
   PartnerInlineCard,
   PartnerTechAutoLine,
+  PartnerFestivalLine,
 } from "@/components/PartnerRashifal";
 import {
   isPartnerInlineTestActive,
@@ -119,6 +122,9 @@ import {
   rehypePartnerSlot,
   isTechAutoTestStory,
   useDiwaliPartnerCta,
+  festivalPartnerCtaFor,
+  getFestivalPartnerCta,
+  secondsUntilFestivalCtaExpiry,
 } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
@@ -162,6 +168,7 @@ const ArticlePage: React.FC<Props> = ({
   authorStats = null,
   bodyContent = null,
   partnerTests = null,
+  festivalCtaId = null,
 }) => {
   const { data: session } = useSession();
   
@@ -247,7 +254,9 @@ const ArticlePage: React.FC<Props> = ({
   );
   const isHindi = article.language === "hi";
   const partner = partnerRashifalFor(article);
-  const diwaliCta = partner.show && useDiwaliPartnerCta(article);
+  // Festival guide CTA (exact slug, time-boxed) wins over the Diwali CTA.
+  const festivalCta = partner.show ? getFestivalPartnerCta(festivalCtaId) : null;
+  const diwaliCta = partner.show && !festivalCta && useDiwaliPartnerCta(article);
   const showPricePartner = !partner.show && priceHubIdFor(article) !== null;
   // 7-day inline card A/B test (variant by slug hash, server-side, no cookies).
   const inlineTestOn = partner.show && Boolean(partnerTests?.inline);
@@ -747,7 +756,18 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
-      {partner.show && <PartnerEndCard lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} variant={partnerVariant} />}
+      {festivalCta && (
+        <PartnerFestivalLine lang={partner.lang} slug={article.slug} festivalCtaId={festivalCta.id} variant={partnerVariant} />
+      )}
+      {partner.show && (
+        <PartnerEndCard
+          lang={partner.lang}
+          slug={article.slug}
+          diwaliCta={diwaliCta}
+          festivalCtaId={festivalCta?.id ?? null}
+          variant={partnerVariant}
+        />
+      )}
       {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} slug={article.slug} />}
       {showTechAutoLine && <PartnerTechAutoLine slug={article.slug} />}
 
@@ -816,7 +836,15 @@ const ArticlePage: React.FC<Props> = ({
         minHeight={280}
       />
 
-      {partner.show && <PartnerSidebar lang={partner.lang} slug={article.slug} diwaliCta={diwaliCta} variant={partnerVariant} />}
+      {partner.show && (
+        <PartnerSidebar
+          lang={partner.lang}
+          slug={article.slug}
+          diwaliCta={diwaliCta}
+          festivalCtaId={festivalCta?.id ?? null}
+          variant={partnerVariant}
+        />
+      )}
 
       <LatestStories stories={latestArticles} heading="Latest" />
 
@@ -967,6 +995,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   }
 
+  const festivalCta = festivalPartnerCtaFor(article);
+
   return {
     props: {
       article: JSON.parse(
@@ -998,8 +1028,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         inline: isPartnerInlineTestActive(),
         techAuto: isPartnerTechAutoTestActive(),
       },
+      festivalCtaId: festivalCta?.id ?? null,
     },
-    revalidate: 3600,
+    // Regenerate at 00:00 IST when a festival CTA expires, else hourly.
+    revalidate: festivalCta ? Math.min(3600, secondsUntilFestivalCtaExpiry(festivalCta)) : 3600,
   };
 };
 
