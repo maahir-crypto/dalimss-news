@@ -255,9 +255,14 @@ const ArticlePage: React.FC<Props> = ({
   const isHindi = article.language === "hi";
   const partner = partnerRashifalFor(article);
   // Festival guide CTA (exact slug, time-boxed) wins over the Diwali CTA.
-  const festivalCta = partner.show ? getFestivalPartnerCta(festivalCtaId) : null;
+  const festivalCtaRaw = getFestivalPartnerCta(festivalCtaId);
+  // Links-only festival CTA (exact slug, not partner-eligible): end card,
+  // sidebar link and labeled line only. No iframe, no tests, no utm_term.
+  const festivalCta = festivalCtaRaw && (partner.show || festivalCtaRaw.linksOnly) ? festivalCtaRaw : null;
+  const linksOnlyCta = !partner.show && festivalCta?.linksOnly === true;
+  const partnerLang: "hi" | "en" = isHindi ? "hi" : "en";
   const diwaliCta = partner.show && !festivalCta && useDiwaliPartnerCta(article);
-  const showPricePartner = !partner.show && priceHubIdFor(article) !== null;
+  const showPricePartner = !partner.show && !linksOnlyCta && priceHubIdFor(article) !== null;
   // 7-day inline card A/B test (variant by slug hash, server-side, no cookies).
   const inlineTestOn = partner.show && Boolean(partnerTests?.inline);
   const partnerVariant = inlineTestOn ? partnerInlineVariant(article.slug) : null;
@@ -271,6 +276,7 @@ const ArticlePage: React.FC<Props> = ({
     visibleSources.length > 0;
   const showTechAutoLine =
     !partner.show &&
+    !linksOnlyCta &&
     !showPricePartner &&
     Boolean(partnerTests?.techAuto) &&
     blockBeforeBelowAd &&
@@ -757,7 +763,10 @@ const ArticlePage: React.FC<Props> = ({
       </div>
 
       {festivalCta && (
-        <PartnerFestivalLine lang={partner.lang} slug={article.slug} festivalCtaId={festivalCta.id} variant={partnerVariant} />
+        <PartnerFestivalLine lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={partnerVariant} />
+      )}
+      {linksOnlyCta && festivalCta && (
+        <PartnerEndCard lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={null} />
       )}
       {partner.show && (
         <PartnerEndCard
@@ -844,6 +853,9 @@ const ArticlePage: React.FC<Props> = ({
           festivalCtaId={festivalCta?.id ?? null}
           variant={partnerVariant}
         />
+      )}
+      {linksOnlyCta && festivalCta && (
+        <PartnerSidebar lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={null} />
       )}
 
       <LatestStories stories={latestArticles} heading="Latest" />

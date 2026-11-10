@@ -120,6 +120,7 @@ export function PartnerSidebar({
   variant?: PartnerVariant | null;
 }) {
   const hi = lang === "hi";
+  const linksOnly = getFestivalPartnerCta(festivalCtaId)?.linksOnly === true;
   // Small sponsored text link, astrology-eligible stories only (this sidebar
   // renders only when the partner widget is eligible). Never in header/nav.
   const kundliLine = (
@@ -147,7 +148,7 @@ export function PartnerSidebar({
           <a href={festivalPartnerHref(festival, slug, "sidebar", variant)} target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
             {t.sidebarLink}
           </a>
-          {kundliLine}
+          {linksOnly ? null : kundliLine}
         </div>
       </div>
     );
