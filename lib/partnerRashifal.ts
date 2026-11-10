@@ -161,14 +161,17 @@ export function diwaliPartnerHref(
  */
 export const GOVARDHAN_PARTNER_CTA_UNTIL_IST = "2026-11-10";
 export const BHAI_DOOJ_PARTNER_CTA_UNTIL_IST = "2026-11-11";
+/** Guru Nanak Jayanti (links-only CTA), approved by Maahir 10 Nov 2026; off 00:00 IST 25 Nov. */
+export const GURU_NANAK_PARTNER_CTA_UNTIL_IST = "2026-11-24";
 /** Dormant: no Dalimss News guide exists yet, so its slug list is empty. */
 export const AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST = "2026-11-18";
 
 export const PARTNER_CAMPAIGN_GOVARDHAN = "govardhan_2026";
 export const PARTNER_CAMPAIGN_BHAI_DOOJ = "bhai_dooj_2026";
 export const PARTNER_CAMPAIGN_AKSHAYA_NAVAMI = "akshaya_navami_2026";
+export const PARTNER_CAMPAIGN_GURU_NANAK = "guru_nanak_2026";
 
-export type FestivalPartnerId = "govardhan_2026" | "bhai_dooj_2026" | "akshaya_navami_2026";
+export type FestivalPartnerId = "govardhan_2026" | "bhai_dooj_2026" | "akshaya_navami_2026" | "guru_nanak_2026";
 
 export type FestivalPartnerCta = {
   id: FestivalPartnerId;
@@ -178,6 +181,13 @@ export type FestivalPartnerCta = {
   untilIst: string;
   /** Exact festival-guide slugs. Exact match only, no keyword matching. */
   slugs: readonly string[];
+  /**
+   * Links-only CTA for an exact slug that is NOT partner-eligible: shows only
+   * the festival end card, sidebar link and labeled line. No rashifal iframe,
+   * no inline Free Kundli card, no evergreen sidebar Free Kundli link, no A/B
+   * test enrolment (so no utm_term). General eligibility rules are unchanged.
+   */
+  linksOnly?: boolean;
   text: {
     en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string; line: string };
     hi: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string; line: string };
@@ -232,6 +242,30 @@ export const FESTIVAL_PARTNER_CTAS: readonly FestivalPartnerCta[] = [
     },
   },
   {
+    id: "guru_nanak_2026",
+    path: "/guru-nanak-jayanti-2026/",
+    campaign: PARTNER_CAMPAIGN_GURU_NANAK,
+    untilIst: GURU_NANAK_PARTNER_CTA_UNTIL_IST,
+    slugs: ["guru-nanak-jayanti-24-november-2026-date-holiday-guide"],
+    linksOnly: true,
+    text: {
+      en: {
+        endCard: "Guru Nanak Jayanti 2026 guide",
+        sidebarTitle: "Guru Nanak Jayanti 2026",
+        sidebarBody: "See the Guru Nanak Jayanti 2026 guide on our partner site.",
+        sidebarLink: "See Guru Nanak Jayanti guide",
+        line: "Guru Nanak Jayanti 2026 guide",
+      },
+      hi: {
+        endCard: "गुरु नानक जयंती 2026 गाइड",
+        sidebarTitle: "गुरु नानक जयंती 2026",
+        sidebarBody: "गुरु नानक जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गुरु नानक जयंती गाइड देखें",
+        line: "गुरु नानक जयंती 2026 गाइड",
+      },
+    },
+  },
+  {
     // Dormant until a matching Dalimss News Akshaya Navami / Gopashtami guide
     // exists and Maahir approves it. Empty slug list = shows on no story.
     id: "akshaya_navami_2026",
@@ -270,9 +304,14 @@ export function getFestivalPartnerCta(id: string | null | undefined): FestivalPa
  */
 export function festivalPartnerCtaFor(a: StoryFields, now: Date = new Date()): FestivalPartnerCta | null {
   if (!a.slug) return null;
-  if (isHardNewsStory(a) || !isPartnerEligibleStory(a)) return null;
+  if (isHardNewsStory(a)) return null;
+  const eligible = isPartnerEligibleStory(a);
   const today = istCalendarDate(now);
-  return FESTIVAL_PARTNER_CTAS.find((c) => c.slugs.includes(a.slug as string) && today <= c.untilIst) ?? null;
+  return (
+    FESTIVAL_PARTNER_CTAS.find(
+      (c) => c.slugs.includes(a.slug as string) && today <= c.untilIst && (eligible || c.linksOnly === true)
+    ) ?? null
+  );
 }
 
 /** Seconds until 00:00 IST after the campaign's last day (min 1), for ISR revalidate. */
