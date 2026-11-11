@@ -36,11 +36,8 @@ const DIWALI_FESTIVAL_HI = /(दिवाली|दीपावली|धनत�
  */
 export const DIWALI_PARTNER_CTA_UNTIL_IST = "2026-11-11";
 
-// TODO(dev-deepawali-2026): Around 24 Nov 2026, add a similar date window that
-// swaps EndCard/Sidebar to
-// https://pocketjyotish.in/dev-deepawali-2026/?utm_source=dalimss_news&utm_medium=widget&utm_campaign=devdeepawali2026&utm_content=<slug>
-// Match keywords such as /dev[\s-]?deepawali|dev[\s-]?diwali/i (and Hindi). Keep that
-// campaign OFF until its window; do not enable it in the Diwali window.
+// Do not keyword-match a swap to /dev-deepawali-2026/. The approved placement
+// is the links-only Vaikuntha Chaturdashi CTA on one exact slug, through 24 Nov IST.
 
 const SIGNS: { slug: string; re: RegExp }[] = [
   { slug: "mesh", re: /\b(mesh|aries)\b|मेष/i },
@@ -163,6 +160,11 @@ export const GOVARDHAN_PARTNER_CTA_UNTIL_IST = "2026-11-10";
 export const BHAI_DOOJ_PARTNER_CTA_UNTIL_IST = "2026-11-11";
 /** Guru Nanak Jayanti (links-only CTA), approved by Maahir 10 Nov 2026; off 00:00 IST 25 Nov. */
 export const GURU_NANAK_PARTNER_CTA_UNTIL_IST = "2026-11-24";
+/**
+ * Vaikuntha Chaturdashi guide on the Dev Deepawali story (links-only).
+ * Approved by Maahir 11 Nov 2026; off 00:00 IST 25 Nov.
+ */
+export const VAIKUNTHA_PARTNER_CTA_UNTIL_IST = "2026-11-24";
 /** Dormant: no Dalimss News guide exists yet, so its slug list is empty. */
 export const AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST = "2026-11-18";
 
@@ -170,8 +172,14 @@ export const PARTNER_CAMPAIGN_GOVARDHAN = "govardhan_2026";
 export const PARTNER_CAMPAIGN_BHAI_DOOJ = "bhai_dooj_2026";
 export const PARTNER_CAMPAIGN_AKSHAYA_NAVAMI = "akshaya_navami_2026";
 export const PARTNER_CAMPAIGN_GURU_NANAK = "guru_nanak_2026";
+export const PARTNER_CAMPAIGN_VAIKUNTHA = "vaikuntha_2026";
 
-export type FestivalPartnerId = "govardhan_2026" | "bhai_dooj_2026" | "akshaya_navami_2026" | "guru_nanak_2026";
+export type FestivalPartnerId =
+  | "govardhan_2026"
+  | "bhai_dooj_2026"
+  | "akshaya_navami_2026"
+  | "guru_nanak_2026"
+  | "vaikuntha_2026";
 
 export type FestivalPartnerCta = {
   id: FestivalPartnerId;
@@ -182,10 +190,11 @@ export type FestivalPartnerCta = {
   /** Exact festival-guide slugs. Exact match only, no keyword matching. */
   slugs: readonly string[];
   /**
-   * Links-only CTA for an exact slug that is NOT partner-eligible: shows only
-   * the festival end card, sidebar link and labeled line. No rashifal iframe,
-   * no inline Free Kundli card, no evergreen sidebar Free Kundli link, no A/B
-   * test enrolment (so no utm_term). General eligibility rules are unchanged.
+   * Links-only CTA for an exact slug: end card, sidebar link and labeled line
+   * only. No rashifal iframe, no inline Free Kundli card, no sidebar Free
+   * Kundli link, no A/B test enrolment (so no utm_term), even when the story
+   * would otherwise be partner-eligible. General eligibility rules are
+   * unchanged. After the IST window the usual placements return.
    */
   linksOnly?: boolean;
   text: {
@@ -266,6 +275,32 @@ export const FESTIVAL_PARTNER_CTAS: readonly FestivalPartnerCta[] = [
     },
   },
   {
+    // Dev Deepawali / Kartik Purnima story. The linked guide is Vaikuntha
+    // Chaturdashi, a different observance, so the label names that guide only.
+    id: "vaikuntha_2026",
+    path: "/vaikuntha-chaturdashi-2026/",
+    campaign: PARTNER_CAMPAIGN_VAIKUNTHA,
+    untilIst: VAIKUNTHA_PARTNER_CTA_UNTIL_IST,
+    slugs: ["dev-deepawali-24-november-2026-varanasi-timings"],
+    linksOnly: true,
+    text: {
+      en: {
+        endCard: "Vaikuntha Chaturdashi 2026 guide",
+        sidebarTitle: "Vaikuntha Chaturdashi 2026",
+        sidebarBody: "See the Vaikuntha Chaturdashi 2026 guide on our partner site.",
+        sidebarLink: "See Vaikuntha Chaturdashi guide",
+        line: "Vaikuntha Chaturdashi 2026 guide",
+      },
+      hi: {
+        endCard: "वैकुंठ चतुर्दशी 2026 गाइड",
+        sidebarTitle: "वैकुंठ चतुर्दशी 2026",
+        sidebarBody: "वैकुंठ चतुर्दशी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "वैकुंठ चतुर्दशी गाइड देखें",
+        line: "वैकुंठ चतुर्दशी 2026 गाइड",
+      },
+    },
+  },
+  {
     // Dormant until a matching Dalimss News Akshaya Navami / Gopashtami guide
     // exists and Maahir approves it. Empty slug list = shows on no story.
     id: "akshaya_navami_2026",
@@ -298,9 +333,9 @@ export function getFestivalPartnerCta(id: string | null | undefined): FestivalPa
 }
 
 /**
- * The festival CTA for this story right now, or null. Exact slug match only,
- * the story must be partner-eligible, hard news is always excluded, and the
- * campaign must be inside its IST window.
+ * The festival CTA for this story right now, or null. Exact slug match only.
+ * Hard news is always excluded. A normal CTA also requires partner eligibility;
+ * a links-only CTA does not. The campaign must be inside its IST window.
  */
 export function festivalPartnerCtaFor(a: StoryFields, now: Date = new Date()): FestivalPartnerCta | null {
   if (!a.slug) return null;
