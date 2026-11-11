@@ -256,15 +256,18 @@ const ArticlePage: React.FC<Props> = ({
   const partner = partnerRashifalFor(article);
   // Festival guide CTA (exact slug, time-boxed) wins over the Diwali CTA.
   const festivalCtaRaw = getFestivalPartnerCta(festivalCtaId);
-  // Links-only festival CTA (exact slug, not partner-eligible): end card,
-  // sidebar link and labeled line only. No iframe, no tests, no utm_term.
+  // Links-only festival CTA: end card, sidebar link and labeled line only.
+  // No rashifal iframe, no Free Kundli, no A/B test, no utm_term, even when
+  // the story is otherwise partner-eligible. After the IST window the id is
+  // absent and the usual placements return.
   const festivalCta = festivalCtaRaw && (partner.show || festivalCtaRaw.linksOnly) ? festivalCtaRaw : null;
-  const linksOnlyCta = !partner.show && festivalCta?.linksOnly === true;
+  const linksOnlyCta = festivalCta?.linksOnly === true;
+  const showPartnerPlacements = partner.show && !linksOnlyCta;
   const partnerLang: "hi" | "en" = isHindi ? "hi" : "en";
-  const diwaliCta = partner.show && !festivalCta && useDiwaliPartnerCta(article);
+  const diwaliCta = showPartnerPlacements && !festivalCta && useDiwaliPartnerCta(article);
   const showPricePartner = !partner.show && !linksOnlyCta && priceHubIdFor(article) !== null;
   // 7-day inline card A/B test (variant by slug hash, server-side, no cookies).
-  const inlineTestOn = partner.show && Boolean(partnerTests?.inline);
+  const inlineTestOn = showPartnerPlacements && Boolean(partnerTests?.inline);
   const partnerVariant = inlineTestOn ? partnerInlineVariant(article.slug) : null;
   const showInlineCard = partnerVariant === "b";
   // Tech/auto 7-day end line. Only when a block (author box or sources) sits
@@ -621,7 +624,7 @@ const ArticlePage: React.FC<Props> = ({
       <div className="article-body prose max-w-none text-gray-800">
         {ReactMarkdown ? (
           <ReactMarkdown
-            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: partner.show, after: 2 }), rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 })]}
+            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: showPartnerPlacements, after: 2 }), rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 })]}
             components={{
               p: ({ children }: any) => {
                 let text = "";
@@ -768,7 +771,7 @@ const ArticlePage: React.FC<Props> = ({
       {linksOnlyCta && festivalCta && (
         <PartnerEndCard lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={null} />
       )}
-      {partner.show && (
+      {showPartnerPlacements && (
         <PartnerEndCard
           lang={partner.lang}
           slug={article.slug}
@@ -845,7 +848,7 @@ const ArticlePage: React.FC<Props> = ({
         minHeight={280}
       />
 
-      {partner.show && (
+      {showPartnerPlacements && (
         <PartnerSidebar
           lang={partner.lang}
           slug={article.slug}

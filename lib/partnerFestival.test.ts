@@ -10,6 +10,7 @@ import {
   FESTIVAL_PARTNER_CTAS,
   GOVARDHAN_PARTNER_CTA_UNTIL_IST,
   GURU_NANAK_PARTNER_CTA_UNTIL_IST,
+  VAIKUNTHA_PARTNER_CTA_UNTIL_IST,
   isHardNewsStory,
   isPartnerEligibleStory,
   partnerRashifalFor,
@@ -303,9 +304,137 @@ describe("Guru Nanak Jayanti links-only CTA", () => {
 
   it("page renders links-only CTA without the iframe slot or inline card", () => {
     const src = readFileSync(new URL("../pages/articles/[slug].tsx", import.meta.url), "utf8");
-    assert.ok(src.includes("rehypePartnerSlot({ enabled: partner.show"));
-    assert.ok(src.includes("const inlineTestOn = partner.show &&"));
+    assert.ok(src.includes("const linksOnlyCta = festivalCta?.linksOnly === true;"));
+    assert.ok(src.includes("const showPartnerPlacements = partner.show && !linksOnlyCta;"));
+    assert.ok(src.includes("rehypePartnerSlot({ enabled: showPartnerPlacements, after: 2 })"));
+    assert.ok(src.includes("const inlineTestOn = showPartnerPlacements &&"));
     assert.ok(src.includes("{linksOnlyCta && festivalCta && (\n        <PartnerEndCard"));
+    assert.ok(src.includes("{showPartnerPlacements && (\n        <PartnerEndCard"));
+  });
+});
+
+describe("Vaikuntha Chaturdashi links-only CTA", () => {
+  const DD = {
+    slug: "dev-deepawali-24-november-2026-varanasi-timings",
+    title: "Dev Deepawali on 24 November 2026: Varanasi timings and travel checks",
+    category: "Lifestyle",
+    tags: "Dev Deepawali, Varanasi, Kartik Purnima, November 2026, UPSTDC, Festival calendar",
+    language: "en",
+  };
+  const IST_24NOV_LAST_MS = new Date("2026-11-24T18:29:59.999Z");
+  const IST_25NOV_MIDNIGHT = new Date("2026-11-24T18:30:00Z");
+  const DURING = new Date("2026-11-20T06:30:00Z");
+
+  it("constant is 24 Nov 2026 IST", () => {
+    assert.equal(VAIKUNTHA_PARTNER_CTA_UNTIL_IST, "2026-11-24");
+  });
+
+  it("keeps general eligibility: not hard news, still partner-eligible", () => {
+    assert.equal(isHardNewsStory(DD), false);
+    assert.equal(isPartnerEligibleStory(DD), true);
+    assert.equal(partnerRashifalFor(DD).show, true);
+  });
+
+  it("exact slug is links-only through 24 Nov IST and off from 00:00 IST 25 Nov", () => {
+    const c = festivalPartnerCtaFor(DD, IST_24NOV_LAST_MS);
+    assert.equal(c?.id, "vaikuntha_2026");
+    assert.equal(c?.linksOnly, true);
+    assert.equal(c?.path, "/vaikuntha-chaturdashi-2026/");
+    assert.equal(c?.campaign, "vaikuntha_2026");
+    assert.equal(festivalPartnerCtaFor(DD, IST_25NOV_MIDNIGHT), null);
+    assert.equal(secondsUntilFestivalCtaExpiry(c!, new Date("2026-11-24T18:00:00Z")), 1800);
+    assert.equal(secondsUntilFestivalCtaExpiry(c!, IST_25NOV_MIDNIGHT), 1);
+  });
+
+  it("does not match nearby or keyword-only stories", () => {
+    for (const a of [
+      {
+        slug: "sarnath-light-sound-show-hd-revamp-dev-deepawali-5-oct",
+        title: "Sarnath Light and Sound Show to Restart by Dev Deepawali With HD Projection",
+        category: "Varanasi",
+      },
+      {
+        slug: "pushkar-fair-2026-dates-17-24-november-travel-guide",
+        title: "Pushkar Fair 2026 dates: official listing runs from 17 to 24 November",
+        category: "Lifestyle",
+        tags: "Kartik Purnima",
+      },
+      {
+        slug: "diwali-2026-date-8-november-varanasi-muhurat-guide",
+        title: "Diwali 2026 on 8 November: Lakshmi Puja timings",
+        category: "Varanasi",
+      },
+      {
+        slug: "varanasi-akashdeep-dashashwamedh-opening-oct27-2026",
+        title: "Varanasi Akashdeep observance opens at Dashashwamedh Ghat",
+        category: "Culture",
+        tags: "Kartik",
+      },
+      { slug: "kartik-purnima-2026-snan", title: "Kartik Purnima 2026 snan muhurat", category: "Lifestyle" },
+      { slug: "tulsi-vivah-2026-varanasi", title: "Tulsi Vivah 2026 muhurat", category: "Lifestyle" },
+      { slug: "dev-uthani-ekadashi-2026", title: "Dev Uthani Ekadashi 2026", category: "Lifestyle" },
+      { slug: "guru-nanak-jayanti-24-november-2026-date-holiday-guide", title: "Guru Nanak Jayanti", category: "Lifestyle" },
+    ]) {
+      assert.notEqual(festivalPartnerCtaFor(a, DURING)?.id, "vaikuntha_2026", a.slug);
+    }
+    assert.equal(
+      festivalPartnerCtaFor(
+        { slug: "guru-nanak-jayanti-24-november-2026-date-holiday-guide", title: "Guru Nanak Jayanti", category: "Lifestyle" },
+        DURING
+      )?.id,
+      "guru_nanak_2026"
+    );
+  });
+
+  it("hard news is excluded even with the exact slug", () => {
+    assert.equal(festivalPartnerCtaFor({ ...DD, title: "Dev Deepawali stampede kills 2 at ghat" }, DURING), null);
+    assert.equal(festivalPartnerCtaFor({ ...DD, title: "Dev Deepawali: police arrest 3 after clash" }, DURING), null);
+    assert.equal(festivalPartnerCtaFor({ ...DD, category: "Crime" }, DURING), null);
+  });
+
+  it("end card, sidebar and line use widget, sidebar and inline UTMs, with no utm_term", () => {
+    const id = festivalPartnerCtaFor(DD, DURING)!.id;
+    const end = html(React.createElement(PartnerEndCard, { lang: "en", slug: DD.slug, festivalCtaId: id, variant: null }));
+    const side = html(React.createElement(PartnerSidebar, { lang: "en", slug: DD.slug, festivalCtaId: id, variant: null }));
+    const line = html(React.createElement(PartnerFestivalLine, { lang: "en", slug: DD.slug, festivalCtaId: id, variant: null }));
+    const want = (medium: string) => ({
+      utm_source: "dalimss_news",
+      utm_medium: medium,
+      utm_campaign: "vaikuntha_2026",
+      utm_content: DD.slug,
+    });
+    for (const [markup, medium] of [
+      [end, "widget"],
+      [side, "sidebar"],
+      [line, "inline"],
+    ] as const) {
+      const links = hrefs(markup);
+      assert.equal(links.length, 1, markup);
+      assert.equal(new URL(links[0]).origin + new URL(links[0]).pathname, "https://pocketjyotish.in/vaikuntha-chaturdashi-2026/");
+      assert.deepEqual(params(links[0]), want(medium));
+      assert.equal(params(links[0]).utm_term, undefined);
+      assert.ok(!/<(iframe|embed|object)\b/i.test(markup));
+      assert.ok(markup.includes("Partner"));
+      assert.ok(!/kundli/i.test(markup));
+      assert.ok(!/\bfree\b/i.test(markup));
+      assert.ok(!/kartik purnima|dev deepawali/i.test(markup));
+      assert.ok(markup.includes("Vaikuntha Chaturdashi"));
+      for (const m of Array.from(markup.matchAll(/<a [^>]*>/g))) assert.ok(m[0].includes('rel="sponsored noopener"'));
+    }
+    assert.ok(line.includes("Vaikuntha Chaturdashi 2026 guide"));
+    const hi = html(React.createElement(PartnerFestivalLine, { lang: "hi", slug: DD.slug, festivalCtaId: id }));
+    assert.ok(hi.includes("वैकुंठ चतुर्दशी 2026 गाइड"));
+    assert.ok(!/कार्तिक पूर्णिमा|देव दीपावली|मुफ्त|फ्री/.test(hi));
+  });
+
+  it("after 00:00 IST 25 Nov the festival id is absent and evergreen links return", () => {
+    assert.equal(festivalPartnerCtaFor(DD, IST_25NOV_MIDNIGHT), null);
+    const end = html(React.createElement(PartnerEndCard, { lang: "en", slug: DD.slug, festivalCtaId: null }));
+    const side = html(React.createElement(PartnerSidebar, { lang: "en", slug: DD.slug, festivalCtaId: null }));
+    assert.ok(end.includes("pocketjyotish.in/rashifal/") && end.includes("pocketjyotish.in/milan/"));
+    assert.ok(side.includes("pocketjyotish.in/kundli/"));
+    assert.ok(!(end + side).includes("vaikuntha-chaturdashi-2026"));
+    assert.equal(html(React.createElement(PartnerFestivalLine, { lang: "en", slug: DD.slug, festivalCtaId: null })), "");
   });
 });
 
