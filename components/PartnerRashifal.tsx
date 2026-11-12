@@ -6,21 +6,26 @@ import {
   getUpcomingVrat,
   partnerHref,
   PARTNER_CAMPAIGN_EVERGREEN,
+  PARTNER_CAMPAIGN_SPONSORED_EVERGREEN,
   PARTNER_CAMPAIGN_TECH_AUTO,
   type PartnerVariant,
 } from "@/lib/partnerRashifal";
 
 const REL = "sponsored noopener";
 
-/** Reserved box for the evergreen Sponsored end unit. Padding 16×2 + rows = 192. */
-export const SPONSORED_END_UNIT_HEIGHT_PX = 192;
+/**
+ * Reserved box for the evergreen Sponsored end unit.
+ * 2px border + 16px padding, each side, then 16px label, 12px gap, 72px copy,
+ * 12px gap, and three 24px link rows. Border is inside the box.
+ */
+export const SPONSORED_END_UNIT_HEIGHT_PX = 220;
 /** Reserved box when the end card is showing the next vrat guide. */
 export const VRAT_END_CARD_HEIGHT_PX = 148;
 /** Reserved row under the rashifal iframe. The iframe box stays 440px. */
 export const WIDGET_VRAT_ROW_HEIGHT_PX = 64;
 
 export const SPONSORED_HARD_NEWS_COPY =
-  "Pocket Jyotish: Free kundli and daily rashifal in Hindi and English.";
+  "Pocket Jyotish AI Astrologer. 10 questions a day are free. Free kundli and daily rashifal.";
 
 function sponsoredMark(hi: boolean) {
   return (
@@ -421,10 +426,14 @@ export function PartnerFestivalLine({
 
 /**
  * Evergreen Sponsored house ad for stories that have no partner end unit.
- * Fixed 192px box: 16px padding, 16px label, 12px gap, 72px copy, 12px gap,
- * two 24px link rows. No image, no iframe, no third-party script. Amber border
- * and background so it is not story text and not an AdSense "Advertisement" slot.
- * Hard-news copy stays the neutral sentence and does not mention the article.
+ * Fixed 220px box: 2px border and 16px padding on each side, 16px label,
+ * 12px gap, 72px copy, 12px gap, and three 24px link rows. The AI Astrologer
+ * chat is the main link. Kundli
+ * and rashifal are secondary. No image, no iframe, no third-party script.
+ * Amber border and background so it is not story text and not an AdSense
+ * "Advertisement" slot. Hard-news copy stays the neutral sentence and does
+ * not mention the article. The chat is not called a free human astrologer
+ * call. The live chat page says 10 questions a day are free.
  */
 export function PartnerSponsoredUnit({
   lang,
@@ -438,26 +447,43 @@ export function PartnerSponsoredUnit({
   placement: "after-body" | "before-related";
 }) {
   const hi = lang === "hi";
-  const kundli = partnerHref({
-    path: "/kundli/",
-    medium: "ad",
-    campaign: PARTNER_CAMPAIGN_EVERGREEN,
-    slug,
-  });
-  const rashifal = partnerHref({
-    path: "/rashifal/",
-    medium: "ad",
-    campaign: PARTNER_CAMPAIGN_EVERGREEN,
-    slug,
-  });
+  // Both house-ad positions use medium "ad". The vrat widget and sidebar keep
+  // their own mediums, so utm_medium still follows the placement.
+  const link = (path: string) =>
+    partnerHref({
+      path,
+      medium: "ad",
+      campaign: PARTNER_CAMPAIGN_SPONSORED_EVERGREEN,
+      slug,
+    });
+  const chat = link("/chat/");
+  const kundli = link("/kundli/");
+  const rashifal = link("/rashifal/");
   const copy =
     tone === "hard-news"
       ? SPONSORED_HARD_NEWS_COPY
       : hi
-        ? "Pocket Jyotish: मुफ्त कुंडली और मुफ्त दैनिक राशिफल."
-        : "Pocket Jyotish: free kundli and free daily rashifal.";
+        ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
+        : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
+  const chatLabel = tone === "hard-news" || !hi ? "AI Astrologer" : "AI ज्योतिषी";
   const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";
   const rashifalLabel = tone === "hard-news" || !hi ? "Free daily rashifal" : "मुफ्त दैनिक राशिफल";
+  const row = (href: string, label: string, primary: boolean, marginTop: number) => (
+    <p style={{ height: 24, lineHeight: "24px", margin: `${marginTop}px 0 0`, overflow: "hidden", whiteSpace: "nowrap" }}>
+      <a
+        href={href}
+        target="_blank"
+        rel={REL}
+        className={
+          primary
+            ? "font-bold text-blue-800 underline underline-offset-2"
+            : "font-semibold text-blue-800 underline underline-offset-2"
+        }
+      >
+        {label}
+      </a>
+    </p>
+  );
   return (
     <aside
       className="partner-sponsored-unit not-prose"
@@ -492,16 +518,9 @@ export function PartnerSponsoredUnit({
       >
         {copy}
       </p>
-      <p style={{ height: 24, lineHeight: "24px", margin: "12px 0 0", overflow: "hidden", whiteSpace: "nowrap" }}>
-        <a href={kundli} target="_blank" rel={REL} className="font-semibold text-blue-800 underline underline-offset-2">
-          {kundliLabel}
-        </a>
-      </p>
-      <p style={{ height: 24, lineHeight: "24px", margin: 0, overflow: "hidden", whiteSpace: "nowrap" }}>
-        <a href={rashifal} target="_blank" rel={REL} className="font-semibold text-blue-800 underline underline-offset-2">
-          {rashifalLabel}
-        </a>
-      </p>
+      {row(chat, chatLabel, true, 12)}
+      {row(kundli, kundliLabel, false, 0)}
+      {row(rashifal, rashifalLabel, false, 0)}
     </aside>
   );
 }

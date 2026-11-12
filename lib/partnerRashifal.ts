@@ -395,15 +395,33 @@ export function festivalPartnerHref(
 /** Inclusive last Asia/Calcutta day. Off at 00:00 IST the next day. */
 export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
 export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
+/** Rotation window. The exact-slug links-only CTA stays on its own later date. */
+export const VAIKUNTHA_VRAT_UNTIL_IST = "2026-11-23";
+export const DEV_DEEPAWALI_UNTIL_IST = "2026-11-24";
 export const SANKASHTI_UNTIL_IST = "2026-11-27";
 export const MARGASHIRSHA_PURNIMA_UNTIL_IST = "2026-12-24";
+/**
+ * Inclusive IST days when Dev Deepawali replaces Pradosh on Varanasi and
+ * festival stories. Off at 00:00 IST on 25 Nov. Tulsi and Vaikuntha are unchanged.
+ */
+export const DEV_DEEPAWALI_PRIORITY_FROM_IST = "2026-11-17";
+export const DEV_DEEPAWALI_PRIORITY_UNTIL_IST = "2026-11-24";
 
 export const PARTNER_CAMPAIGN_TULSI_VIVAH = "tulsi_vivah_2026";
 export const PARTNER_CAMPAIGN_PRADOSH = "pradosh_2026";
 export const PARTNER_CAMPAIGN_SANKASHTI = "sankashti_2026";
 export const PARTNER_CAMPAIGN_MGPURNIMA = "mgpurnima_2026";
+export const PARTNER_CAMPAIGN_DEV_DEEPAWALI = "dev_deepawali_2026";
+/** House-ad evergreen unit. Older rashifal and kundli links stay on partner_evergreen. */
+export const PARTNER_CAMPAIGN_SPONSORED_EVERGREEN = "evergreen";
 
-export type UpcomingVratId = "tulsi_vivah_2026" | "pradosh_2026" | "sankashti_2026" | "mgpurnima_2026";
+export type UpcomingVratId =
+  | "tulsi_vivah_2026"
+  | "pradosh_2026"
+  | "vaikuntha_2026"
+  | "dev_deepawali_2026"
+  | "sankashti_2026"
+  | "mgpurnima_2026";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
@@ -455,6 +473,46 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "प्रदोष व्रत 2026",
         sidebarBody: "प्रदोष व्रत 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "प्रदोष व्रत 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "vaikuntha_2026",
+    path: "/vaikuntha-chaturdashi-2026/",
+    campaign: PARTNER_CAMPAIGN_VAIKUNTHA,
+    untilIst: VAIKUNTHA_VRAT_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Vaikuntha Chaturdashi 2026 guide",
+        sidebarTitle: "Vaikuntha Chaturdashi 2026",
+        sidebarBody: "See the Vaikuntha Chaturdashi 2026 guide on our partner site.",
+        sidebarLink: "Vaikuntha Chaturdashi 2026 guide",
+      },
+      hi: {
+        endCard: "वैकुंठ चतुर्दशी 2026 गाइड",
+        sidebarTitle: "वैकुंठ चतुर्दशी 2026",
+        sidebarBody: "वैकुंठ चतुर्दशी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "वैकुंठ चतुर्दशी 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "dev_deepawali_2026",
+    path: "/dev-deepawali-2026/",
+    campaign: PARTNER_CAMPAIGN_DEV_DEEPAWALI,
+    untilIst: DEV_DEEPAWALI_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Dev Deepawali 2026 guide",
+        sidebarTitle: "Dev Deepawali 2026",
+        sidebarBody: "See the Dev Deepawali 2026 guide on our partner site.",
+        sidebarLink: "Dev Deepawali 2026 guide",
+      },
+      hi: {
+        endCard: "देव दीपावली 2026 गाइड",
+        sidebarTitle: "देव दीपावली 2026",
+        sidebarBody: "देव दीपावली 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "देव दीपावली 2026 गाइड",
       },
     },
   },
@@ -657,12 +715,44 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
  * Next vrat guide for an astrology / festival / vrat / puja story, or null.
  * Sensitive and hard news never qualify. An exact-slug festival CTA or the
  * Diwali CTA already occupies the end unit, so the rotation stays off.
+ * From 17 to 24 Nov IST, Varanasi and festival stories show Dev Deepawali
+ * instead of Pradosh. Tulsi (through 21 Nov) and Vaikuntha (through 23 Nov)
+ * still win on those days because they are the sooner guide.
  */
 export function upcomingVratForStory(a: StoryFields, now: Date = new Date()): UpcomingVratCta | null {
   if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return null;
   if (festivalPartnerCtaFor(a, now)) return null;
   if (isDiwaliPartnerCtaActive(now) && isDiwaliFestivalStory(a)) return null;
-  return nextUpcomingVrat(now);
+  const next = nextUpcomingVrat(now);
+  if (!next) return null;
+  if (next.id === "pradosh_2026" && devDeepawaliOverridesPradosh(a, now)) {
+    return getUpcomingVrat("dev_deepawali_2026");
+  }
+  return next;
+}
+
+const FESTIVAL_STORY_EN =
+  /\b(panchang|muhurats?|muhurtas?|vrats?|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi|dev[\s-]?uthani|dev[\s-]?diwali|kartik|purnima|amavasya|sankranti|holi|janmashtami|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan|pradosh|sankashti|vaikuntha|margashirsha|festivals?)\b/i;
+const FESTIVAL_STORY_HI =
+  /(पंचांग|मुहूर्त|व्रत|पूजा|आरती|चालीसा|करवा\s?चौथ|दिवाली|दीपावली|छठ|धनतेरस|एकादशी|नवरात्रि|नवरात्र|भाई\s?दूज|गोवर्धन|तुलसी|देव\s?दीपावली|देव\s?दिवाली|कार्तिक|पूर्णिमा|अमावस्या|संक्रांति|होली|जन्माष्टमी|शिवरात्रि|गणेश\s?चतुर्थी|दुर्गा\s?पूजा|रक्षाबंधन|दशहरा|रामनवमी|हनुमान\s?जयंती|अक्षय\s?तृतीया|तीज|पितृ\s?पक्ष|श्राद्ध|सावन|प्रदोष|संकष्टी|वैकुंठ|मार्गशीर्ष|त्योहार)/;
+const FESTIVAL_STORY_CATEGORY = /^(festivals?|religion|spirituality|spiritual|dharm|dharma|धर्म|त्योहार|पर्व)$/i;
+
+/** Varanasi stories and festival / vrat / puja stories. A plain rashifal does not match. */
+export function isVaranasiOrFestivalStory(a: StoryFields): boolean {
+  const cat = (a.category || "").trim();
+  if (cat && (FESTIVAL_STORY_CATEGORY.test(cat) || /^varanasi$/i.test(cat))) return true;
+  const hay = partnerHay(a);
+  return VARANASI_PLACE.test(hay) || FESTIVAL_STORY_EN.test(hay) || FESTIVAL_STORY_HI.test(hay);
+}
+
+/** True on 17–24 Nov IST for a Varanasi or festival story. */
+export function devDeepawaliOverridesPradosh(a: StoryFields, now: Date = new Date()): boolean {
+  const today = istCalendarDate(now);
+  return (
+    today >= DEV_DEEPAWALI_PRIORITY_FROM_IST &&
+    today <= DEV_DEEPAWALI_PRIORITY_UNTIL_IST &&
+    isVaranasiOrFestivalStory(a)
+  );
 }
 
 /**

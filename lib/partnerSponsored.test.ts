@@ -4,14 +4,21 @@ import { describe, it } from "node:test";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
+  DEV_DEEPAWALI_PRIORITY_FROM_IST,
+  DEV_DEEPAWALI_PRIORITY_UNTIL_IST,
+  DEV_DEEPAWALI_UNTIL_IST,
   MARGASHIRSHA_PURNIMA_UNTIL_IST,
   PRADOSH_VRAT_UNTIL_IST,
   SANKASHTI_UNTIL_IST,
   TULSI_VIVAH_UNTIL_IST,
+  VAIKUNTHA_VRAT_UNTIL_IST,
   canShowSponsoredEndUnit,
+  festivalPartnerCtaFor,
   isHardNewsStory,
   isPartnerEligibleStory,
   isSensitiveStory,
+  devDeepawaliOverridesPradosh,
+  isVaranasiOrFestivalStory,
   nextUpcomingVrat,
   partnerPageRevalidateSeconds,
   secondsUntilFestivalCtaExpiry,
@@ -136,19 +143,34 @@ describe("upcoming vrat rotation expires at 00:00 IST", () => {
   it("keeps the approved last days", () => {
     assert.equal(TULSI_VIVAH_UNTIL_IST, "2026-11-21");
     assert.equal(PRADOSH_VRAT_UNTIL_IST, "2026-11-22");
+    assert.equal(VAIKUNTHA_VRAT_UNTIL_IST, "2026-11-23");
+    assert.equal(DEV_DEEPAWALI_UNTIL_IST, "2026-11-24");
+    assert.equal(DEV_DEEPAWALI_PRIORITY_FROM_IST, "2026-11-17");
+    assert.equal(DEV_DEEPAWALI_PRIORITY_UNTIL_IST, "2026-11-24");
     assert.equal(SANKASHTI_UNTIL_IST, "2026-11-27");
     assert.equal(MARGASHIRSHA_PURNIMA_UNTIL_IST, "2026-12-24");
   });
 
   it("shows only the next live guide, then the evergreen fallback", () => {
+    const vaikunthaLast = new Date("2026-11-23T18:29:59.999Z");
+    const devStart = new Date("2026-11-23T18:30:00Z");
+    const devLast = new Date("2026-11-24T18:29:59.999Z");
     assert.equal(nextUpcomingVrat(TULSI_LAST)?.id, "tulsi_vivah_2026");
     assert.equal(nextUpcomingVrat(PRADOSH_START)?.id, "pradosh_2026");
     assert.equal(nextUpcomingVrat(PRADOSH_LAST)?.id, "pradosh_2026");
-    assert.equal(nextUpcomingVrat(SANKASHTI_START)?.id, "sankashti_2026");
+    assert.equal(nextUpcomingVrat(SANKASHTI_START)?.id, "vaikuntha_2026");
+    assert.equal(nextUpcomingVrat(vaikunthaLast)?.id, "vaikuntha_2026");
+    assert.equal(nextUpcomingVrat(devStart)?.id, "dev_deepawali_2026");
+    assert.equal(nextUpcomingVrat(devLast)?.id, "dev_deepawali_2026");
     assert.equal(nextUpcomingVrat(SANKASHTI_LAST)?.id, "sankashti_2026");
     assert.equal(nextUpcomingVrat(MG_START)?.id, "mgpurnima_2026");
     assert.equal(nextUpcomingVrat(MG_LAST)?.id, "mgpurnima_2026");
     assert.equal(nextUpcomingVrat(AFTER_ALL), null);
+    assert.equal(nextUpcomingVrat(devStart)?.path, "/dev-deepawali-2026/");
+    assert.equal(nextUpcomingVrat(devStart)?.campaign, "dev_deepawali_2026");
+    assert.equal(nextUpcomingVrat(vaikunthaLast)?.path, "/vaikuntha-chaturdashi-2026/");
+    assert.equal(nextUpcomingVrat(vaikunthaLast)?.campaign, "vaikuntha_2026");
+    assert.equal(nextUpcomingVrat(new Date("2026-11-24T18:30:00Z"))?.id, "sankashti_2026");
   });
 
   it("revalidate hits IST midnight and is hourly when the window is longer", () => {
@@ -173,7 +195,7 @@ describe("upcoming vrat rotation expires at 00:00 IST", () => {
   it("eligible stories take the next guide unless a named festival CTA is already showing", () => {
     assert.equal(upcomingVratForStory(RASHIFAL, TULSI_LAST)?.campaign, "tulsi_vivah_2026");
     assert.equal(upcomingVratForStory(RASHIFAL, PRADOSH_START)?.path, "/pradosh-vrat-2026/");
-    assert.equal(upcomingVratForStory(RASHIFAL, SANKASHTI_START)?.campaign, "sankashti_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, SANKASHTI_START)?.campaign, "vaikuntha_2026");
     assert.equal(upcomingVratForStory(RASHIFAL, MG_START)?.campaign, "mgpurnima_2026");
     assert.equal(upcomingVratForStory(RASHIFAL, AFTER_ALL), null);
     assert.equal(upcomingVratForStory(DD, new Date("2026-11-20T06:30:00Z")), null);
@@ -185,43 +207,50 @@ describe("upcoming vrat rotation expires at 00:00 IST", () => {
 });
 
 describe("sponsored unit and vrat link markup", () => {
-  it("reserves 192px, labels Sponsored, and links kundli plus rashifal with ad UTMs", () => {
-    assert.equal(SPONSORED_END_UNIT_HEIGHT_PX, 192);
+  it("reserves 220px, labels Sponsored, and links chat then kundli and rashifal", () => {
+    assert.equal(SPONSORED_END_UNIT_HEIGHT_PX, 220);
     for (const lang of ["en", "hi"] as const) {
       for (const tone of ["general", "hard-news"] as const) {
-        const markup = html(
-          React.createElement(PartnerSponsoredUnit, {
-            lang,
-            slug: "city-brief",
-            tone,
-            placement: "after-body",
-          })
-        );
-        assert.match(markup, /height:192px/);
-        assert.match(markup, /min-height:192px/);
-        assert.match(markup, /max-height:192px/);
-        assert.match(markup, /background-color:#fffbeb/);
-        assert.match(markup, /border:2px solid #b45309/);
-        assert.ok(markup.includes("Sponsored"));
-        if (lang === "hi") assert.ok(markup.includes("प्रायोजित"));
-        assert.ok(!/advertisement|ads by/i.test(markup));
-        assert.ok(!/<(iframe|img|script|embed|object)\b/i.test(markup));
-        assert.ok(!/click here|hurry|don't miss|limited time|today only/i.test(markup));
-        assert.ok(!/free-kundli|jyotishi|free call/i.test(markup));
-        const links = hrefs(markup);
-        assert.deepEqual(links.map((h) => new URL(h).pathname), ["/kundli/", "/rashifal/"]);
-        for (const medium of ["kundli", "rashifal"]) {
-          const link = links.find((h) => new URL(h).pathname === (medium === "kundli" ? "/kundli/" : "/rashifal/"))!;
-          assert.deepEqual(params(link), {
-            utm_source: "dalimss_news",
-            utm_medium: "ad",
-            utm_campaign: "partner_evergreen",
-            utm_content: "city-brief",
-          });
-        }
-        for (const tag of Array.from(markup.matchAll(/<a [^>]*>/g))) {
-          assert.ok(tag[0].includes('rel="sponsored noopener"'), tag[0]);
-          assert.ok(tag[0].includes('target="_blank"'), tag[0]);
+        for (const placement of ["after-body", "before-related"] as const) {
+          const markup = html(
+            React.createElement(PartnerSponsoredUnit, {
+              lang,
+              slug: "city-brief",
+              tone,
+              placement,
+            })
+          );
+          assert.match(markup, /height:220px/);
+          assert.match(markup, /min-height:220px/);
+          assert.match(markup, /max-height:220px/);
+          assert.match(markup, /background-color:#fffbeb/);
+          assert.match(markup, /border:2px solid #b45309/);
+          assert.ok(markup.includes("Sponsored"));
+          if (lang === "hi") assert.ok(markup.includes("प्रायोजित"));
+          assert.ok(!/advertisement|ads by/i.test(markup));
+          assert.ok(!/<(iframe|img|script|embed|object)\b/i.test(markup));
+          assert.ok(!/click here|hurry|don't miss|limited time|today only/i.test(markup));
+          assert.ok(!/free-kundli|jyotishi|free call|free ai|free astrologer|free chat/i.test(markup));
+          const links = hrefs(markup);
+          assert.deepEqual(
+            links.map((h) => new URL(h).pathname),
+            ["/chat/", "/kundli/", "/rashifal/"]
+          );
+          for (const link of links) {
+            assert.deepEqual(params(link), {
+              utm_source: "dalimss_news",
+              utm_medium: "ad",
+              utm_campaign: "evergreen",
+              utm_content: "city-brief",
+            });
+          }
+          const chatText = markup.match(/<a [^>]*\/chat\/[^>]*>[^<]*<\/a>/)?.[0] ?? "";
+          assert.match(chatText, /font-bold/);
+          assert.ok(!/>\s*Free/i.test(chatText));
+          for (const tag of Array.from(markup.matchAll(/<a [^>]*>/g))) {
+            assert.ok(tag[0].includes('rel="sponsored noopener"'), tag[0]);
+            assert.ok(tag[0].includes('target="_blank"'), tag[0]);
+          }
         }
       }
     }
@@ -239,7 +268,27 @@ describe("sponsored unit and vrat link markup", () => {
     assert.ok(markup.includes(SPONSORED_HARD_NEWS_COPY));
     assert.ok(markup.includes("प्रायोजित"));
     assert.match(markup, /margin-top:48px/);
-    assert.equal(SPONSORED_HARD_NEWS_COPY, "Pocket Jyotish: Free kundli and daily rashifal in Hindi and English.");
+    assert.equal(
+      SPONSORED_HARD_NEWS_COPY,
+      "Pocket Jyotish AI Astrologer. 10 questions a day are free. Free kundli and daily rashifal."
+    );
+    assert.ok(markup.includes(">AI Astrologer<"));
+    assert.ok(!/free call|free jyotishi|free astrologer/i.test(markup));
+    assert.ok(markup.includes("10 questions a day are free"));
+  });
+
+  it("general copy uses the live chat limit and does not call a human astrologer free", () => {
+    const en = html(
+      React.createElement(PartnerSponsoredUnit, { lang: "en", slug: "city-brief", tone: "general", placement: "after-body" })
+    );
+    const hi = html(
+      React.createElement(PartnerSponsoredUnit, { lang: "hi", slug: "city-brief", tone: "general", placement: "after-body" })
+    );
+    assert.ok(en.includes("10 questions a day are free"));
+    assert.ok(en.includes(">AI Astrologer<"));
+    assert.ok(hi.includes("10 सवाल मुफ़्त"));
+    assert.ok(hi.includes(">AI ज्योतिषी<"));
+    assert.ok(!/free call|free jyotishi|free astrologer|फ्री कॉल|मुफ्त कॉल/i.test(en + hi));
   });
 
   it("vrat end card, widget and sidebar use ad, widget and sidebar UTMs and sponsored rel", () => {
@@ -325,6 +374,127 @@ describe("sponsored unit and vrat link markup", () => {
   });
 });
 
+describe("Vaikuntha and Dev Deepawali windows and priority", () => {
+  const NOV16_LAST = new Date("2026-11-16T18:29:59.999Z");
+  const NOV17_START = new Date("2026-11-16T18:30:00Z");
+  const NOV17 = new Date("2026-11-17T06:30:00Z");
+  const NOV22 = new Date("2026-11-22T06:30:00Z");
+  const NOV23_LAST = new Date("2026-11-23T18:29:59.999Z");
+  const NOV24_START = new Date("2026-11-23T18:30:00Z");
+  const NOV24 = new Date("2026-11-24T06:30:00Z");
+  const NOV24_LAST = new Date("2026-11-24T18:29:59.999Z");
+  const NOV25_START = new Date("2026-11-24T18:30:00Z");
+  const TULSI = { slug: "tulsi-vivah-2026-muhurat", title: "Tulsi Vivah 2026 muhurat", category: "Lifestyle" };
+  const VARANASI = {
+    slug: "dashashwamedh-ghat-aarti-timings",
+    title: "Dashashwamedh Ghat aarti timings in Varanasi",
+    category: "Lifestyle",
+    tags: "Varanasi, aarti, guide",
+  };
+  const OTHER_DEV = {
+    slug: "dev-deepawali-2026-kashi-ghat-guide",
+    title: "Dev Deepawali 2026 ghat guide for Varanasi",
+    category: "Lifestyle",
+    tags: "Dev Deepawali, Varanasi",
+  };
+
+  it("tells Varanasi and festival stories apart from a plain rashifal", () => {
+    assert.equal(isVaranasiOrFestivalStory(RASHIFAL), false);
+    assert.equal(isVaranasiOrFestivalStory(TULSI), true);
+    assert.equal(isVaranasiOrFestivalStory(VARANASI), true);
+    assert.equal(isVaranasiOrFestivalStory(OTHER_DEV), true);
+    assert.equal(isVaranasiOrFestivalStory(METRO), false);
+  });
+
+  it("Dev Deepawali replaces Pradosh only from 17 Nov through 24 Nov IST", () => {
+    assert.equal(devDeepawaliOverridesPradosh(TULSI, NOV16_LAST), false);
+    assert.equal(devDeepawaliOverridesPradosh(TULSI, NOV17_START), true);
+    assert.equal(devDeepawaliOverridesPradosh(VARANASI, NOV22), true);
+    assert.equal(devDeepawaliOverridesPradosh(RASHIFAL, NOV22), false);
+    assert.equal(devDeepawaliOverridesPradosh(TULSI, NOV24_LAST), true);
+    assert.equal(devDeepawaliOverridesPradosh(TULSI, NOV25_START), false);
+  });
+
+  it("keeps Tulsi through 21 Nov, then swaps only Pradosh on Varanasi and festival stories", () => {
+    assert.equal(upcomingVratForStory(TULSI, NOV17)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(VARANASI, NOV17)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV22)?.id, "pradosh_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV22)?.path, "/pradosh-vrat-2026/");
+    assert.equal(upcomingVratForStory(TULSI, NOV22)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(VARANASI, NOV22)?.path, "/dev-deepawali-2026/");
+    assert.equal(upcomingVratForStory(VARANASI, NOV22)?.campaign, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(OTHER_DEV, NOV22)?.id, "dev_deepawali_2026");
+  });
+
+  it("shows Vaikuntha through 23 Nov IST and Dev Deepawali through 24 Nov IST", () => {
+    assert.equal(nextUpcomingVrat(NOV23_LAST)?.id, "vaikuntha_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV23_LAST)?.path, "/vaikuntha-chaturdashi-2026/");
+    assert.equal(upcomingVratForStory(VARANASI, NOV23_LAST)?.id, "vaikuntha_2026");
+    assert.equal(nextUpcomingVrat(NOV24_START)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV24)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(VARANASI, NOV24_LAST)?.id, "dev_deepawali_2026");
+    assert.equal(nextUpcomingVrat(NOV25_START)?.id, "sankashti_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV25_START)?.id, "sankashti_2026");
+  });
+
+  it("revalidate follows the guide that is actually showing", () => {
+    const dev = upcomingVratForStory(VARANASI, NOV22)!;
+    assert.equal(dev.untilIst, "2026-11-24");
+    assert.equal(partnerPageRevalidateSeconds([dev], NOV22), 3600);
+    assert.equal(secondsUntilFestivalCtaExpiry(dev, new Date("2026-11-24T18:00:00Z")), 1800);
+    assert.equal(secondsUntilFestivalCtaExpiry(dev, NOV25_START), 1);
+    const vaikuntha = upcomingVratForStory(RASHIFAL, NOV23_LAST)!;
+    assert.equal(vaikuntha.untilIst, "2026-11-23");
+    assert.equal(secondsUntilFestivalCtaExpiry(vaikuntha, new Date("2026-11-23T18:00:00Z")), 1800);
+    assert.equal(secondsUntilFestivalCtaExpiry(vaikuntha, NOV24_START), 1);
+    assert.equal(partnerPageRevalidateSeconds([vaikuntha], new Date("2026-11-23T18:00:00Z")), 1800);
+  });
+
+  it("keeps the exact-slug Vaikuntha links-only CTA and does not add a second unit", () => {
+    for (const now of [NOV17, NOV22, NOV24, NOV24_LAST]) {
+      assert.equal(upcomingVratForStory(DD, now), null, now.toISOString());
+      assert.equal(canShowSponsoredEndUnit(DD, { now }), false);
+      const cta = festivalPartnerCtaFor(DD, now);
+      assert.equal(cta?.id, "vaikuntha_2026");
+      assert.equal(cta?.linksOnly, true);
+      assert.equal(cta?.path, "/vaikuntha-chaturdashi-2026/");
+      assert.equal(cta?.untilIst, "2026-11-24");
+      const end = html(
+        React.createElement(PartnerEndCard, {
+          lang: "en",
+          slug: DD.slug,
+          festivalCtaId: cta!.id,
+          upcomingVratId: "dev_deepawali_2026",
+        })
+      );
+      const links = hrefs(end);
+      assert.equal(links.length, 1);
+      assert.equal(new URL(links[0]).pathname, "/vaikuntha-chaturdashi-2026/");
+      assert.equal(params(links[0]).utm_campaign, "vaikuntha_2026");
+      assert.equal(params(links[0]).utm_content, DD.slug);
+      assert.ok(!end.includes("dev-deepawali-2026"));
+      assert.ok(!/\bfree\b/i.test(end));
+    }
+    assert.equal(festivalPartnerCtaFor(DD, NOV25_START), null);
+    assert.equal(upcomingVratForStory(DD, NOV25_START)?.id, "sankashti_2026");
+  });
+
+  it("vrat guide cards are not called free and a story has one end unit", () => {
+    const card = html(
+      React.createElement(PartnerEndCard, { lang: "en", slug: "s", upcomingVratId: "dev_deepawali_2026" })
+    );
+    assert.ok(card.includes("Dev Deepawali 2026 guide"));
+    assert.ok(card.includes("Sponsored"));
+    assert.ok(!/\bfree\b/i.test(card));
+    assert.equal(hrefs(card).length, 1);
+    for (const story of [RASHIFAL, TULSI, VARANASI, OTHER_DEV, DD, METRO, POLITICS]) {
+      for (const now of [NOV17, NOV22, NOV24, NOV25_START, AFTER_ALL]) {
+        assert.equal(Boolean(canShowSponsoredEndUnit(story, { now }) && upcomingVratForStory(story, now)), false);
+      }
+    }
+  });
+});
+
 describe("article template keeps the house ad away from AdSense", () => {
   const src = readFileSync(new URL("../pages/articles/[slug].tsx", import.meta.url), "utf8");
 
@@ -354,5 +524,9 @@ describe("article template keeps the house ad away from AdSense", () => {
     assert.ok(!src.slice(latest, related).includes("<AdSlot"));
     assert.ok(src.includes("const showPartnerPlacements = partner.show && !linksOnlyCta;"));
     assert.ok(src.includes("const inlineTestOn = showPartnerPlacements &&"));
+    assert.equal(src.split("<PartnerInlineCard").length - 1, 1);
+    assert.equal(src.split("<PartnerSponsoredUnit").length - 1, 2);
+    assert.equal(src.split('placement="after-body"').length - 1, 1);
+    assert.equal(src.split('placement="before-related"').length - 1, 1);
   });
 });
