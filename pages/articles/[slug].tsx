@@ -90,6 +90,8 @@ interface Props {
   partnerTests?: { inline: boolean; techAuto: boolean } | null;
   /** Festival guide CTA id, fixed at build/revalidate time so HTML and hydration agree. */
   festivalCtaId?: string | null;
+  /** Next vrat guide id, fixed at build/revalidate time so HTML and hydration agree. */
+  upcomingVratId?: string | null;
 }
 
 import Head from "next/head";
@@ -112,6 +114,7 @@ import {
   PartnerInlineCard,
   PartnerTechAutoLine,
   PartnerFestivalLine,
+  PartnerSponsoredUnit,
 } from "@/components/PartnerRashifal";
 import {
   isPartnerInlineTestActive,
@@ -124,7 +127,11 @@ import {
   useDiwaliPartnerCta,
   festivalPartnerCtaFor,
   getFestivalPartnerCta,
-  secondsUntilFestivalCtaExpiry,
+  upcomingVratForStory,
+  partnerPageRevalidateSeconds,
+  canShowSponsoredEndUnit,
+  sponsoredEndPlacement,
+  isHardNewsStory,
 } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
@@ -169,6 +176,7 @@ const ArticlePage: React.FC<Props> = ({
   bodyContent = null,
   partnerTests = null,
   festivalCtaId = null,
+  upcomingVratId = null,
 }) => {
   const { data: session } = useSession();
   
@@ -284,6 +292,18 @@ const ArticlePage: React.FC<Props> = ({
     Boolean(partnerTests?.techAuto) &&
     blockBeforeBelowAd &&
     isTechAutoTestStory(article);
+  // One Sponsored end unit, and never next to an AdSense slot. After the body
+  // when author or sources separate it from the below-article ad. Otherwise
+  // before related stories, with Latest Stories between it and that ad.
+  const sponsoredPlacement = sponsoredEndPlacement({
+    show: canShowSponsoredEndUnit(article, {
+      hasPriceGuide: showPricePartner,
+      hasTechAutoLine: showTechAutoLine,
+    }),
+    separatedFromBelowAd: blockBeforeBelowAd,
+    hasLatestStories: latestArticles.length > 0,
+  });
+  const sponsoredTone = isHardNewsStory(article) ? "hard-news" : "general";
   const renderedBody =
     bodyContent ||
     article.content ||
@@ -741,7 +761,14 @@ const ArticlePage: React.FC<Props> = ({
                   {children}
                 </ArticleGallery>
               ),
-              "partner-slot": () => <PartnerRashifal sign={partner.sign} lang={partner.lang} slug={article.slug} />,
+              "partner-slot": () => (
+                <PartnerRashifal
+                  sign={partner.sign}
+                  lang={partner.lang}
+                  slug={article.slug}
+                  upcomingVratId={upcomingVratId}
+                />
+              ),
               "partner-inline-card": () => <PartnerInlineCard lang={partner.lang} slug={article.slug} />,
               "ad-slot": ({ index }: any) => (
                 <AdSlot
@@ -777,7 +804,16 @@ const ArticlePage: React.FC<Props> = ({
           slug={article.slug}
           diwaliCta={diwaliCta}
           festivalCtaId={festivalCta?.id ?? null}
+          upcomingVratId={upcomingVratId}
           variant={partnerVariant}
+        />
+      )}
+      {sponsoredPlacement === "after-body" && (
+        <PartnerSponsoredUnit
+          lang={partnerLang}
+          slug={article.slug}
+          tone={sponsoredTone}
+          placement="after-body"
         />
       )}
       {showPricePartner && <PartnerPriceLine lang={isHindi ? "hi" : "en"} slug={article.slug} />}
@@ -854,6 +890,7 @@ const ArticlePage: React.FC<Props> = ({
           slug={article.slug}
           diwaliCta={diwaliCta}
           festivalCtaId={festivalCta?.id ?? null}
+          upcomingVratId={upcomingVratId}
           variant={partnerVariant}
         />
       )}
@@ -862,6 +899,15 @@ const ArticlePage: React.FC<Props> = ({
       )}
 
       <LatestStories stories={latestArticles} heading="Latest" />
+
+      {sponsoredPlacement === "before-related" && (
+        <PartnerSponsoredUnit
+          lang={partnerLang}
+          slug={article.slug}
+          tone={sponsoredTone}
+          placement="before-related"
+        />
+      )}
 
       {/* RELATED ARTICLES */}
       <RelatedArticles
@@ -1011,6 +1057,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   const festivalCta = festivalPartnerCtaFor(article);
+  const upcomingVrat = upcomingVratForStory(article);
 
   return {
     props: {
@@ -1044,9 +1091,10 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         techAuto: isPartnerTechAutoTestActive(),
       },
       festivalCtaId: festivalCta?.id ?? null,
+      upcomingVratId: upcomingVrat?.id ?? null,
     },
-    // Regenerate at 00:00 IST when a festival CTA expires, else hourly.
-    revalidate: festivalCta ? Math.min(3600, secondsUntilFestivalCtaExpiry(festivalCta)) : 3600,
+    // Regenerate at 00:00 IST when a festival or vrat CTA expires, else hourly.
+    revalidate: partnerPageRevalidateSeconds([festivalCta, upcomingVrat]),
   };
 };
 

@@ -21,7 +21,7 @@ const SERVICE_GUIDE =
 const HARD_NEWS_EN =
   /\b(crimes?|criminal|accidents?|crash(es|ed)?|collisions?|deaths?|dead|died|dies|dying|killed|kills?|killing|murder(s|ed)?|homicide|drown(s|ed|ing)?|bod(y|ies)[\s-]found|corpse|disasters?|flood(s|ed|ing)?|earthquakes?|cyclone|landslides?|stampedes?|collapse[sd]?|fires?|blaze|burn(t|ed)|explosions?|blasts?|police|cops?|arrest(s|ed)?|fir|custody|probe|raids?|rape[sd]?|assault(s|ed)?|molest(ed|ation)?|suicide|missing|injur(ed|ies|y)|victims?|tragedy|riots?|clash(es)?|violence|protests?|terror(ist|ism)?|shoot(ing|out)|stabb(ed|ing)|politics?|political|elections?|polls?|bjp|congress|samajwadi|aap|bsp|minister|mla|cm|chief[\s-]minister|court|verdict|bail|scam|fraud|recall(s|ed)?)\b/i;
 const HARD_NEWS_HI =
-  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|मृत|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|आग|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|घोटाला|ठगी)/;
+  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|घोटाला|ठगी)/;
 const HARD_NEWS_CATEGORY = /^(crime|politics|political|police|accident|disaster|राजनीति|अपराध)$/i;
 
 /** Festival stories that get the time-boxed Diwali Partner CTA (EndCard + Sidebar only). */
@@ -117,7 +117,7 @@ export const PARTNER_CAMPAIGN_EVERGREEN = "partner_evergreen";
 export const PARTNER_CAMPAIGN_DIWALI = "diwali_2026";
 export const PARTNER_CAMPAIGN_TECH_AUTO = "tech_auto_test";
 
-export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline";
+export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline" | "ad";
 export type PartnerVariant = "a" | "b";
 
 export function partnerHref(opts: {
@@ -350,11 +350,28 @@ export function festivalPartnerCtaFor(a: StoryFields, now: Date = new Date()): F
 }
 
 /** Seconds until 00:00 IST after the campaign's last day (min 1), for ISR revalidate. */
-export function secondsUntilFestivalCtaExpiry(cta: FestivalPartnerCta, now: Date = new Date()): number {
+export function secondsUntilFestivalCtaExpiry(cta: { untilIst: string }, now: Date = new Date()): number {
   const [y, m, d] = cta.untilIst.split("-").map(Number);
   // 00:00 IST on the next day = 18:30 UTC on the last day.
   const end = Date.UTC(y, m - 1, d, 18, 30, 0, 0);
   return Math.max(1, Math.ceil((end - now.getTime()) / 1000));
+}
+
+/**
+ * ISR window for an article that may be showing a festival or vrat CTA.
+ * Hourly by default. Inside the last hour, regenerate at 00:00 IST so a page
+ * is not served from cache after the campaign's last day.
+ */
+export function partnerPageRevalidateSeconds(
+  ctas: Array<{ untilIst: string } | null | undefined>,
+  now: Date = new Date()
+): number {
+  let best = 3600;
+  for (const cta of ctas) {
+    if (!cta) continue;
+    best = Math.min(best, secondsUntilFestivalCtaExpiry(cta, now));
+  }
+  return best;
 }
 
 export function festivalPartnerHref(
@@ -364,6 +381,134 @@ export function festivalPartnerHref(
   variant?: PartnerVariant | null
 ): string {
   return partnerHref({ path: cta.path, medium, campaign: cta.campaign, slug, variant });
+}
+
+// ---------------------------------------------------------------------------
+// Upcoming vrat / puja guides for astrology, festival, vrat and puja stories.
+// One live guide at a time: the soonest last-day still inside its IST window.
+// After 00:00 IST the day after that last day, the next guide takes over.
+// When none remain, callers fall back to the evergreen kundli / rashifal links.
+// Exact-slug festival CTAs and the Diwali CTA win over this rotation.
+// Linked only. The free chart URL is /kundli/. Do not swap in a retired alias.
+// ---------------------------------------------------------------------------
+
+/** Inclusive last Asia/Calcutta day. Off at 00:00 IST the next day. */
+export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
+export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
+export const SANKASHTI_UNTIL_IST = "2026-11-27";
+export const MARGASHIRSHA_PURNIMA_UNTIL_IST = "2026-12-24";
+
+export const PARTNER_CAMPAIGN_TULSI_VIVAH = "tulsi_vivah_2026";
+export const PARTNER_CAMPAIGN_PRADOSH = "pradosh_2026";
+export const PARTNER_CAMPAIGN_SANKASHTI = "sankashti_2026";
+export const PARTNER_CAMPAIGN_MGPURNIMA = "mgpurnima_2026";
+
+export type UpcomingVratId = "tulsi_vivah_2026" | "pradosh_2026" | "sankashti_2026" | "mgpurnima_2026";
+
+export type UpcomingVratCta = {
+  id: UpcomingVratId;
+  path: string;
+  campaign: string;
+  untilIst: string;
+  text: {
+    en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
+    hi: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
+  };
+};
+
+/** Sorted by last IST day, earliest first, so the first open window is the next guide. */
+export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
+  {
+    id: "tulsi_vivah_2026",
+    path: "/tulsi-vivah-2026/",
+    campaign: PARTNER_CAMPAIGN_TULSI_VIVAH,
+    untilIst: TULSI_VIVAH_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Tulsi Vivah 2026 guide",
+        sidebarTitle: "Tulsi Vivah 2026",
+        sidebarBody: "See the Tulsi Vivah 2026 guide on our partner site.",
+        sidebarLink: "Tulsi Vivah 2026 guide",
+      },
+      hi: {
+        endCard: "तुलसी विवाह 2026 गाइड",
+        sidebarTitle: "तुलसी विवाह 2026",
+        sidebarBody: "तुलसी विवाह 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "तुलसी विवाह 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "pradosh_2026",
+    path: "/pradosh-vrat-2026/",
+    campaign: PARTNER_CAMPAIGN_PRADOSH,
+    untilIst: PRADOSH_VRAT_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Pradosh Vrat 2026 guide",
+        sidebarTitle: "Pradosh Vrat 2026",
+        sidebarBody: "See the Pradosh Vrat 2026 guide on our partner site.",
+        sidebarLink: "Pradosh Vrat 2026 guide",
+      },
+      hi: {
+        endCard: "प्रदोष व्रत 2026 गाइड",
+        sidebarTitle: "प्रदोष व्रत 2026",
+        sidebarBody: "प्रदोष व्रत 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "प्रदोष व्रत 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "sankashti_2026",
+    path: "/sankashti-chaturthi-2026/",
+    campaign: PARTNER_CAMPAIGN_SANKASHTI,
+    untilIst: SANKASHTI_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Sankashti Chaturthi 2026 guide",
+        sidebarTitle: "Sankashti Chaturthi 2026",
+        sidebarBody: "See the Sankashti Chaturthi 2026 guide on our partner site.",
+        sidebarLink: "Sankashti Chaturthi 2026 guide",
+      },
+      hi: {
+        endCard: "संकष्टी चतुर्थी 2026 गाइड",
+        sidebarTitle: "संकष्टी चतुर्थी 2026",
+        sidebarBody: "संकष्टी चतुर्थी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "संकष्टी चतुर्थी 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "mgpurnima_2026",
+    path: "/margashirsha-purnima-2026/",
+    campaign: PARTNER_CAMPAIGN_MGPURNIMA,
+    untilIst: MARGASHIRSHA_PURNIMA_UNTIL_IST,
+    text: {
+      en: {
+        endCard: "Margashirsha Purnima 2026 guide",
+        sidebarTitle: "Margashirsha Purnima 2026",
+        sidebarBody: "See the Margashirsha Purnima 2026 guide on our partner site.",
+        sidebarLink: "Margashirsha Purnima 2026 guide",
+      },
+      hi: {
+        endCard: "मार्गशीर्ष पूर्णिमा 2026 गाइड",
+        sidebarTitle: "मार्गशीर्ष पूर्णिमा 2026",
+        sidebarBody: "मार्गशीर्ष पूर्णिमा 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "मार्गशीर्ष पूर्णिमा 2026 गाइड",
+      },
+    },
+  },
+];
+
+export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta | null {
+  if (!id) return null;
+  return UPCOMING_VRAT_CTAS.find((c) => c.id === id) ?? null;
+}
+
+/** The next vrat guide still inside its IST window, or null when all have ended. */
+export function nextUpcomingVrat(now: Date = new Date()): UpcomingVratCta | null {
+  const today = istCalendarDate(now);
+  return UPCOMING_VRAT_CTAS.find((c) => today <= c.untilIst) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -456,8 +601,32 @@ type StoryFields = {
   tags?: string | null;
 };
 
+/**
+ * Tragedy, death, disaster, accident, crime, violence, suicide, terror or
+ * communal tension. Err toward skipping: a keyword in the title, slug, tags
+ * or category is enough. These stories get no Pocket Jyotish unit at all.
+ * Short Hindi tokens that sit inside ordinary words (आग inside आगे, मृत inside
+ * अमृत) use a Devanagari boundary so a rashifal line is not treated as a death.
+ */
+const SENSITIVE_CATEGORY =
+  /^(crime|crimes|criminal|accident|accidents|disaster|disasters|tragedy|violence|terror|terrorism|अपराध|आपदा|हादसा|हिंसा|आतंक)$/i;
+const SENSITIVE_EN =
+  /\b(traged(?:y|ies)|tragic|deaths?|dead|died|dies|dying|killed|kills|killing|murder(?:s|ed|ing)?|homicides?|drown(?:s|ed|ing)?|bod(?:y|ies)[\s-]found|corpses?|disasters?|flood(?:s|ed|ing)?|earthquakes?|cyclones?|landslides?|stampedes?|collapses?|collapsed|fires?|blaze|burn(?:t|ed)|explosions?|blasts?|bomb(?:s|ed|ing)?|accidents?|crash(?:es|ed|ing)?|collisions?|crimes?|criminals?|violence|violent|riots?|assault(?:s|ed|ing)?|rapes?|raped|molest(?:ed|ation)?|suicides?|suicidal|terrors?|terrorists?|terrorism|shoot(?:ing|ings|out)|stabb(?:ed|ing|ings)|communal|massacres?|lynch(?:ed|ing|ings)?|victims?)\b/i;
+const SENSITIVE_HI =
+  /(त्रासदी|दुखद|मौत|मृत्यु|निधन|हत्या|मृतक|मृतदेह|मृतकाय|शव|लाश|आपदा|बाढ़|भूकंप|भूकम्प|चक्रवात|भूस्खलन|भगदड़|आगजनी|अग्निकांड|विस्फोट|धमाका|हादसा|दुर्घटना|अपराध|हिंसा|दंगा|हमला|आत्महत्या|खुदकुशी|आतंक|सांप्रदायिक|साम्प्रदायिक|सम्प्रदायिक|संप्रदायिक|बलात्कार|दुष्कर्म|घायल|सुनामी|डूब)/;
+const SENSITIVE_HI_BOUNDED =
+  /(?:^|[^\u0900-\u097F])(?:आग|मृत)(?:$|[^\u0900-\u097F])/;
+
+export function isSensitiveStory(a: StoryFields): boolean {
+  const cat = (a.category || "").trim();
+  if (cat && SENSITIVE_CATEGORY.test(cat)) return true;
+  const hay = partnerHay(a);
+  return SENSITIVE_EN.test(hay) || SENSITIVE_HI.test(hay) || SENSITIVE_HI_BOUNDED.test(hay);
+}
+
 /** True for crime, accident, death, disaster, politics, police and similar hard news. */
 export function isHardNewsStory(a: StoryFields): boolean {
+  if (isSensitiveStory(a)) return true;
   const cat = (a.category || "").trim();
   if (cat && HARD_NEWS_CATEGORY.test(cat)) return true;
   const hay = partnerHay(a);
@@ -482,6 +651,55 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
   const hay = partnerHay(a);
   if (EN_KEYWORDS.test(hay) || HI_KEYWORDS.test(hay)) return true;
   return isVaranasiSpiritualGuide(a);
+}
+
+/**
+ * Next vrat guide for an astrology / festival / vrat / puja story, or null.
+ * Sensitive and hard news never qualify. An exact-slug festival CTA or the
+ * Diwali CTA already occupies the end unit, so the rotation stays off.
+ */
+export function upcomingVratForStory(a: StoryFields, now: Date = new Date()): UpcomingVratCta | null {
+  if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return null;
+  if (festivalPartnerCtaFor(a, now)) return null;
+  if (isDiwaliPartnerCtaActive(now) && isDiwaliFestivalStory(a)) return null;
+  return nextUpcomingVrat(now);
+}
+
+/**
+ * Evergreen Sponsored end unit. Off when the story is sensitive, and off when
+ * an end unit is already reserved (partner end card, festival CTA, price line
+ * or tech/auto line). Hard news that is not sensitive still qualifies: the
+ * page renders it end-only, with neutral copy, and does not add an inline unit.
+ */
+export function canShowSponsoredEndUnit(
+  a: StoryFields,
+  opts: { hasPriceGuide?: boolean; hasTechAutoLine?: boolean; now?: Date } = {}
+): boolean {
+  if (isSensitiveStory(a)) return false;
+  if (isPartnerEligibleStory(a)) return false;
+  if (festivalPartnerCtaFor(a, opts.now)) return false;
+  if (opts.hasPriceGuide) return false;
+  if (opts.hasTechAutoLine) return false;
+  return true;
+}
+
+export type SponsoredEndPlacement = "after-body" | "before-related" | "none";
+
+/**
+ * After the article body when author or sources sit between the unit and the
+ * below-article AdSense slot. Otherwise before related stories, and only when
+ * Latest Stories renders in between so the unit is not the ad's next sibling.
+ * Never above the fold and never a second end unit.
+ */
+export function sponsoredEndPlacement(opts: {
+  show: boolean;
+  separatedFromBelowAd: boolean;
+  hasLatestStories: boolean;
+}): SponsoredEndPlacement {
+  if (!opts.show) return "none";
+  if (opts.separatedFromBelowAd) return "after-body";
+  if (opts.hasLatestStories) return "before-related";
+  return "none";
 }
 
 export function partnerRashifalFor(a: {

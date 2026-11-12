@@ -3,6 +3,7 @@ import {
   diwaliPartnerHref,
   festivalPartnerHref,
   getFestivalPartnerCta,
+  getUpcomingVrat,
   partnerHref,
   PARTNER_CAMPAIGN_EVERGREEN,
   PARTNER_CAMPAIGN_TECH_AUTO,
@@ -10,6 +11,37 @@ import {
 } from "@/lib/partnerRashifal";
 
 const REL = "sponsored noopener";
+
+/** Reserved box for the evergreen Sponsored end unit. Padding 16×2 + rows = 192. */
+export const SPONSORED_END_UNIT_HEIGHT_PX = 192;
+/** Reserved box when the end card is showing the next vrat guide. */
+export const VRAT_END_CARD_HEIGHT_PX = 148;
+/** Reserved row under the rashifal iframe. The iframe box stays 440px. */
+export const WIDGET_VRAT_ROW_HEIGHT_PX = 64;
+
+export const SPONSORED_HARD_NEWS_COPY =
+  "Pocket Jyotish: Free kundli and daily rashifal in Hindi and English.";
+
+function sponsoredMark(hi: boolean) {
+  return (
+    <span
+      style={{
+        display: "block",
+        height: 16,
+        lineHeight: "16px",
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: "#92400e",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {hi ? "प्रायोजित · Sponsored" : "Sponsored"}
+    </span>
+  );
+}
 const evergreen = (
   path: string,
   medium: "widget" | "inline_card" | "sidebar" | "price_guide",
@@ -23,8 +55,20 @@ const label = (_hi: boolean) => (
   </span>
 );
 
-export function PartnerRashifal({ sign, lang, slug }: { sign: string; lang: "hi" | "en"; slug: string }) {
+export function PartnerRashifal({
+  sign,
+  lang,
+  slug,
+  upcomingVratId = null,
+}: {
+  sign: string;
+  lang: "hi" | "en";
+  slug: string;
+  upcomingVratId?: string | null;
+}) {
   const hi = lang === "hi";
+  const vrat = getUpcomingVrat(upcomingVratId);
+  const vratText = vrat ? (hi ? vrat.text.hi : vrat.text.en) : null;
   return (
     <aside className="partner-rashifal my-6 mx-auto w-full" style={{ maxWidth: 360 }} aria-label="Partner">
       {label(hi)}
@@ -38,6 +82,31 @@ export function PartnerRashifal({ sign, lang, slug }: { sign: string; lang: "hi"
           style={{ width: "100%", maxWidth: 360, height: 440, display: "block", border: 0 }}
         />
       </div>
+      {vrat && vratText ? (
+        <p
+          className="partner-widget-vrat"
+          style={{
+            boxSizing: "border-box",
+            height: WIDGET_VRAT_ROW_HEIGHT_PX,
+            minHeight: WIDGET_VRAT_ROW_HEIGHT_PX,
+            maxHeight: WIDGET_VRAT_ROW_HEIGHT_PX,
+            overflow: "hidden",
+            margin: "12px 0 0",
+            lineHeight: "20px",
+            fontSize: 13,
+          }}
+        >
+          {sponsoredMark(hi)}
+          <a
+            href={partnerHref({ path: vrat.path, medium: "widget", campaign: vrat.campaign, slug })}
+            target="_blank"
+            rel={REL}
+            className="font-semibold text-blue-800 underline"
+          >
+            {vratText.sidebarLink}
+          </a>
+        </p>
+      ) : null}
     </aside>
   );
 }
@@ -47,12 +116,14 @@ export function PartnerEndCard({
   slug,
   diwaliCta = false,
   festivalCtaId = null,
+  upcomingVratId = null,
   variant = null,
 }: {
   lang: "hi" | "en";
   slug: string;
   diwaliCta?: boolean;
   festivalCtaId?: string | null;
+  upcomingVratId?: string | null;
   variant?: PartnerVariant | null;
 }) {
   const hi = lang === "hi";
@@ -87,6 +158,39 @@ export function PartnerEndCard({
       </aside>
     );
   }
+  const vrat = getUpcomingVrat(upcomingVratId);
+  if (vrat) {
+    const t = hi ? vrat.text.hi : vrat.text.en;
+    return (
+      <aside
+        className="partner-endcard partner-vrat-end not-prose my-8 rounded-lg p-4 text-sm text-gray-800"
+        style={{
+          boxSizing: "border-box",
+          height: VRAT_END_CARD_HEIGHT_PX,
+          minHeight: VRAT_END_CARD_HEIGHT_PX,
+          maxHeight: VRAT_END_CARD_HEIGHT_PX,
+          overflow: "hidden",
+          border: "2px solid #b45309",
+          background: "#fffbeb",
+        }}
+        aria-label="Sponsored"
+      >
+        {sponsoredMark(hi)}
+        <p className="m-0 mt-2" style={{ lineHeight: "24px", maxHeight: 96, overflow: "hidden" }}>
+          {hi ? "हमारी पार्टनर साइट पर पढ़ें: " : "On our partner site: "}
+          <a
+            href={partnerHref({ path: vrat.path, medium: "ad", campaign: vrat.campaign, slug, variant })}
+            target="_blank"
+            rel={REL}
+            className={cls}
+          >
+            {t.endCard}
+          </a>
+          .
+        </p>
+      </aside>
+    );
+  }
   return (
     <aside className="partner-endcard my-8 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700" aria-label="Partner">
       {label(hi)}
@@ -111,12 +215,14 @@ export function PartnerSidebar({
   slug,
   diwaliCta = false,
   festivalCtaId = null,
+  upcomingVratId = null,
   variant = null,
 }: {
   lang: "hi" | "en";
   slug: string;
   diwaliCta?: boolean;
   festivalCtaId?: string | null;
+  upcomingVratId?: string | null;
   variant?: PartnerVariant | null;
 }) {
   const hi = lang === "hi";
@@ -166,6 +272,31 @@ export function PartnerSidebar({
           </p>
           <a href={diwaliPartnerHref(slug, "sidebar", variant)} target="_blank" rel={REL} className="font-semibold text-blue-700 underline">
             {hi ? "दिवाली गाइड देखें" : "See Diwali guide"}
+          </a>
+          {kundliLine}
+        </div>
+      </div>
+    );
+  }
+  const vrat = getUpcomingVrat(upcomingVratId);
+  if (vrat) {
+    const t = hi ? vrat.text.hi : vrat.text.en;
+    return (
+      <div className="partner-sidebar absolute bottom-0 left-full top-40 ml-6 hidden w-[260px] 2xl:block" aria-hidden={false}>
+        <div
+          className="sticky top-24 rounded-lg p-4 text-sm text-gray-800"
+          style={{ border: "2px solid #b45309", background: "#fffbeb" }}
+        >
+          {sponsoredMark(hi)}
+          <p className="mb-2 font-semibold text-gray-900">{t.sidebarTitle}</p>
+          <p className="mb-3">{t.sidebarBody}</p>
+          <a
+            href={partnerHref({ path: vrat.path, medium: "sidebar", campaign: vrat.campaign, slug, variant })}
+            target="_blank"
+            rel={REL}
+            className="font-semibold text-blue-700 underline"
+          >
+            {t.sidebarLink}
           </a>
           {kundliLine}
         </div>
@@ -285,5 +416,92 @@ export function PartnerFestivalLine({
         {t.line}
       </a>
     </p>
+  );
+}
+
+/**
+ * Evergreen Sponsored house ad for stories that have no partner end unit.
+ * Fixed 192px box: 16px padding, 16px label, 12px gap, 72px copy, 12px gap,
+ * two 24px link rows. No image, no iframe, no third-party script. Amber border
+ * and background so it is not story text and not an AdSense "Advertisement" slot.
+ * Hard-news copy stays the neutral sentence and does not mention the article.
+ */
+export function PartnerSponsoredUnit({
+  lang,
+  slug,
+  tone,
+  placement,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+  tone: "hard-news" | "general";
+  placement: "after-body" | "before-related";
+}) {
+  const hi = lang === "hi";
+  const kundli = partnerHref({
+    path: "/kundli/",
+    medium: "ad",
+    campaign: PARTNER_CAMPAIGN_EVERGREEN,
+    slug,
+  });
+  const rashifal = partnerHref({
+    path: "/rashifal/",
+    medium: "ad",
+    campaign: PARTNER_CAMPAIGN_EVERGREEN,
+    slug,
+  });
+  const copy =
+    tone === "hard-news"
+      ? SPONSORED_HARD_NEWS_COPY
+      : hi
+        ? "Pocket Jyotish: मुफ्त कुंडली और मुफ्त दैनिक राशिफल."
+        : "Pocket Jyotish: free kundli and free daily rashifal.";
+  const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";
+  const rashifalLabel = tone === "hard-news" || !hi ? "Free daily rashifal" : "मुफ्त दैनिक राशिफल";
+  return (
+    <aside
+      className="partner-sponsored-unit not-prose"
+      data-house-ad="pocket-jyotish"
+      data-sponsored-tone={tone}
+      data-sponsored-placement={placement}
+      aria-label={hi ? "प्रायोजित" : "Sponsored"}
+      style={{
+        boxSizing: "border-box",
+        height: SPONSORED_END_UNIT_HEIGHT_PX,
+        minHeight: SPONSORED_END_UNIT_HEIGHT_PX,
+        maxHeight: SPONSORED_END_UNIT_HEIGHT_PX,
+        overflow: "hidden",
+        marginTop: placement === "before-related" ? 48 : 32,
+        marginBottom: placement === "after-body" ? 40 : 32,
+        border: "2px solid #b45309",
+        backgroundColor: "#fffbeb",
+        borderRadius: 12,
+        padding: 16,
+      }}
+    >
+      {sponsoredMark(hi)}
+      <p
+        style={{
+          height: 72,
+          lineHeight: "24px",
+          margin: "12px 0 0",
+          overflow: "hidden",
+          fontSize: 14,
+          color: "#1f2937",
+        }}
+      >
+        {copy}
+      </p>
+      <p style={{ height: 24, lineHeight: "24px", margin: "12px 0 0", overflow: "hidden", whiteSpace: "nowrap" }}>
+        <a href={kundli} target="_blank" rel={REL} className="font-semibold text-blue-800 underline underline-offset-2">
+          {kundliLabel}
+        </a>
+      </p>
+      <p style={{ height: 24, lineHeight: "24px", margin: 0, overflow: "hidden", whiteSpace: "nowrap" }}>
+        <a href={rashifal} target="_blank" rel={REL} className="font-semibold text-blue-800 underline underline-offset-2">
+          {rashifalLabel}
+        </a>
+      </p>
+    </aside>
   );
 }
