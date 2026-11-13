@@ -92,6 +92,8 @@ interface Props {
   festivalCtaId?: string | null;
   /** Next vrat guide id, fixed at build/revalidate time so HTML and hydration agree. */
   upcomingVratId?: string | null;
+  /** Sponsored end unit choice, fixed at build/revalidate time. */
+  sponsoredEndMode?: SponsoredEndMode | null;
 }
 
 import Head from "next/head";
@@ -129,6 +131,9 @@ import {
   getFestivalPartnerCta,
   upcomingVratForStory,
   partnerPageRevalidateSeconds,
+  sponsoredEndModeForStory,
+  sponsoredEndWindowsForStory,
+  type SponsoredEndMode,
   canShowSponsoredEndUnit,
   sponsoredEndPlacement,
   isHardNewsStory,
@@ -177,6 +182,7 @@ const ArticlePage: React.FC<Props> = ({
   partnerTests = null,
   festivalCtaId = null,
   upcomingVratId = null,
+  sponsoredEndMode = null,
 }) => {
   const { data: session } = useSession();
   
@@ -813,6 +819,7 @@ const ArticlePage: React.FC<Props> = ({
           lang={partnerLang}
           slug={article.slug}
           tone={sponsoredTone}
+          mode={sponsoredEndMode ?? "a"}
           placement="after-body"
         />
       )}
@@ -905,6 +912,7 @@ const ArticlePage: React.FC<Props> = ({
           lang={partnerLang}
           slug={article.slug}
           tone={sponsoredTone}
+          mode={sponsoredEndMode ?? "a"}
           placement="before-related"
         />
       )}
@@ -1056,8 +1064,9 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     }
   }
 
-  const festivalCta = festivalPartnerCtaFor(article);
-  const upcomingVrat = upcomingVratForStory(article);
+  const partnerNow = new Date();
+  const festivalCta = festivalPartnerCtaFor(article, partnerNow);
+  const upcomingVrat = upcomingVratForStory(article, partnerNow);
 
   return {
     props: {
@@ -1092,9 +1101,13 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       },
       festivalCtaId: festivalCta?.id ?? null,
       upcomingVratId: upcomingVrat?.id ?? null,
+      sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow),
     },
-    // Regenerate at 00:00 IST when a festival or vrat CTA expires, else hourly.
-    revalidate: partnerPageRevalidateSeconds([festivalCta, upcomingVrat]),
+    // Regenerate at 00:00 IST when a partner window expires, else hourly.
+    revalidate: partnerPageRevalidateSeconds(
+      [festivalCta, upcomingVrat, ...sponsoredEndWindowsForStory(article, partnerNow)],
+      partnerNow
+    ),
   };
 };
 

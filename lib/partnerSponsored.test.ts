@@ -20,6 +20,10 @@ import {
   devDeepawaliOverridesPradosh,
   isVaranasiOrFestivalStory,
   nextUpcomingVrat,
+  UPCOMING_VRAT_CTAS,
+  slugHash,
+  sponsoredEndModeForStory,
+  sponsoredEndWindowsForStory,
   partnerPageRevalidateSeconds,
   secondsUntilFestivalCtaExpiry,
   sponsoredEndPlacement,
@@ -61,7 +65,7 @@ const PRADOSH_START = new Date("2026-11-21T18:30:00Z");
 const PRADOSH_LAST = new Date("2026-11-22T18:29:59.999Z");
 const SANKASHTI_START = new Date("2026-11-22T18:30:00Z");
 const SANKASHTI_LAST = new Date("2026-11-27T18:29:59.999Z");
-const MG_START = new Date("2026-11-27T18:30:00Z");
+const MG_START = new Date("2026-12-04T18:30:00Z");
 const MG_LAST = new Date("2026-12-24T18:29:59.999Z");
 const AFTER_ALL = new Date("2026-12-24T18:30:00Z");
 
@@ -528,5 +532,153 @@ describe("article template keeps the house ad away from AdSense", () => {
     assert.equal(src.split("<PartnerSponsoredUnit").length - 1, 2);
     assert.equal(src.split('placement="after-body"').length - 1, 1);
     assert.equal(src.split('placement="before-related"').length - 1, 1);
+  });
+});
+
+describe("new guide rotation and Sponsored end windows", () => {
+  const NOV14 = new Date("2026-11-14T06:30:00Z");
+  const NOV16_LAST = new Date("2026-11-16T18:29:59.999Z");
+  const NOV17 = new Date("2026-11-16T18:30:00Z");
+  const NOV20_LAST = new Date("2026-11-20T18:29:59.999Z");
+  const NOV21 = new Date("2026-11-20T18:30:00Z");
+  const CHHATH = { slug: "chhath-puja-guide", title: "Chhath Puja dates", category: "Lifestyle" };
+  const GENERAL_CHHATH = { slug: "chhath-holiday-debate", title: "Minister announces Chhath holiday", category: "Politics" };
+  const SENSITIVE_CHHATH = { ...CHHATH, title: "Chhath ghat accident" };
+
+  it("matches Chhath metadata only, through 16 Nov IST inclusive", () => {
+    for (const story of [CHHATH, { title: "छठ पूजा" }, { tags: "Chhath" }, { category: "छठ" }, { slug: "chhath-guide" }]) {
+      for (const now of [NOV14, NOV16_LAST]) {
+        assert.equal(upcomingVratForStory(story, now)?.id, "chhath_2026");
+      }
+      assert.equal(upcomingVratForStory(story, NOV17)?.id, "tulsi_vivah_2026");
+    }
+    const tulsi = { title: "Tulsi Vivah guide" };
+    assert.equal(upcomingVratForStory(tulsi, NOV14)?.id, "tulsi_vivah_2026");
+    assert.equal(nextUpcomingVrat(NOV14)?.id, "tulsi_vivah_2026");
+    assert.equal(nextUpcomingVrat(NOV14, CHHATH)?.id, "chhath_2026");
+    assert.equal(nextUpcomingVrat(NOV14, METRO)?.id, "tulsi_vivah_2026");
+  });
+
+  it("restricts Vrishchika to astrology metadata and keeps the rotation sorted", () => {
+    for (const story of [RASHIFAL, { title: "Today's horoscope" }, { tags: "panchang" }, { title: "संक्रांति पंचांग" }]) {
+      assert.equal(upcomingVratForStory(story, NOV16_LAST)?.id, "vrishchika_sankranti_2026");
+      assert.equal(upcomingVratForStory(story, NOV17)?.id, "tulsi_vivah_2026");
+    }
+    for (const title of ["Diwali puja guide", "Tulsi Vivah guide", "Varanasi ghat aarti timings"]) {
+      assert.equal(upcomingVratForStory({ title }, NOV14)?.id, "tulsi_vivah_2026");
+    }
+    assert.deepEqual(UPCOMING_VRAT_CTAS.map((c) => c.untilIst), UPCOMING_VRAT_CTAS.map((c) => c.untilIst).sort());
+    for (const [now, id] of [
+      ["2026-11-28T06:30:00Z", "kaal_bhairav_2026"],
+      ["2026-12-01T18:29:59.999Z", "kaal_bhairav_2026"],
+      ["2026-12-01T18:30:00Z", "utpanna_ekadashi_2026"],
+      ["2026-12-02T06:30:00Z", "utpanna_ekadashi_2026"],
+      ["2026-12-04T18:29:59.999Z", "utpanna_ekadashi_2026"],
+      ["2026-12-04T18:30:00Z", "mgpurnima_2026"],
+      ["2026-12-05T06:30:00Z", "mgpurnima_2026"],
+    ]) {
+      assert.equal(nextUpcomingVrat(new Date(now))?.id, id);
+      assert.equal(upcomingVratForStory(RASHIFAL, new Date(now))?.id, id);
+    }
+  });
+
+  it("keeps sensitive Chhath stories out and gives general Chhath priority over A/B", () => {
+    assert.equal(canShowSponsoredEndUnit(SENSITIVE_CHHATH, { now: NOV14 }), false);
+    assert.equal(upcomingVratForStory(SENSITIVE_CHHATH, NOV14), null);
+    assert.equal(sponsoredEndModeForStory(SENSITIVE_CHHATH, NOV14), null);
+    assert.equal(sponsoredEndModeForStory(CHHATH, NOV14), null);
+    assert.equal(canShowSponsoredEndUnit(GENERAL_CHHATH, { now: NOV14 }), true);
+    assert.equal(upcomingVratForStory(GENERAL_CHHATH, NOV14), null);
+    assert.equal(sponsoredEndModeForStory(GENERAL_CHHATH, NOV16_LAST), "chhath");
+    assert.notEqual(sponsoredEndModeForStory(GENERAL_CHHATH, NOV17), "chhath");
+    for (const lang of ["en", "hi"] as const) {
+      const markup = html(React.createElement(PartnerSponsoredUnit, {
+        lang, slug: GENERAL_CHHATH.slug, tone: "hard-news", placement: "after-body", mode: "chhath",
+      }));
+      assert.ok(markup.includes(lang === "hi" ? "छठ पूजा 2026 तिथि और पूजा समय" : "Chhath Puja 2026 dates and puja timings"));
+      assert.equal(new URL(hrefs(markup)[0]).pathname, "/chhath-puja-2026/");
+      assert.deepEqual(params(hrefs(markup)[0]), {
+        utm_source: "dalimss_news", utm_medium: "ad", utm_campaign: "chhath2026", utm_content: GENERAL_CHHATH.slug,
+      });
+      assert.ok(markup.includes("Sponsored"));
+      assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
+      assert.equal(hrefs(markup).length, 3);
+    }
+  });
+
+  it("splits general and non-sensitive hard news by slug parity and reverts on 21 Nov", () => {
+    const variants = new Set();
+    for (const slug of ["city-brief", "city-brief-2", "assembly-debate", "metro-update"]) {
+      for (const category of ["Gurugram", "Politics"]) {
+        const story = { slug, title: "City update", category };
+        const expected = slugHash(slug) % 2 === 0 ? "a" : "b";
+        variants.add(expected);
+        assert.equal(sponsoredEndModeForStory(story, NOV14), expected);
+        assert.equal(sponsoredEndModeForStory(story, NOV20_LAST), expected);
+        assert.equal(sponsoredEndModeForStory(story, NOV21), "a");
+        for (const lang of ["hi", "en"] as const) {
+          const markup = html(React.createElement(PartnerSponsoredUnit, {
+            lang, slug, tone: category === "Politics" ? "hard-news" : "general", placement: "before-related", mode: expected,
+          }));
+          const links = hrefs(markup);
+          assert.equal(links.length, 3);
+          assert.deepEqual(links.map((h) => new URL(h).pathname), expected === "a"
+            ? ["/chat/", "/kundli/", "/rashifal/"] : ["/choghadiya/", "/rahu-kaal/", "/kundli/"]);
+          for (const [i, href] of Array.from(links.entries())) {
+            assert.deepEqual(params(href), {
+              utm_source: "dalimss_news", utm_medium: "ad", utm_content: slug,
+              utm_campaign: expected === "b" && i < 2 ? ["choghadiya", "rahukaal"][i] : "evergreen",
+            });
+          }
+          assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
+          assert.match(markup, /-webkit-line-clamp:3/);
+          if (expected === "b") {
+            assert.ok(markup.includes(lang === "hi"
+              ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+              : "See today&#x27;s Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"));
+          }
+          for (const anchor of Array.from(markup.matchAll(/<a [^>]*>([^<]*)<\/a>/g))) {
+            assert.match(anchor[0], /rel="sponsored noopener"/);
+            assert.match(anchor[0], /target="_blank"/);
+            if (anchor[0].includes("/chat/")) assert.ok(!/free|मुफ़्त|मुफ्त/i.test(anchor[1]));
+          }
+          assert.ok(!/free chat|free jyotishi|free human astrologer/i.test(markup));
+        }
+      }
+    }
+    assert.equal(variants.size, 2);
+  });
+
+  it("gives every new guide full partner UTMs", () => {
+    for (const id of ["chhath_2026", "vrishchika_sankranti_2026", "kaal_bhairav_2026", "utpanna_ekadashi_2026"]) {
+      const cta = UPCOMING_VRAT_CTAS.find((c) => c.id === id)!;
+      for (const lang of ["en", "hi"] as const) {
+        const markup = html(React.createElement(PartnerEndCard, { lang, slug: "guide-story", upcomingVratId: id }));
+        assert.equal(hrefs(markup).length, 1);
+        assert.equal(new URL(hrefs(markup)[0]).pathname, cta.path);
+        assert.deepEqual(params(hrefs(markup)[0]), {
+          utm_source: "dalimss_news", utm_medium: "ad", utm_content: "guide-story", utm_campaign: cta.campaign,
+        });
+        assert.ok(markup.includes(cta.text[lang].endCard));
+      }
+    }
+  });
+
+  it("caps ISR at the Chhath and A/B IST midnight boundaries", () => {
+    const chhathNow = new Date("2026-11-16T18:00:00Z");
+    const testNow = new Date("2026-11-20T18:00:00Z");
+    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(GENERAL_CHHATH, chhathNow), chhathNow), 1800);
+    for (const story of [METRO, POLITICS, GENERAL_CHHATH]) {
+      assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(story, testNow), testNow), 1800);
+      assert.deepEqual(sponsoredEndWindowsForStory(story, NOV21), []);
+    }
+    for (const story of [CHHATH, RASHIFAL]) {
+      assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(story, chhathNow)], chhathNow), 1800);
+    }
+    assert.deepEqual(sponsoredEndWindowsForStory(SENSITIVE_CHHATH, chhathNow), []);
+    const src = readFileSync(new URL("../pages/articles/[slug].tsx", import.meta.url), "utf8");
+    assert.ok(src.includes("sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow)"));
+    assert.ok(src.includes("...sponsoredEndWindowsForStory(article, partnerNow)"));
+    assert.equal(src.split('mode={sponsoredEndMode ?? "a"}').length - 1, 2);
   });
 });
