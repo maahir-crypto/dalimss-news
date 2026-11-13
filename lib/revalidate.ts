@@ -36,12 +36,12 @@ export type ArticleRevalidateInput = {
  * Pages regenerated with res.revalidate.
  *
  * ISR: the article itself, the homepage, category pages, and topic hubs.
- * Homepage and hubs use a 120s revalidate as a backstop; this refresh makes
+ * Homepage and hubs use a 600s revalidate as a backstop; this refresh makes
  * a publish show up without waiting for that window.
  *
  * getServerSideProps listings (/articles, /hindi, /author/[slug], /authors)
- * are not included. res.revalidate throws for those. They use a short
- * s-maxage instead.
+ * are not included. res.revalidate throws for those. They use the listing
+ * s-maxage window (ten minutes) instead.
  *
  * /llms.txt, /llms-full.txt, and /news-sitemap.xml are getServerSideProps too,
  * so they are not listed here. Publish drops their CDN tag instead.
