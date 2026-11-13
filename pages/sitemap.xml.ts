@@ -5,6 +5,7 @@ import { isDuplicateArticleCopy } from "@/lib/duplicateArticles";
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { CATEGORIES, getCategoriesByDbValue } from "@/lib/categories";
+import { CATEGORY_HUB_PATHS } from "@/lib/publicPaths";
 import {
   authorNameVariants,
   authorSlug,
@@ -328,7 +329,9 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   });
 
   // Keep empty category pages out of the sitemap until an English article matches.
+  // City categories already appear as /varanasi-news and /gurugram-news above.
   const categoryUrls: UrlEntry[] = CATEGORIES.filter((category) =>
+    !CATEGORY_HUB_PATHS[category.slug] &&
     englishArticles.some((article) => {
       const haystack = (article.category || "").toLowerCase();
       return category.dbValues.some((value) =>

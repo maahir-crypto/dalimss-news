@@ -445,6 +445,86 @@ export const ORGANIZATION_ADDRESS = {
 
 export const ORGANIZATION_LANGUAGES = ["English", "Hindi"];
 
+export const ORGANIZATION_LOGO = {
+  "@type": "ImageObject",
+  url: `${SITE_URL}/logo-square.png`,
+  width: 512,
+  height: 512,
+};
+
+/** NewsMediaOrganization fields taken from public site copy only. */
+export function newsMediaOrganizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "NewsMediaOrganization",
+    "@id": ORGANIZATION_ID,
+    name: SITE_NAME,
+    url: `${SITE_URL}/`,
+    email: "editor@dalimss.news",
+    foundingDate: "2024-02",
+    logo: ORGANIZATION_LOGO,
+    address: ORGANIZATION_ADDRESS,
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "editorial",
+      email: "editor@dalimss.news",
+      telephone: "+91-6392752976",
+      availableLanguage: ORGANIZATION_LANGUAGES,
+    },
+    areaServed: [
+      { "@type": "City", name: "Varanasi" },
+      { "@type": "AdministrativeArea", name: "Eastern Uttar Pradesh" },
+      { "@type": "City", name: "Gurugram" },
+      { "@type": "AdministrativeArea", name: "Delhi-NCR" },
+      { "@type": "Country", name: "India" },
+    ],
+    sameAs: [
+      "https://www.instagram.com/dalimss.news.banaras/",
+      "https://www.youtube.com/@dalimss_news",
+    ],
+    founder: {
+      "@type": "Person",
+      name: "Maahir Madhok",
+      url: `${SITE_URL}/author/maahir-madhok`,
+    },
+    parentOrganization: {
+      "@type": "Organization",
+      name: "PAMF Digimedia Private Limited",
+    },
+    publishingPrinciples: `${SITE_URL}/editorial-policy`,
+    correctionsPolicy: `${SITE_URL}/corrections-policy`,
+    ownershipFundingInfo: `${SITE_URL}/ownership`,
+    masthead: `${SITE_URL}/masthead`,
+    actionableFeedbackPolicy: `${SITE_URL}/corrections-policy`,
+  };
+}
+
+export function itemListSchema(
+  items: { name: string; url: string }[]
+): {
+  "@context": string;
+  "@type": "ItemList";
+  numberOfItems: number;
+  itemListElement: {
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    url: string;
+  }[];
+} {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+    })),
+  };
+}
+
 /**
  * Get absolute image URL (handles relative and absolute URLs)
  */

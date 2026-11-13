@@ -11,12 +11,10 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import {
-  ORGANIZATION_ADDRESS,
-  ORGANIZATION_ID,
-  ORGANIZATION_LANGUAGES,
   SITE_NAME,
   SITE_URL,
   authorSlug,
+  newsMediaOrganizationSchema,
 } from "@/lib/seo";
 import {
   authorBoxes,
@@ -107,22 +105,7 @@ const founderProfile = authorBoxes["Maahir Madhok"];
 
 export default function AboutPage() {
   const canonicalUrl = `${SITE_URL}/about`;
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "NewsMediaOrganization",
-    "@id": ORGANIZATION_ID,
-    name: SITE_NAME,
-    url: `${SITE_URL}/`,
-    email: "editor@dalimss.news",
-    address: ORGANIZATION_ADDRESS,
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "editorial",
-      email: "editor@dalimss.news",
-      telephone: "+91-6392752976",
-      availableLanguage: ORGANIZATION_LANGUAGES,
-    },
-  };
+  const organizationSchema = newsMediaOrganizationSchema();
   const pageTitle = `About ${SITE_NAME} | Varanasi, Gurugram, Tech and Auto News`;
   const pageDescription =
     "Dalimss News is a digital news publication reporting from Varanasi, Eastern Uttar Pradesh, Gurugram and Delhi-NCR, plus technology, auto and India news.";

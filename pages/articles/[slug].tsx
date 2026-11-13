@@ -103,7 +103,7 @@ import { DealDisclosure } from "@/components/DealDisclosure";
 import { AuthorBox } from "@/components/AuthorBox";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { findArticleRedirectSlug } from "@/lib/legacySlug";
-import { articlePath, categoryPath } from "@/lib/publicPaths";
+import { articlePath, sectionPath } from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
 import {
@@ -401,7 +401,7 @@ const ArticlePage: React.FC<Props> = ({
                   isHindi && breadcrumbCategory.nameHi
                     ? breadcrumbCategory.nameHi
                     : breadcrumbCategory.name,
-                href: categoryPath(breadcrumbCategory.slug),
+                href: sectionPath(breadcrumbCategory.slug),
               }]
             : []),
           { name: breadcrumbTitle, href: articlePath(article.slug) },
@@ -448,7 +448,7 @@ const ArticlePage: React.FC<Props> = ({
             {categoryTags.map((category) => (
               <a
                 key={category.slug}
-                href={categoryPath(category.slug)}
+                href={sectionPath(category.slug)}
                 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-700 hover:text-red-800"
               >
                 {isHindi && category.nameHi ? category.nameHi : category.name}

@@ -1,5 +1,6 @@
 import { waitUntil } from "@vercel/functions";
 import { getCategoriesByDbValue } from "@/lib/categories";
+import { sectionPath } from "@/lib/publicPaths";
 import { SITE_URL, authorSlug, canonicalArticleSlug } from "@/lib/seo";
 
 const INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow";
@@ -73,7 +74,7 @@ export function indexNowUrlsForArticle(article: {
 
   urls.push(`${SITE_URL}/`, `${SITE_URL}/articles`);
   getCategoriesByDbValue(article.category).forEach((category) => {
-    urls.push(`${SITE_URL}/category/${category.slug}`);
+    urls.push(`${SITE_URL}${sectionPath(category.slug)}`);
   });
   return urls;
 }

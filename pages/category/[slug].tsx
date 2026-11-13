@@ -13,10 +13,11 @@ import {
   absoluteImageUrl,
   canonicalAuthorName,
   formatDateIST,
+  itemListSchema,
 } from "@/lib/seo";
 import { CATEGORIES, getCategoryBySlug, Category } from "@/lib/categories";
 import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
-import { articlePath, categoryPath } from "@/lib/publicPaths";
+import { articlePath, sectionPath } from "@/lib/publicPaths";
 import { englishArticleWhere } from "@/lib/articleLanguage";
 import prisma from "@/lib/prisma";
 
@@ -74,8 +75,12 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
     }
   };
 
-  const canonicalUrl = `${SITE_URL}/category/${category.slug}`;
-  const pageTitle = `${category.name} News - Latest ${category.name} Headlines | ${SITE_NAME}`;
+  const sectionUrl = `${SITE_URL}${sectionPath(category.slug)}`;
+  const canonicalUrl = sectionUrl;
+  const pageTitle =
+    category.seoTitle ||
+    `${category.name} News - Latest ${category.name} Headlines | ${SITE_NAME}`;
+  const heading = category.h1 || `${category.name} News`;
   const heroArticle = articleList[0];
   const heroTitle = heroArticle ? decodeEntities(heroArticle.title) : "";
   const heroExcerpt =
@@ -87,12 +92,19 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
     ? absoluteImageUrl(heroArticle.mediaUrl)
     : `${SITE_URL}/logo.png`;
 
+  const storyItems = articles.map((article) => ({
+    name: decodeEntities(article.title),
+    url: `${SITE_URL}${articlePath(article.slug)}`,
+  }));
+  const itemList = itemListSchema(storyItems);
+
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: pageTitle,
     description: category.description,
     url: canonicalUrl,
+    mainEntity: itemList,
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
@@ -133,18 +145,22 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+        />
       </Head>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <Breadcrumbs
-          items={[{ name: category.name, href: categoryPath(category.slug) }]}
+          items={[{ name: category.name, href: sectionPath(category.slug) }]}
         />
 
         {/* Category Header */}
         <div className="border-b-2 border-red-600 pb-3 mb-8">
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900">
-            {category.name} News
+            {heading}
             {category.nameHi && (
               <span className="text-red-600"> | {category.nameHi}</span>
             )}
