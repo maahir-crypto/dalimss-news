@@ -155,7 +155,7 @@ import {
   metaTitleIsTruncatedHeadline,
   trimTitleAtWordBoundary,
 } from "@/lib/seo";
-import { getCategoriesByDbValue } from "@/lib/categories";
+import { getCategoriesByDbValue, pickBreadcrumbCategory } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
 import { priceHubLinkForArticle, priceHubIdFor } from "@/lib/priceHubs";
 import { applyRelatedArticleLinks } from "@/lib/relatedArticles";
@@ -221,7 +221,7 @@ const ArticlePage: React.FC<Props> = ({
   const ogImageUrl = absoluteImageUrl(article.mediaUrl);
 
   const categories = getCategoriesByDbValue(article.category);
-  const breadcrumbCategory = categories[categories.length - 1];
+  const breadcrumbCategory = pickBreadcrumbCategory(categories);
   const isOpinion = categories.some((category) => category.slug === "opinion");
   const sources = normalizeArticleSources(article.sourceUrls);
   const visibleSources = [
