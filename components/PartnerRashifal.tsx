@@ -9,6 +9,7 @@ import {
   PARTNER_CAMPAIGN_SPONSORED_EVERGREEN,
   PARTNER_CAMPAIGN_TECH_AUTO,
   type PartnerVariant,
+  type SponsoredEndMode,
 } from "@/lib/partnerRashifal";
 
 const REL = "sponsored noopener";
@@ -428,8 +429,8 @@ export function PartnerFestivalLine({
  * Evergreen Sponsored house ad for stories that have no partner end unit.
  * Fixed 220px box: 2px border and 16px padding on each side, 16px label,
  * 12px gap, 72px copy, 12px gap, and three 24px link rows. The AI Astrologer
- * chat is the main link. Kundli
- * and rashifal are secondary. No image, no iframe, no third-party script.
+ * chat is the default main link. Chhath and the tools test replace it during
+ * their IST windows. At most three links, with Kundli and rashifal secondary. No image, no iframe, no third-party script.
  * Amber border and background so it is not story text and not an AdSense
  * "Advertisement" slot. Hard-news copy stays the neutral sentence and does
  * not mention the article. The chat is not called a free human astrologer
@@ -440,7 +441,9 @@ export function PartnerSponsoredUnit({
   slug,
   tone,
   placement,
+  mode = "a",
 }: {
+  mode?: SponsoredEndMode;
   lang: "hi" | "en";
   slug: string;
   tone: "hard-news" | "general";
@@ -449,27 +452,39 @@ export function PartnerSponsoredUnit({
   const hi = lang === "hi";
   // Both house-ad positions use medium "ad". The vrat widget and sidebar keep
   // their own mediums, so utm_medium still follows the placement.
-  const link = (path: string) =>
+  const link = (path: string, campaign = PARTNER_CAMPAIGN_SPONSORED_EVERGREEN) =>
     partnerHref({
       path,
       medium: "ad",
-      campaign: PARTNER_CAMPAIGN_SPONSORED_EVERGREEN,
+      campaign,
       slug,
     });
-  const chat = link("/chat/");
+  const primary = mode === "chhath"
+    ? link("/chhath-puja-2026/", "chhath2026")
+    : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
+  const rahuKaal = link("/rahu-kaal/", "rahukaal");
   const kundli = link("/kundli/");
   const rashifal = link("/rashifal/");
   const copy =
-    tone === "hard-news"
-      ? SPONSORED_HARD_NEWS_COPY
-      : hi
-        ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
-        : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
+    mode === "chhath"
+      ? hi ? "छठ पूजा 2026 तिथि और पूजा समय" : "Chhath Puja 2026 dates and puja timings"
+      : mode === "b"
+        ? hi
+          ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+          : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
+        : tone === "hard-news"
+          ? SPONSORED_HARD_NEWS_COPY
+          : hi
+            ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
+            : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
   const chatLabel = tone === "hard-news" || !hi ? "AI Astrologer" : "AI ज्योतिषी";
+  const primaryLabel = mode === "chhath"
+    ? copy
+    : mode === "b" ? hi ? "आज का चौघड़िया" : "Today's Choghadiya" : chatLabel;
   const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";
   const rashifalLabel = tone === "hard-news" || !hi ? "Free daily rashifal" : "मुफ्त दैनिक राशिफल";
   const row = (href: string, label: string, primary: boolean, marginTop: number) => (
-    <p style={{ height: 24, lineHeight: "24px", margin: `${marginTop}px 0 0`, overflow: "hidden", whiteSpace: "nowrap" }}>
+    <p style={{ height: 24, lineHeight: "24px", margin: `${marginTop}px 0 0`, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
       <a
         href={href}
         target="_blank"
@@ -508,6 +523,9 @@ export function PartnerSponsoredUnit({
       {sponsoredMark(hi)}
       <p
         style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: "vertical",
           height: 72,
           lineHeight: "24px",
           margin: "12px 0 0",
@@ -518,9 +536,10 @@ export function PartnerSponsoredUnit({
       >
         {copy}
       </p>
-      {row(chat, chatLabel, true, 12)}
+      {row(primary, primaryLabel, true, 12)}
+      {mode === "b" && row(rahuKaal, hi ? "राहु काल" : "Rahu Kaal", false, 0)}
       {row(kundli, kundliLabel, false, 0)}
-      {row(rashifal, rashifalLabel, false, 0)}
+      {mode !== "b" && row(rashifal, rashifalLabel, false, 0)}
     </aside>
   );
 }
