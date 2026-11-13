@@ -2,17 +2,18 @@ import type { IncomingMessage, ServerResponse } from "http";
 
 /**
  * Anonymous listing HTML.
- * `s-maxage` is the fresh window: about two minutes, so a published story
- * replaces the cached page on the next request after that. The stale copy
- * stays servable for a day, so a crawler that comes back later still gets an
+ * `s-maxage` is the fresh window: about ten minutes. A published story
+ * still replaces the cached page immediately, because publish revalidates
+ * the home, section and city hubs on demand. The stale copy stays
+ * servable for a day, so a crawler that comes back later still gets an
  * edge response instead of a cold database render, and that hit refreshes
  * the cache in the background.
  */
 export const PUBLIC_PAGE_CACHE_CONTROL =
-  "public, s-maxage=120, stale-while-revalidate=86400";
+  "public, s-maxage=600, stale-while-revalidate=86400";
 
 /** ISR interval for listing pages that do not vary per request. */
-export const LISTING_REVALIDATE_SECONDS = 120;
+export const LISTING_REVALIDATE_SECONDS = 600;
 
 /**
  * /news-sitemap.xml. Fresh for about two minutes, then servable for a day

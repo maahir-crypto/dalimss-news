@@ -3,7 +3,13 @@ const nextConfig = {
   reactStrictMode: true,
 
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // 31-day edge cache for optimized images. WebP only, so each
+    // photo is not also encoded as AVIF. deviceSizes drops 2048 and
+    // 3840; layout slots are 768px or smaller and sources are 1536px,
+    // so 1920 is enough. OG images and max-image-preview are untouched.
+    minimumCacheTTL: 2678400,
+    formats: ['image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     remotePatterns: [
       {
         protocol: "https",
