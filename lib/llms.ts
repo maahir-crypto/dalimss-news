@@ -31,16 +31,16 @@ Dalimss News is an Indian digital news publication specialising in Varanasi, Eas
 
 ## Sections
 
-- Varanasi News: ${SITE_URL}/varanasi-news
-- Gurugram News: ${SITE_URL}/gurugram-news
+- Varanasi News: ${SITE_URL}/varanasi-news. Latest verified Varanasi and Banaras news.
+- Gurugram News: ${SITE_URL}/gurugram-news. Latest verified Gurugram (Gurgaon) news.
 - BHU News: ${SITE_URL}/bhu-news
 - Varanasi Infrastructure: ${SITE_URL}/varanasi-infrastructure
 - Kashi Vishwanath News: ${SITE_URL}/kashi-vishwanath-news
 - Varanasi Airport News: ${SITE_URL}/varanasi-airport-news
 - Uttar Pradesh: ${SITE_URL}/category/uttar-pradesh
 - Education: ${SITE_URL}/category/education
-- Technology: ${SITE_URL}/category/technology
-- Automotive: ${SITE_URL}/category/automotive
+- Technology: ${SITE_URL}/category/technology. Latest technology news from India, including official price lists.
+- Automotive: ${SITE_URL}/category/automotive. Latest car and bike news from India, including official price lists.
 - Lifestyle: ${SITE_URL}/category/lifestyle
 - World: ${SITE_URL}/category/world
 - OTT: ${SITE_URL}/ott

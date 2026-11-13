@@ -13,13 +13,33 @@ export function articlePath(slug: string | null | undefined): string {
   return `/articles/${canonicalArticleSlug(slug as string)}`;
 }
 
-/** Public category URL. Unknown or template slugs go to the homepage. */
+/** Official public URL for a category that has a dedicated topic hub. */
+export const CATEGORY_HUB_PATHS: Record<string, string> = {
+  varanasi: "/varanasi-news",
+  gurgaon: "/gurugram-news",
+};
+
+/** Public category archive URL. Unknown or template slugs go to the homepage. */
 export function categoryPath(slug: string | null | undefined): string {
   if (isPlaceholderSegment(slug)) return "/";
   const category =
     getCategoryBySlug(slug as string) ||
     getCategoryBySlug((slug as string).toLowerCase());
   return category ? `/category/${category.slug}` : "/";
+}
+
+/**
+ * Public section URL used in navigation, breadcrumbs, sitemaps and canonicals.
+ * City categories resolve to the official topic hubs; other categories keep
+ * /category/{slug}.
+ */
+export function sectionPath(slug: string | null | undefined): string {
+  if (isPlaceholderSegment(slug)) return "/";
+  const category =
+    getCategoryBySlug(slug as string) ||
+    getCategoryBySlug((slug as string).toLowerCase());
+  if (!category) return "/";
+  return CATEGORY_HUB_PATHS[category.slug] || `/category/${category.slug}`;
 }
 
 /** Course URL, or the homepage when the slug is a template. */

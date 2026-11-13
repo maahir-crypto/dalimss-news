@@ -3,6 +3,8 @@ import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { decodeEntities } from "@/lib/decodeEntities";
+import { articlePath } from "@/lib/publicPaths";
 import {
   ORGANIZATION_ID,
   SITE_NAME,
@@ -10,6 +12,7 @@ import {
   WEBSITE_ID,
   absoluteImageUrl,
   formatDateIST,
+  itemListSchema,
 } from "@/lib/seo";
 import { TopicHubProps } from "@/lib/topicHubs";
 
@@ -20,7 +23,9 @@ export default function TopicHubPage({
   latestArticles,
 }: TopicHubProps) {
   const canonicalUrl = `${SITE_URL}${hub.canonicalPath}`;
-  const pageTitle = `${hub.title} - Latest Verified Updates | ${SITE_NAME}`;
+  const pageTitle =
+    hub.seoTitle || `${hub.title} - Latest Verified Updates | ${SITE_NAME}`;
+  const heading = hub.h1 || hub.title;
   const heroArticle = articles[0];
   const ogImage = heroArticle
     ? absoluteImageUrl(heroArticle.mediaUrl)
@@ -33,6 +38,12 @@ export default function TopicHubPage({
       })
     : "Updates automatically";
 
+  const storyItems = articles.map((article) => ({
+    name: decodeEntities(article.title),
+    url: `${SITE_URL}${articlePath(article.slug)}`,
+  }));
+  const itemList = itemListSchema(storyItems);
+
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -43,6 +54,7 @@ export default function TopicHubPage({
     isPartOf: {
       "@id": WEBSITE_ID,
     },
+    mainEntity: itemList,
     publisher: {
       "@type": "NewsMediaOrganization",
       "@id": ORGANIZATION_ID,
@@ -101,6 +113,10 @@ export default function TopicHubPage({
         />
         <script
           type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+        />
+        <script
+          type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       </Head>
@@ -113,7 +129,7 @@ export default function TopicHubPage({
             Dalimss News topic hub
           </p>
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900">
-            {hub.title}
+            {heading}
             {hub.titleHi && <span className="text-red-600"> | {hub.titleHi}</span>}
           </h1>
           <p className="text-gray-600 mt-3 max-w-3xl">{hub.description}</p>

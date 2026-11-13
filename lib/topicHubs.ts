@@ -10,6 +10,10 @@ export type TopicHubConfig = {
   slug: string;
   title: string;
   titleHi?: string;
+  /** Full document title, including the site name. */
+  seoTitle?: string;
+  /** English H1. Falls back to title. */
+  h1?: string;
   description: string;
   canonicalPath: string;
   feedPath?: string;
@@ -30,8 +34,10 @@ export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
     slug: "varanasi",
     title: "Varanasi News",
     titleHi: "वाराणसी समाचार",
+    seoTitle: "Varanasi News Today: Latest Varanasi News | Dalimss News",
+    h1: "Varanasi News Today: Latest Varanasi News",
     description:
-      "Verified Varanasi and Banaras news covering civic updates, culture, education, governance, tourism, infrastructure and public-interest reporting.",
+      "Latest Varanasi news today from Dalimss News: verified civic, culture, education, governance, tourism and infrastructure reporting from Banaras.",
     canonicalPath: "/varanasi-news",
     feedPath: "/varanasi/feed.xml",
     keywords: ["Varanasi", "Banaras", "Kashi", "वाराणसी", "बनारस"],
@@ -63,8 +69,10 @@ export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
     slug: "gurugram",
     title: "Gurugram News",
     titleHi: "गुरुग्राम समाचार",
+    seoTitle: "Gurugram News Today: Latest Gurugram (Gurgaon) News | Dalimss News",
+    h1: "Gurugram News Today: Latest Gurugram (Gurgaon) News",
     description:
-      "Verified Gurugram news covering civic agencies, traffic, real estate, corporate hubs, neighbourhood issues, infrastructure and Haryana updates.",
+      "Latest Gurugram (Gurgaon) news today from Dalimss News: verified civic, traffic, real estate, corporate, neighbourhood and Haryana reporting.",
     canonicalPath: "/gurugram-news",
     feedPath: "/gurugram/feed.xml",
     keywords: ["Gurugram", "Gurgaon", "Cyber City", "Haryana", "गुरुग्राम"],

@@ -6,6 +6,10 @@ export interface Category {
   name: string;
   nameHi?: string; // Hindi name
   description: string;
+  /** Full document title, including the site name. */
+  seoTitle?: string;
+  /** English H1. Falls back to "{name} News". */
+  h1?: string;
   /** The value stored in the Article.category DB field that maps to this category */
   dbValues: string[];
   priority: number; // Sitemap priority
@@ -81,8 +85,10 @@ export const CATEGORIES: Category[] = [
     slug: "technology",
     name: "Technology",
     nameHi: "टेक्नोलॉजी",
+    seoTitle: "Tech News Today: Latest Technology News India | Dalimss News",
+    h1: "Tech News Today: Latest Technology News India",
     description:
-      "Technology news: gadgets, apps, AI, Indian tech developments, digital policy, and tech industry updates.",
+      "Latest technology news today from India: phones, gadgets, apps, AI, digital policy, launches and official price lists.",
     dbValues: [
       "Technology",
       "technology",
@@ -97,8 +103,10 @@ export const CATEGORIES: Category[] = [
     slug: "automotive",
     name: "Automotive",
     nameHi: "ऑटोमोबाइल",
+    seoTitle: "Auto News Today: Latest Car & Bike News India | Dalimss News",
+    h1: "Auto News Today: Latest Car & Bike News India",
     description:
-      "Automotive news from India: new car, bike and scooter launches, electric vehicles, commercial vehicles, prices, road tests and industry updates.",
+      "Latest car and bike news today from India: new launches, electric vehicles, prices, road tests and industry updates.",
     dbValues: ["Automotive", "automotive"],
     priority: 0.8,
   },

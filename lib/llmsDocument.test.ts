@@ -54,12 +54,12 @@ for (const url of [
 }
 assert.ok(
   body.includes(
-    "Technology: https://dalimss.news/category/technology. Phone, laptop, wearable and appliance price lists for India, launches and explainers."
+    "Technology: https://dalimss.news/category/technology. Latest technology news from India: phones, gadgets, apps, AI, digital policy, launches and official price lists."
   )
 );
 assert.ok(
   body.includes(
-    "Automotive: https://dalimss.news/category/automotive. Car, scooter and motorcycle prices."
+    "Automotive: https://dalimss.news/category/automotive. Latest car and bike news from India: launches, electric vehicles, prices and industry updates."
   )
 );
 assert.ok(
@@ -68,10 +68,10 @@ assert.ok(
   )
 );
 assert.ok(
-  body.includes("Varanasi News: https://dalimss.news/varanasi-news. Local news.")
+  body.includes("Varanasi News: https://dalimss.news/varanasi-news. Latest verified Varanasi and Banaras news covering civic updates, culture, education, governance, tourism and infrastructure.")
 );
 assert.ok(
-  body.includes("Gurugram News: https://dalimss.news/gurugram-news. Local news.")
+  body.includes("Gurugram News: https://dalimss.news/gurugram-news. Latest verified Gurugram (Gurgaon) news covering civic agencies, traffic, real estate, corporate hubs, neighbourhood issues and Haryana updates.")
 );
 assert.equal(body.includes("\u2014"), false);
 assert.equal(body.includes("\u2013"), false);

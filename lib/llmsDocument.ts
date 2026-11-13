@@ -13,16 +13,16 @@ Dalimss News is published by PAMF Digimedia Private Limited, Gurugram, Haryana, 
 
 ## Primary Sections
 
-- Varanasi News: https://dalimss.news/varanasi-news. Local news.
-- Gurugram News: https://dalimss.news/gurugram-news. Local news.
+- Varanasi News: https://dalimss.news/varanasi-news. Latest verified Varanasi and Banaras news covering civic updates, culture, education, governance, tourism and infrastructure.
+- Gurugram News: https://dalimss.news/gurugram-news. Latest verified Gurugram (Gurgaon) news covering civic agencies, traffic, real estate, corporate hubs, neighbourhood issues and Haryana updates.
 - BHU News: https://dalimss.news/bhu-news
 - Varanasi Infrastructure: https://dalimss.news/varanasi-infrastructure
 - Kashi Vishwanath News: https://dalimss.news/kashi-vishwanath-news
 - Varanasi Airport News: https://dalimss.news/varanasi-airport-news
 - Uttar Pradesh: https://dalimss.news/category/uttar-pradesh
 - Education: https://dalimss.news/category/education. Exams, results, admissions.
-- Technology: https://dalimss.news/category/technology. Phone, laptop, wearable and appliance price lists for India, launches and explainers.
-- Automotive: https://dalimss.news/category/automotive. Car, scooter and motorcycle prices.
+- Technology: https://dalimss.news/category/technology. Latest technology news from India: phones, gadgets, apps, AI, digital policy, launches and official price lists.
+- Automotive: https://dalimss.news/category/automotive. Latest car and bike news from India: launches, electric vehicles, prices and industry updates.
 - Lifestyle: https://dalimss.news/category/lifestyle
 - World: https://dalimss.news/category/world
 - OTT: https://dalimss.news/ott
