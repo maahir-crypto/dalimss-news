@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  devDeepawaliVaranasiHref,
   diwaliPartnerHref,
   festivalPartnerHref,
   getFestivalPartnerCta,
@@ -422,6 +423,80 @@ export function PartnerFestivalLine({
         {t.line}
       </a>
     </p>
+  );
+}
+
+/** Reserved box for the Varanasi Dev Deepawali Partner line: 16px label, 8px gap, four 24px lines. */
+export const DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX = 120;
+
+export const DEV_DEEPAWALI_VARANASI_COPY = {
+  en: "Dev Deepawali 2026: date, muhurat and Kartik Purnima rituals. Ask Pocket Jyotish's AI Astrologer",
+  hi: "देव दीपावली 2026: तिथि, मुहूर्त और कार्तिक पूर्णिमा की विधि. Pocket Jyotish के AI Astrologer से पूछें.",
+} as const;
+
+/**
+ * Links-only Dev Deepawali line for Varanasi section stories. Fixed height so
+ * the line cannot shift the page. Partner label, not a second Sponsored unit.
+ * No iframe. Pocket Jyotish is the only operator named.
+ */
+export function PartnerDevDeepawaliLine({
+  lang,
+  slug,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+}) {
+  const copy = lang === "hi" ? DEV_DEEPAWALI_VARANASI_COPY.hi : DEV_DEEPAWALI_VARANASI_COPY.en;
+  return (
+    <aside
+      className="partner-dev-deepawali not-prose"
+      data-partner="dev-deepawali"
+      aria-label="Partner"
+      style={{
+        boxSizing: "border-box",
+        height: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        minHeight: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        maxHeight: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        overflow: "hidden",
+        marginTop: 24,
+        marginBottom: 24,
+      }}
+    >
+      <span
+        style={{
+          display: "block",
+          height: 16,
+          lineHeight: "16px",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "#6b7280",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Partner
+      </span>
+      <a
+        href={devDeepawaliVaranasiHref(slug)}
+        target="_blank"
+        rel={REL}
+        className="font-semibold text-blue-800 underline underline-offset-2"
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 4,
+          WebkitBoxOrient: "vertical",
+          height: 96,
+          lineHeight: "24px",
+          marginTop: 8,
+          overflow: "hidden",
+          fontSize: 14,
+        }}
+      >
+        {copy}
+      </a>
+    </aside>
   );
 }
 

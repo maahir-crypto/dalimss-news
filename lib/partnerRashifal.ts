@@ -1,3 +1,5 @@
+import { getCategoriesByDbValue, pickBreadcrumbCategory } from "@/lib/categories";
+
 // Decide whether a story gets the partner rashifal widget, and which sign to show.
 const EN_KEYWORDS =
   /\b(rashifal|rashi|horoscopes?|jyotish|kundli|kundali|astrology|astrological|zodiac|panchang|muhurat|muhurta|vrat|vrats|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi[\s-]?vivah|dev[\s-]?uthani|dev[\s-]?diwali|kartik[\s-]?purnima|purnima|amavasya|sankranti|makar[\s-]?sankranti|lohri|pongal|holi|janmashtami|maha[\s-]?shivratri|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan)\b/i;
@@ -36,8 +38,10 @@ const DIWALI_FESTIVAL_HI = /(दिवाली|दीपावली|धनत�
  */
 export const DIWALI_PARTNER_CTA_UNTIL_IST = "2026-11-11";
 
-// Do not keyword-match a swap to /dev-deepawali-2026/. The approved placement
-// is the links-only Vaikuntha Chaturdashi CTA on one exact slug, through 24 Nov IST.
+// Do not keyword-match a swap of the end unit to /dev-deepawali-2026/.
+// The approved end-unit placement is the links-only Vaikuntha Chaturdashi CTA
+// on one exact slug, through 24 Nov IST. Varanasi section stories use a
+// separate links-only Partner line (showDevDeepawaliVaranasiPartner).
 
 const SIGNS: { slug: string; re: RegExp }[] = [
   { slug: "mesh", re: /\b(mesh|aries)\b|मेष/i },
@@ -117,7 +121,7 @@ export const PARTNER_CAMPAIGN_EVERGREEN = "partner_evergreen";
 export const PARTNER_CAMPAIGN_DIWALI = "diwali_2026";
 export const PARTNER_CAMPAIGN_TECH_AUTO = "tech_auto_test";
 
-export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline" | "ad";
+export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline" | "ad" | "partner";
 export type PartnerVariant = "a" | "b";
 
 export function partnerHref(opts: {
@@ -987,6 +991,107 @@ export function devDeepawaliOverridesPradosh(a: StoryFields, now: Date = new Dat
     today <= DEV_DEEPAWALI_PRIORITY_UNTIL_IST &&
     isVaranasiOrFestivalStory(a)
   );
+}
+
+/**
+ * Links-only Dev Deepawali Partner line on Varanasi section stories.
+ * Maahir approved this on 15 Nov 2026. On from 00:00 IST 20 Nov through
+ * 23:59:59 IST 24 Nov. Off at 00:00 IST 25 Nov. It does not replace the
+ * Sponsored end unit or the chat versus Choghadiya test.
+ */
+export const DEV_DEEPAWALI_VARANASI_FROM_IST = "2026-11-20";
+export const DEV_DEEPAWALI_VARANASI_UNTIL_IST = "2026-11-24";
+
+/**
+ * PR72 exact slug. That story already has the links-only Vaikuntha CTA, so it
+ * does not also get a Dev Deepawali line.
+ */
+export const DEV_DEEPAWALI_GUIDE_SLUG = "dev-deepawali-24-november-2026-varanasi-timings";
+
+export function isDevDeepawaliVaranasiWindow(now: Date = new Date()): boolean {
+  const today = istCalendarDate(now);
+  return today >= DEV_DEEPAWALI_VARANASI_FROM_IST && today <= DEV_DEEPAWALI_VARANASI_UNTIL_IST;
+}
+
+/**
+ * Varanasi section story: the breadcrumb category is Varanasi, or any stored
+ * category value maps to Varanasi (including a mixed city list).
+ */
+export function isVaranasiSectionStory(a: { category?: string | null }): boolean {
+  if (pickBreadcrumbCategory(a.category)?.slug === "varanasi") return true;
+  return getCategoriesByDbValue(a.category).some((category) => category.slug === "varanasi");
+}
+
+/**
+ * Already showing a Dev Deepawali guide, so a second link would duplicate it.
+ * The PR72 slug keeps its own CTA. The 17–24 Nov end-unit priority, and the
+ * 24 Nov rotation, already link to /dev-deepawali-2026/ when that guide is
+ * the one on the page.
+ */
+export function hasDevDeepawaliGuide(a: StoryFields, now: Date = new Date()): boolean {
+  if (a.slug === DEV_DEEPAWALI_GUIDE_SLUG && festivalPartnerCtaFor(a, now)) return true;
+  return upcomingVratForStory(a, now)?.id === "dev_deepawali_2026";
+}
+
+/**
+ * The Varanasi Partner line. Sensitive stories are excluded. A story that
+ * already has a partner widget, a festival line, or the Dev Deepawali guide
+ * does not get a second unit.
+ */
+export function showDevDeepawaliVaranasiPartner(a: StoryFields, now: Date = new Date()): boolean {
+  if (!isDevDeepawaliVaranasiWindow(now)) return false;
+  if (isSensitiveStory(a)) return false;
+  if (!isVaranasiSectionStory(a)) return false;
+  if (hasDevDeepawaliGuide(a, now)) return false;
+  if (isPartnerEligibleStory(a)) return false;
+  if (festivalPartnerCtaFor(a, now)) return false;
+  return true;
+}
+
+export function devDeepawaliVaranasiHref(slug: string): string {
+  return partnerHref({
+    path: "/dev-deepawali-2026/",
+    medium: "partner",
+    campaign: PARTNER_CAMPAIGN_DEV_DEEPAWALI,
+    slug,
+  });
+}
+
+/**
+ * ISR caps for Varanasi section pages. 00:00 IST on 20 Nov is the expiry of
+ * 19 Nov, and 00:00 IST on 25 Nov is the expiry of 24 Nov.
+ */
+export function devDeepawaliVaranasiWindows(
+  a: StoryFields,
+  now: Date = new Date()
+): { untilIst: string }[] {
+  if (isSensitiveStory(a) || !isVaranasiSectionStory(a)) return [];
+  const today = istCalendarDate(now);
+  if (today < DEV_DEEPAWALI_VARANASI_FROM_IST) {
+    return [{ untilIst: previousIstDate(DEV_DEEPAWALI_VARANASI_FROM_IST) }];
+  }
+  if (today <= DEV_DEEPAWALI_VARANASI_UNTIL_IST) {
+    return [{ untilIst: DEV_DEEPAWALI_VARANASI_UNTIL_IST }];
+  }
+  return [];
+}
+
+export type DevDeepawaliPartnerSlot = "after-body" | "before-related" | "none";
+
+/**
+ * After the body when author or sources separate the line from the
+ * below-article ad. Otherwise before related stories, with Latest Stories
+ * between the ad and the line. Never beside an AdSense slot.
+ */
+export function devDeepawaliPartnerSlot(opts: {
+  show: boolean;
+  separatedFromBelowAd: boolean;
+  hasLatestStories: boolean;
+}): DevDeepawaliPartnerSlot {
+  if (!opts.show) return "none";
+  if (opts.separatedFromBelowAd) return "after-body";
+  if (opts.hasLatestStories) return "before-related";
+  return "none";
 }
 
 /** Match only the story metadata used by partner eligibility. */

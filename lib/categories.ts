@@ -252,6 +252,17 @@ export function getCategoriesByDbValue(
 }
 
 /**
+ * Breadcrumb category for a story. Mixed city values keep their stored order.
+ * The last resolved category is the one the article breadcrumb shows.
+ */
+export function pickBreadcrumbCategory(
+  dbValue: string | null | undefined
+): Category | undefined {
+  const categories = getCategoriesByDbValue(dbValue);
+  return categories.length > 0 ? categories[categories.length - 1] : undefined;
+}
+
+/**
  * Get the category slug for a given article's DB category value
  */
 export function getCategorySlug(dbCategory: string | null | undefined): string {
