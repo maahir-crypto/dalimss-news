@@ -94,6 +94,8 @@ interface Props {
   upcomingVratId?: string | null;
   /** Sponsored end unit choice, fixed at build/revalidate time. */
   sponsoredEndMode?: SponsoredEndMode | null;
+  /** Varanasi Dev Deepawali Partner line, fixed at build/revalidate time. */
+  devDeepawaliVaranasi?: boolean | null;
 }
 
 import Head from "next/head";
@@ -116,6 +118,7 @@ import {
   PartnerInlineCard,
   PartnerTechAutoLine,
   PartnerFestivalLine,
+  PartnerDevDeepawaliLine,
   PartnerSponsoredUnit,
 } from "@/components/PartnerRashifal";
 import {
@@ -138,6 +141,9 @@ import {
   canShowSponsoredEndUnit,
   sponsoredEndPlacement,
   isHardNewsStory,
+  devDeepawaliPartnerSlot,
+  devDeepawaliVaranasiWindows,
+  showDevDeepawaliVaranasiPartner,
 } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
@@ -156,7 +162,7 @@ import {
   metaTitleIsTruncatedHeadline,
   trimTitleAtWordBoundary,
 } from "@/lib/seo";
-import { getCategoriesByDbValue } from "@/lib/categories";
+import { getCategoriesByDbValue, pickBreadcrumbCategory } from "@/lib/categories";
 import { isDealArticle } from "@/lib/dealArticles";
 import { priceHubLinkForArticle, priceHubIdFor } from "@/lib/priceHubs";
 import { applyRelatedArticleLinks } from "@/lib/relatedArticles";
@@ -184,6 +190,7 @@ const ArticlePage: React.FC<Props> = ({
   festivalCtaId = null,
   upcomingVratId = null,
   sponsoredEndMode = null,
+  devDeepawaliVaranasi = null,
 }) => {
   const { data: session } = useSession();
   
@@ -222,7 +229,7 @@ const ArticlePage: React.FC<Props> = ({
   const ogImageUrl = absoluteImageUrl(article.mediaUrl);
 
   const categories = getCategoriesByDbValue(article.category);
-  const breadcrumbCategory = categories[categories.length - 1];
+  const breadcrumbCategory = pickBreadcrumbCategory(article.category);
   const isOpinion = categories.some((category) => category.slug === "opinion");
   const sources = normalizeArticleSources(article.sourceUrls);
   const visibleSources = [
@@ -299,6 +306,21 @@ const ArticlePage: React.FC<Props> = ({
     Boolean(partnerTests?.techAuto) &&
     blockBeforeBelowAd &&
     isTechAutoTestStory(article);
+  // One Dev Deepawali Partner line, and never next to an AdSense slot.
+  // After the body when author or sources separate it from the below-article
+  // ad. Otherwise before related stories, with Latest Stories in between.
+  // Stories that already have a partner unit in the text skip this line.
+  const devDeepawaliSlot = devDeepawaliPartnerSlot({
+    show:
+      Boolean(devDeepawaliVaranasi) &&
+      !showPartnerPlacements &&
+      !linksOnlyCta &&
+      !festivalCta &&
+      !showPricePartner &&
+      !showTechAutoLine,
+    separatedFromBelowAd: blockBeforeBelowAd,
+    hasLatestStories: latestArticles.length > 0,
+  });
   // One Sponsored end unit, and never next to an AdSense slot. After the body
   // when author or sources separate it from the below-article ad. Otherwise
   // before related stories, with Latest Stories between it and that ad.
@@ -799,6 +821,9 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
+      {devDeepawaliSlot === "after-body" && (
+        <PartnerDevDeepawaliLine lang={partnerLang} slug={article.slug} />
+      )}
       {festivalCta && (
         <PartnerFestivalLine lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={partnerVariant} />
       )}
@@ -908,6 +933,9 @@ const ArticlePage: React.FC<Props> = ({
 
       <LatestStories stories={latestArticles} heading="Latest" />
 
+      {devDeepawaliSlot === "before-related" && (
+        <PartnerDevDeepawaliLine lang={partnerLang} slug={article.slug} />
+      )}
       {sponsoredPlacement === "before-related" && (
         <PartnerSponsoredUnit
           lang={partnerLang}
@@ -1103,6 +1131,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       festivalCtaId: festivalCta?.id ?? null,
       upcomingVratId: upcomingVrat?.id ?? null,
       sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow),
+      devDeepawaliVaranasi: showDevDeepawaliVaranasiPartner(article, partnerNow),
     },
     // Regenerate at 00:00 IST when a partner window expires or a guide starts, else hourly.
     revalidate: partnerPageRevalidateSeconds(
@@ -1111,6 +1140,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         upcomingVrat,
         ...pendingVratStartsForStory(article, partnerNow),
         ...sponsoredEndWindowsForStory(article, partnerNow),
+        ...devDeepawaliVaranasiWindows(article, partnerNow),
       ],
       partnerNow
     ),
