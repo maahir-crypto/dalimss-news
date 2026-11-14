@@ -1,8 +1,10 @@
+import { getCategoriesByDbValue, pickBreadcrumbCategory } from "@/lib/categories";
+
 // Decide whether a story gets the partner rashifal widget, and which sign to show.
 const EN_KEYWORDS =
-  /\b(rashifal|rashi|horoscopes?|jyotish|kundli|kundali|astrology|astrological|zodiac|panchang|muhurat|muhurta|vrat|vrats|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi[\s-]?vivah|dev[\s-]?uthani|dev[\s-]?diwali|kartik[\s-]?purnima|purnima|amavasya|sankranti|makar[\s-]?sankranti|holi|janmashtami|maha[\s-]?shivratri|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan)\b/i;
+  /\b(rashifal|rashi|horoscopes?|jyotish|kundli|kundali|astrology|astrological|zodiac|panchang|muhurat|muhurta|vrat|vrats|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi[\s-]?vivah|dev[\s-]?uthani|dev[\s-]?diwali|kartik[\s-]?purnima|purnima|amavasya|sankranti|makar[\s-]?sankranti|lohri|pongal|holi|janmashtami|maha[\s-]?shivratri|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan)\b/i;
 const HI_KEYWORDS =
-  /(राशिफल|राशि|ज्योतिष|कुंडली|कुण्डली|पंचांग|मुहूर्त|व्रत|पूजा|आरती|चालीसा|करवा\s?चौथ|दिवाली|दीपावली|छठ|धनतेरस|एकादशी|नवरात्रि|नवरात्र|भाई\s?दूज|गोवर्धन|तुलसी\s?विवाह|देव\s?दीपावली|देव\s?दिवाली|कार्तिक\s?पूर्णिमा|पूर्णिमा|अमावस्या|संक्रांति|होली|जन्माष्टमी|शिवरात्रि|गणेश\s?चतुर्थी|दुर्गा\s?पूजा|रक्षाबंधन|दशहरा|रामनवमी|हनुमान\s?जयंती|अक्षय\s?तृतीया|तीज|पितृ\s?पक्ष|श्राद्ध|सावन)/;
+  /(राशिफल|राशि|ज्योतिष|कुंडली|कुण्डली|पंचांग|मुहूर्त|व्रत|पूजा|आरती|चालीसा|करवा\s?चौथ|दिवाली|दीपावली|छठ|धनतेरस|एकादशी|नवरात्रि|नवरात्र|भाई\s?दूज|गोवर्धन|तुलसी\s?विवाह|देव\s?दीपावली|देव\s?दिवाली|कार्तिक\s?पूर्णिमा|पूर्णिमा|अमावस्या|संक्रांति|लोहड़ी|होली|जन्माष्टमी|शिवरात्रि|गणेश\s?चतुर्थी|दुर्गा\s?पूजा|रक्षाबंधन|दशहरा|रामनवमी|हनुमान\s?जयंती|अक्षय\s?तृतीया|तीज|पितृ\s?पक्ष|श्राद्ध|सावन)/;
 
 /** Story categories that are astrology / religion by definition. */
 const RELIGION_CATEGORY = /^(astrology|religion|spirituality|spiritual|dharm|dharma|festivals?|धर्म|ज्योतिष|अध्यात्म)$/i;
@@ -36,8 +38,10 @@ const DIWALI_FESTIVAL_HI = /(दिवाली|दीपावली|धनत�
  */
 export const DIWALI_PARTNER_CTA_UNTIL_IST = "2026-11-11";
 
-// Do not keyword-match a swap to /dev-deepawali-2026/. The approved placement
-// is the links-only Vaikuntha Chaturdashi CTA on one exact slug, through 24 Nov IST.
+// Do not keyword-match a swap of the end unit to /dev-deepawali-2026/.
+// The approved end-unit placement is the links-only Vaikuntha Chaturdashi CTA
+// on one exact slug, through 24 Nov IST. Varanasi section stories use a
+// separate links-only Partner line (showDevDeepawaliVaranasiPartner).
 
 const SIGNS: { slug: string; re: RegExp }[] = [
   { slug: "mesh", re: /\b(mesh|aries)\b|मेष/i },
@@ -117,7 +121,7 @@ export const PARTNER_CAMPAIGN_EVERGREEN = "partner_evergreen";
 export const PARTNER_CAMPAIGN_DIWALI = "diwali_2026";
 export const PARTNER_CAMPAIGN_TECH_AUTO = "tech_auto_test";
 
-export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline" | "ad";
+export type PartnerMedium = "widget" | "inline_card" | "sidebar" | "price_guide" | "endline" | "inline" | "ad" | "partner";
 export type PartnerVariant = "a" | "b";
 
 export function partnerHref(opts: {
@@ -385,8 +389,11 @@ export function festivalPartnerHref(
 
 // ---------------------------------------------------------------------------
 // Upcoming vrat / puja guides for astrology, festival, vrat and puja stories.
-// One live guide at a time: the soonest last-day still inside its IST window.
-// After 00:00 IST the day after that last day, the next guide takes over.
+// One live guide at a time. Chhath and Vrishchika (the predicate guides that
+// sit ahead of the general rotation) keep first place while their IST window
+// is open. Later story-predicate guides then beat the general rotation when
+// the story matches. Otherwise the soonest open general guide is used.
+// After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
 // Linked only. The free chart URL is /kundli/. Do not swap in a retired alias.
@@ -397,6 +404,12 @@ export const CHHATH_UNTIL_IST = "2026-11-16";
 export const VRISHCHIKA_SANKRANTI_UNTIL_IST = "2026-11-16";
 export const KAAL_BHAIRAV_UNTIL_IST = "2026-12-01";
 export const UTPANNA_EKADASHI_UNTIL_IST = "2026-12-04";
+/** Inclusive first IST day. Utpanna covers Ekadashi through 4 Dec. */
+export const SAPHALA_EKADASHI_FROM_IST = "2026-12-05";
+export const SAPHALA_EKADASHI_UNTIL_IST = "2027-01-03";
+export const KHARMAS_UNTIL_IST = "2027-01-14";
+export const LOHRI_SANKRANTI_UNTIL_IST = "2027-01-15";
+export const RASHIFAL_2027_UNTIL_IST = "2027-01-31";
 export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
 export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
 /** Rotation window. The exact-slug links-only CTA stays on its own later date. */
@@ -429,13 +442,19 @@ export type UpcomingVratId =
   | "vaikuntha_2026"
   | "dev_deepawali_2026"
   | "sankashti_2026"
-  | "mgpurnima_2026";
+  | "mgpurnima_2026"
+  | "saphala_ekadashi_2027"
+  | "kharmas_2026"
+  | "lohri_sankranti_2027"
+  | "rashifal_2027";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
   path: string;
   campaign: string;
   untilIst: string;
+  /** Inclusive first Asia/Calcutta day. Absent means the guide is already active. */
+  fromIst?: string;
   appliesTo?: (a: StoryFields) => boolean;
   text: {
     en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
@@ -647,6 +666,91 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
       },
     },
   },
+  {
+    id: "saphala_ekadashi_2027",
+    path: "/saphala-ekadashi-2027/",
+    campaign: "saphala_2027",
+    fromIst: SAPHALA_EKADASHI_FROM_IST,
+    untilIst: SAPHALA_EKADASHI_UNTIL_IST,
+    appliesTo: isSaphalaEkadashiStory,
+    text: {
+      en: {
+        endCard: "Saphala Ekadashi 2027 guide",
+        sidebarTitle: "Saphala Ekadashi 2027",
+        sidebarBody: "See the Saphala Ekadashi 2027 guide on our partner site.",
+        sidebarLink: "Saphala Ekadashi 2027 guide",
+      },
+      hi: {
+        endCard: "सफला एकादशी 2027 गाइड",
+        sidebarTitle: "सफला एकादशी 2027",
+        sidebarBody: "सफला एकादशी 2027 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "सफला एकादशी 2027 गाइड",
+      },
+    },
+  },
+  {
+    id: "kharmas_2026",
+    path: "/kharmas-2026/",
+    campaign: "kharmas_2026",
+    untilIst: KHARMAS_UNTIL_IST,
+    appliesTo: isKharmasWeddingStory,
+    text: {
+      en: {
+        endCard: "Kharmas 2026 dates and last vivah muhurat",
+        sidebarTitle: "Kharmas 2026",
+        sidebarBody: "See the Kharmas 2026 guide on our partner site.",
+        sidebarLink: "Kharmas 2026 dates and last vivah muhurat",
+      },
+      hi: {
+        endCard: "खरमास 2026 तिथियां और अंतिम विवाह मुहूर्त",
+        sidebarTitle: "खरमास 2026",
+        sidebarBody: "खरमास 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "खरमास 2026 तिथियां और अंतिम विवाह मुहूर्त",
+      },
+    },
+  },
+  {
+    id: "lohri_sankranti_2027",
+    path: "/lohri-makar-sankranti-2027/",
+    campaign: "lohri_sankranti_2027",
+    untilIst: LOHRI_SANKRANTI_UNTIL_IST,
+    appliesTo: isLohriSankrantiStory,
+    text: {
+      en: {
+        endCard: "Lohri and Makar Sankranti 2027 guide",
+        sidebarTitle: "Lohri and Makar Sankranti 2027",
+        sidebarBody: "See the Lohri and Makar Sankranti 2027 guide on our partner site.",
+        sidebarLink: "Lohri and Makar Sankranti 2027 guide",
+      },
+      hi: {
+        endCard: "लोहड़ी और मकर संक्रांति 2027 गाइड",
+        sidebarTitle: "लोहड़ी और मकर संक्रांति 2027",
+        sidebarBody: "लोहड़ी और मकर संक्रांति 2027 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "लोहड़ी और मकर संक्रांति 2027 गाइड",
+      },
+    },
+  },
+  {
+    id: "rashifal_2027",
+    path: "/rashifal-2027/",
+    campaign: "rashifal_2027",
+    untilIst: RASHIFAL_2027_UNTIL_IST,
+    appliesTo: isRashifalHoroscopeStory,
+    text: {
+      en: {
+        endCard: "Rashifal 2027 for all 12 signs",
+        sidebarTitle: "Rashifal 2027",
+        sidebarBody: "See the Rashifal 2027 guide on our partner site.",
+        sidebarLink: "Rashifal 2027 for all 12 signs",
+      },
+      hi: {
+        endCard: "राशिफल 2027: सभी 12 राशियों के लिए",
+        sidebarTitle: "राशिफल 2027",
+        sidebarBody: "राशिफल 2027 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "राशिफल 2027: सभी 12 राशियों के लिए",
+      },
+    },
+  },
 ];
 
 export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta | null {
@@ -654,14 +758,53 @@ export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta 
   return UPCOMING_VRAT_CTAS.find((c) => c.id === id) ?? null;
 }
 
+function vratIsOpen(c: UpcomingVratCta, today: string): boolean {
+  return (!c.fromIst || today >= c.fromIst) && today <= c.untilIst;
+}
+
 /** Next open guide matching the story; without a story, only general guides qualify. */
 export function nextUpcomingVrat(now: Date = new Date(), a?: StoryFields): UpcomingVratCta | null {
   const today = istCalendarDate(now);
-  return (
-    UPCOMING_VRAT_CTAS.find(
-      (c) => today <= c.untilIst && (!c.appliesTo || (a !== undefined && c.appliesTo(a)))
-    ) ?? null
-  );
+  const firstGeneral = UPCOMING_VRAT_CTAS.findIndex((c) => !c.appliesTo);
+  const legacyEnd = firstGeneral === -1 ? UPCOMING_VRAT_CTAS.length : firstGeneral;
+  for (let i = 0; i < legacyEnd; i++) {
+    const c = UPCOMING_VRAT_CTAS[i];
+    if (vratIsOpen(c, today) && (!c.appliesTo || (a !== undefined && c.appliesTo(a)))) return c;
+  }
+  if (a) {
+    const specific = UPCOMING_VRAT_CTAS.find(
+      (c) => c.appliesTo !== undefined && vratIsOpen(c, today) && c.appliesTo(a)
+    );
+    if (specific) return specific;
+  }
+  return UPCOMING_VRAT_CTAS.find((c) => !c.appliesTo && vratIsOpen(c, today)) ?? null;
+}
+
+/** Asia/Calcutta calendar day before istDate (YYYY-MM-DD). */
+function previousIstDate(istDate: string): string {
+  const [y, m, d] = istDate.split("-").map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  utc.setUTCDate(utc.getUTCDate() - 1);
+  const mm = String(utc.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(utc.getUTCDate()).padStart(2, "0");
+  return `${utc.getUTCFullYear()}-${mm}-${dd}`;
+}
+
+/**
+ * ISR caps for story guides that have not started yet. 00:00 IST on fromIst
+ * is the expiry of the previous IST date, so partnerPageRevalidateSeconds
+ * already lands on that midnight. Saphala starts 2026-12-05.
+ */
+export function pendingVratStartsForStory(a: StoryFields, now: Date = new Date()): { untilIst: string }[] {
+  if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return [];
+  const today = istCalendarDate(now);
+  const out: { untilIst: string }[] = [];
+  for (const c of UPCOMING_VRAT_CTAS) {
+    if (!c.fromIst || today >= c.fromIst) continue;
+    if (c.appliesTo && !c.appliesTo(a)) continue;
+    out.push({ untilIst: previousIstDate(c.fromIst) });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -850,6 +993,107 @@ export function devDeepawaliOverridesPradosh(a: StoryFields, now: Date = new Dat
   );
 }
 
+/**
+ * Links-only Dev Deepawali Partner line on Varanasi section stories.
+ * Maahir approved this on 15 Nov 2026. On from 00:00 IST 20 Nov through
+ * 23:59:59 IST 24 Nov. Off at 00:00 IST 25 Nov. It does not replace the
+ * Sponsored end unit or the chat versus Choghadiya test.
+ */
+export const DEV_DEEPAWALI_VARANASI_FROM_IST = "2026-11-20";
+export const DEV_DEEPAWALI_VARANASI_UNTIL_IST = "2026-11-24";
+
+/**
+ * PR72 exact slug. That story already has the links-only Vaikuntha CTA, so it
+ * does not also get a Dev Deepawali line.
+ */
+export const DEV_DEEPAWALI_GUIDE_SLUG = "dev-deepawali-24-november-2026-varanasi-timings";
+
+export function isDevDeepawaliVaranasiWindow(now: Date = new Date()): boolean {
+  const today = istCalendarDate(now);
+  return today >= DEV_DEEPAWALI_VARANASI_FROM_IST && today <= DEV_DEEPAWALI_VARANASI_UNTIL_IST;
+}
+
+/**
+ * Varanasi section story: the breadcrumb category is Varanasi, or any stored
+ * category value maps to Varanasi (including a mixed city list).
+ */
+export function isVaranasiSectionStory(a: { category?: string | null }): boolean {
+  if (pickBreadcrumbCategory(a.category)?.slug === "varanasi") return true;
+  return getCategoriesByDbValue(a.category).some((category) => category.slug === "varanasi");
+}
+
+/**
+ * Already showing a Dev Deepawali guide, so a second link would duplicate it.
+ * The PR72 slug keeps its own CTA. The 17–24 Nov end-unit priority, and the
+ * 24 Nov rotation, already link to /dev-deepawali-2026/ when that guide is
+ * the one on the page.
+ */
+export function hasDevDeepawaliGuide(a: StoryFields, now: Date = new Date()): boolean {
+  if (a.slug === DEV_DEEPAWALI_GUIDE_SLUG && festivalPartnerCtaFor(a, now)) return true;
+  return upcomingVratForStory(a, now)?.id === "dev_deepawali_2026";
+}
+
+/**
+ * The Varanasi Partner line. Sensitive stories are excluded. A story that
+ * already has a partner widget, a festival line, or the Dev Deepawali guide
+ * does not get a second unit.
+ */
+export function showDevDeepawaliVaranasiPartner(a: StoryFields, now: Date = new Date()): boolean {
+  if (!isDevDeepawaliVaranasiWindow(now)) return false;
+  if (isSensitiveStory(a)) return false;
+  if (!isVaranasiSectionStory(a)) return false;
+  if (hasDevDeepawaliGuide(a, now)) return false;
+  if (isPartnerEligibleStory(a)) return false;
+  if (festivalPartnerCtaFor(a, now)) return false;
+  return true;
+}
+
+export function devDeepawaliVaranasiHref(slug: string): string {
+  return partnerHref({
+    path: "/dev-deepawali-2026/",
+    medium: "partner",
+    campaign: PARTNER_CAMPAIGN_DEV_DEEPAWALI,
+    slug,
+  });
+}
+
+/**
+ * ISR caps for Varanasi section pages. 00:00 IST on 20 Nov is the expiry of
+ * 19 Nov, and 00:00 IST on 25 Nov is the expiry of 24 Nov.
+ */
+export function devDeepawaliVaranasiWindows(
+  a: StoryFields,
+  now: Date = new Date()
+): { untilIst: string }[] {
+  if (isSensitiveStory(a) || !isVaranasiSectionStory(a)) return [];
+  const today = istCalendarDate(now);
+  if (today < DEV_DEEPAWALI_VARANASI_FROM_IST) {
+    return [{ untilIst: previousIstDate(DEV_DEEPAWALI_VARANASI_FROM_IST) }];
+  }
+  if (today <= DEV_DEEPAWALI_VARANASI_UNTIL_IST) {
+    return [{ untilIst: DEV_DEEPAWALI_VARANASI_UNTIL_IST }];
+  }
+  return [];
+}
+
+export type DevDeepawaliPartnerSlot = "after-body" | "before-related" | "none";
+
+/**
+ * After the body when author or sources separate the line from the
+ * below-article ad. Otherwise before related stories, with Latest Stories
+ * between the ad and the line. Never beside an AdSense slot.
+ */
+export function devDeepawaliPartnerSlot(opts: {
+  show: boolean;
+  separatedFromBelowAd: boolean;
+  hasLatestStories: boolean;
+}): DevDeepawaliPartnerSlot {
+  if (!opts.show) return "none";
+  if (opts.separatedFromBelowAd) return "after-body";
+  if (opts.hasLatestStories) return "before-related";
+  return "none";
+}
+
 /** Match only the story metadata used by partner eligibility. */
 export function isChhathStory(a: StoryFields): boolean {
   return /\bchhath\b|छठ/i.test(partnerHay(a));
@@ -859,15 +1103,44 @@ function isAstrologyStory(a: StoryFields): boolean {
   return /\b(astrology|astrological|rashifal|rashi|horoscopes?|jyotish|kundli|kundali|zodiac|panchang|sankranti)\b|ज्योतिष|राशिफल|राशि|कुंडली|कुण्डली|पंचांग|संक्रांति/i.test(partnerHay(a));
 }
 
+/** Rashifal / horoscope only. Not every astrology, kundli or religion story. */
+export function isRashifalHoroscopeStory(a: StoryFields): boolean {
+  return /\b(rashifal|horoscopes?|zodiac)\b|राशिफल/i.test(partnerHay(a));
+}
+
+/**
+ * Wedding, shaadi, vivah, marriage muhurat and Kharmas.
+ * Tulsi Vivah is the festival guide, so that phrase is not a wedding match.
+ */
+export function isKharmasWeddingStory(a: StoryFields): boolean {
+  const hay = partnerHay(a).replace(/tulsi[\s-]*vivah/gi, " ").replace(/तुलसी\s*विवाह/g, " ");
+  return /\b(wedding|vivah|shaadi|kharmas)\b|\bmarriage\s+muhurat\b/i.test(hay) || /विवाह|शादी|खरमास/.test(hay);
+}
+
+/** Ekadashi, Pausha and Vishnu stories for the Saphala guide. */
+export function isSaphalaEkadashiStory(a: StoryFields): boolean {
+  return /\b(ekadashi|pausha|paush|vishnu)\b|एकादशी|पौष|विष्णु/i.test(partnerHay(a));
+}
+
+/** Lohri, Makar Sankranti and Pongal. A bare sankranti is not enough. */
+export function isLohriSankrantiStory(a: StoryFields): boolean {
+  return /\b(lohri|pongal)\b|makar[\s-]?sankranti|लोहड़ी|मकर\s?संक्रांति/i.test(partnerHay(a));
+}
+
 /** Inclusive last IST day of the Sponsored end unit A/B test. */
 export const SPONSORED_END_TEST_UNTIL_IST = "2026-11-20";
-export type SponsoredEndMode = "a" | "b" | "chhath";
+export type SponsoredEndMode = "a" | "b" | "chhath" | "kharmas" | "rashifal";
 
-/** Chhath takes priority; even slug hashes keep chat, odd hashes get tools. */
+/**
+ * Chhath, then Kharmas, then Rashifal 2027. Other stories keep the slug A/B
+ * through 20 Nov IST, then chat (A).
+ */
 export function sponsoredEndModeForStory(a: StoryFields, now: Date = new Date()): SponsoredEndMode | null {
   if (!canShowSponsoredEndUnit(a, { now })) return null;
   const today = istCalendarDate(now);
   if (today <= CHHATH_UNTIL_IST && isChhathStory(a)) return "chhath";
+  if (today <= KHARMAS_UNTIL_IST && isKharmasWeddingStory(a)) return "kharmas";
+  if (today <= RASHIFAL_2027_UNTIL_IST && isRashifalHoroscopeStory(a)) return "rashifal";
   return today <= SPONSORED_END_TEST_UNTIL_IST && slugHash(a.slug || "") % 2 === 1 ? "b" : "a";
 }
 
@@ -875,6 +1148,8 @@ export function sponsoredEndModeForStory(a: StoryFields, now: Date = new Date())
 export function sponsoredEndWindowsForStory(a: StoryFields, now: Date = new Date()): { untilIst: string }[] {
   const mode = sponsoredEndModeForStory(a, now);
   if (mode === "chhath") return [{ untilIst: CHHATH_UNTIL_IST }];
+  if (mode === "kharmas") return [{ untilIst: KHARMAS_UNTIL_IST }];
+  if (mode === "rashifal") return [{ untilIst: RASHIFAL_2027_UNTIL_IST }];
   if (mode && istCalendarDate(now) <= SPONSORED_END_TEST_UNTIL_IST) {
     return [{ untilIst: SPONSORED_END_TEST_UNTIL_IST }];
   }

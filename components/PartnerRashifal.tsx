@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  devDeepawaliVaranasiHref,
   diwaliPartnerHref,
   festivalPartnerHref,
   getFestivalPartnerCta,
@@ -425,12 +426,87 @@ export function PartnerFestivalLine({
   );
 }
 
+/** Reserved box for the Varanasi Dev Deepawali Partner line: 16px label, 8px gap, four 24px lines. */
+export const DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX = 120;
+
+export const DEV_DEEPAWALI_VARANASI_COPY = {
+  en: "Dev Deepawali 2026: date, muhurat and Kartik Purnima rituals. Ask Pocket Jyotish's AI Astrologer",
+  hi: "देव दीपावली 2026: तिथि, मुहूर्त और कार्तिक पूर्णिमा की विधि. Pocket Jyotish के AI Astrologer से पूछें.",
+} as const;
+
+/**
+ * Links-only Dev Deepawali line for Varanasi section stories. Fixed height so
+ * the line cannot shift the page. Partner label, not a second Sponsored unit.
+ * No iframe. Pocket Jyotish is the only operator named.
+ */
+export function PartnerDevDeepawaliLine({
+  lang,
+  slug,
+}: {
+  lang: "hi" | "en";
+  slug: string;
+}) {
+  const copy = lang === "hi" ? DEV_DEEPAWALI_VARANASI_COPY.hi : DEV_DEEPAWALI_VARANASI_COPY.en;
+  return (
+    <aside
+      className="partner-dev-deepawali not-prose"
+      data-partner="dev-deepawali"
+      aria-label="Partner"
+      style={{
+        boxSizing: "border-box",
+        height: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        minHeight: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        maxHeight: DEV_DEEPAWALI_VARANASI_LINE_HEIGHT_PX,
+        overflow: "hidden",
+        marginTop: 24,
+        marginBottom: 24,
+      }}
+    >
+      <span
+        style={{
+          display: "block",
+          height: 16,
+          lineHeight: "16px",
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "#6b7280",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Partner
+      </span>
+      <a
+        href={devDeepawaliVaranasiHref(slug)}
+        target="_blank"
+        rel={REL}
+        className="font-semibold text-blue-800 underline underline-offset-2"
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 4,
+          WebkitBoxOrient: "vertical",
+          height: 96,
+          lineHeight: "24px",
+          marginTop: 8,
+          overflow: "hidden",
+          fontSize: 14,
+        }}
+      >
+        {copy}
+      </a>
+    </aside>
+  );
+}
+
 /**
  * Evergreen Sponsored house ad for stories that have no partner end unit.
  * Fixed 220px box: 2px border and 16px padding on each side, 16px label,
  * 12px gap, 72px copy, 12px gap, and three 24px link rows. The AI Astrologer
- * chat is the default main link. Chhath and the tools test replace it during
- * their IST windows. At most three links, with Kundli and rashifal secondary. No image, no iframe, no third-party script.
+ * chat is the default main link. Chhath, Kharmas, Rashifal 2027 and the tools
+ * test replace it during their IST windows. At most three links, with Kundli
+ * and rashifal secondary. No image, no iframe, no third-party script.
  * Amber border and background so it is not story text and not an AdSense
  * "Advertisement" slot. Hard-news copy stays the neutral sentence and does
  * not mention the article. The chat is not called a free human astrologer
@@ -459,26 +535,33 @@ export function PartnerSponsoredUnit({
       campaign,
       slug,
     });
+  const guide =
+    mode === "kharmas" ? getUpcomingVrat("kharmas_2026") : mode === "rashifal" ? getUpcomingVrat("rashifal_2027") : null;
+  const guideText = guide ? (hi ? guide.text.hi.endCard : guide.text.en.endCard) : null;
   const primary = mode === "chhath"
     ? link("/chhath-puja-2026/", "chhath2026")
-    : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
+    : guide
+      ? link(guide.path, guide.campaign)
+      : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
   const rahuKaal = link("/rahu-kaal/", "rahukaal");
   const kundli = link("/kundli/");
   const rashifal = link("/rashifal/");
   const copy =
     mode === "chhath"
       ? hi ? "छठ पूजा 2026 तिथि और पूजा समय" : "Chhath Puja 2026 dates and puja timings"
-      : mode === "b"
-        ? hi
-          ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
-          : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
-        : tone === "hard-news"
-          ? SPONSORED_HARD_NEWS_COPY
-          : hi
-            ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
-            : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
+      : guideText
+        ? guideText
+        : mode === "b"
+          ? hi
+            ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+            : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
+          : tone === "hard-news"
+            ? SPONSORED_HARD_NEWS_COPY
+            : hi
+              ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
+              : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
   const chatLabel = tone === "hard-news" || !hi ? "AI Astrologer" : "AI ज्योतिषी";
-  const primaryLabel = mode === "chhath"
+  const primaryLabel = mode === "chhath" || guide
     ? copy
     : mode === "b" ? hi ? "आज का चौघड़िया" : "Today's Choghadiya" : chatLabel;
   const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";

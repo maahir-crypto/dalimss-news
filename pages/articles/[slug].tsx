@@ -94,6 +94,8 @@ interface Props {
   upcomingVratId?: string | null;
   /** Sponsored end unit choice, fixed at build/revalidate time. */
   sponsoredEndMode?: SponsoredEndMode | null;
+  /** Varanasi Dev Deepawali Partner line, fixed at build/revalidate time. */
+  devDeepawaliVaranasi?: boolean | null;
 }
 
 import Head from "next/head";
@@ -116,6 +118,7 @@ import {
   PartnerInlineCard,
   PartnerTechAutoLine,
   PartnerFestivalLine,
+  PartnerDevDeepawaliLine,
   PartnerSponsoredUnit,
 } from "@/components/PartnerRashifal";
 import {
@@ -131,12 +134,16 @@ import {
   getFestivalPartnerCta,
   upcomingVratForStory,
   partnerPageRevalidateSeconds,
+  pendingVratStartsForStory,
   sponsoredEndModeForStory,
   sponsoredEndWindowsForStory,
   type SponsoredEndMode,
   canShowSponsoredEndUnit,
   sponsoredEndPlacement,
   isHardNewsStory,
+  devDeepawaliPartnerSlot,
+  devDeepawaliVaranasiWindows,
+  showDevDeepawaliVaranasiPartner,
 } from "@/lib/partnerRashifal";
 import {
   SITE_URL,
@@ -183,6 +190,7 @@ const ArticlePage: React.FC<Props> = ({
   festivalCtaId = null,
   upcomingVratId = null,
   sponsoredEndMode = null,
+  devDeepawaliVaranasi = null,
 }) => {
   const { data: session } = useSession();
   
@@ -298,6 +306,21 @@ const ArticlePage: React.FC<Props> = ({
     Boolean(partnerTests?.techAuto) &&
     blockBeforeBelowAd &&
     isTechAutoTestStory(article);
+  // One Dev Deepawali Partner line, and never next to an AdSense slot.
+  // After the body when author or sources separate it from the below-article
+  // ad. Otherwise before related stories, with Latest Stories in between.
+  // Stories that already have a partner unit in the text skip this line.
+  const devDeepawaliSlot = devDeepawaliPartnerSlot({
+    show:
+      Boolean(devDeepawaliVaranasi) &&
+      !showPartnerPlacements &&
+      !linksOnlyCta &&
+      !festivalCta &&
+      !showPricePartner &&
+      !showTechAutoLine,
+    separatedFromBelowAd: blockBeforeBelowAd,
+    hasLatestStories: latestArticles.length > 0,
+  });
   // One Sponsored end unit, and never next to an AdSense slot. After the body
   // when author or sources separate it from the below-article ad. Otherwise
   // before related stories, with Latest Stories between it and that ad.
@@ -798,6 +821,9 @@ const ArticlePage: React.FC<Props> = ({
         )}
       </div>
 
+      {devDeepawaliSlot === "after-body" && (
+        <PartnerDevDeepawaliLine lang={partnerLang} slug={article.slug} />
+      )}
       {festivalCta && (
         <PartnerFestivalLine lang={partnerLang} slug={article.slug} festivalCtaId={festivalCta.id} variant={partnerVariant} />
       )}
@@ -907,6 +933,9 @@ const ArticlePage: React.FC<Props> = ({
 
       <LatestStories stories={latestArticles} heading="Latest" />
 
+      {devDeepawaliSlot === "before-related" && (
+        <PartnerDevDeepawaliLine lang={partnerLang} slug={article.slug} />
+      )}
       {sponsoredPlacement === "before-related" && (
         <PartnerSponsoredUnit
           lang={partnerLang}
@@ -1102,10 +1131,17 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       festivalCtaId: festivalCta?.id ?? null,
       upcomingVratId: upcomingVrat?.id ?? null,
       sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow),
+      devDeepawaliVaranasi: showDevDeepawaliVaranasiPartner(article, partnerNow),
     },
-    // Regenerate at 00:00 IST when a partner window expires, else hourly.
+    // Regenerate at 00:00 IST when a partner window expires or a guide starts, else hourly.
     revalidate: partnerPageRevalidateSeconds(
-      [festivalCta, upcomingVrat, ...sponsoredEndWindowsForStory(article, partnerNow)],
+      [
+        festivalCta,
+        upcomingVrat,
+        ...pendingVratStartsForStory(article, partnerNow),
+        ...sponsoredEndWindowsForStory(article, partnerNow),
+        ...devDeepawaliVaranasiWindows(article, partnerNow),
+      ],
       partnerNow
     ),
   };

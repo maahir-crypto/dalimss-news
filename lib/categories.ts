@@ -256,13 +256,18 @@ const BREADCRUMB_CITY_SLUGS = new Set(["varanasi", "gurgaon"]);
 
 /**
  * Category shown in the article breadcrumb and BreadcrumbList.
+ * Accepts an already resolved category list, or the stored category string.
  * Varanasi (`varanasi`) and Gurugram (`gurgaon`) win over a trailing topic
  * such as Business or Education. When both cities are present, the later
  * one in category order is used. Otherwise the last category is kept.
  */
 export function pickBreadcrumbCategory(
-  categories: readonly Category[]
+  input: readonly Category[] | string | null | undefined
 ): Category | undefined {
+  const categories =
+    typeof input === "string" || input == null
+      ? getCategoriesByDbValue(input)
+      : input;
   for (let index = categories.length - 1; index >= 0; index -= 1) {
     const category = categories[index];
     if (category && BREADCRUMB_CITY_SLUGS.has(category.slug)) return category;

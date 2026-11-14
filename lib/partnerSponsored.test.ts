@@ -24,6 +24,7 @@ import {
   slugHash,
   sponsoredEndModeForStory,
   sponsoredEndWindowsForStory,
+  pendingVratStartsForStory,
   partnerPageRevalidateSeconds,
   secondsUntilFestivalCtaExpiry,
   sponsoredEndPlacement,
@@ -45,6 +46,7 @@ const hrefs = (s: string) => Array.from(s.matchAll(/href="([^"]+)"/g)).map((m) =
 const params = (u: string) => Object.fromEntries(new URL(u).searchParams.entries());
 
 const RASHIFAL = { slug: "mesh-rashifal-today", title: "Mesh rashifal today: love and career", category: "Astrology" };
+const KUNDLI = { slug: "kundli-matching-guide", title: "Kundli matching guide", category: "Lifestyle" };
 const POLITICS = { slug: "bjp-congress-diwali-holiday", title: "BJP and Congress clash over Diwali holiday", category: "Politics" };
 const METRO = { slug: "gurugram-metro-extension", title: "Gurugram metro extension gets approval", category: "Gurugram" };
 const TECH = { slug: "skoda-kodiaq-150-7", title: "Skoda Kodiaq: 150 kW petrol and 7-speed DSG explained", category: "Automotive" };
@@ -197,11 +199,11 @@ describe("upcoming vrat rotation expires at 00:00 IST", () => {
   });
 
   it("eligible stories take the next guide unless a named festival CTA is already showing", () => {
-    assert.equal(upcomingVratForStory(RASHIFAL, TULSI_LAST)?.campaign, "tulsi_vivah_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, PRADOSH_START)?.path, "/pradosh-vrat-2026/");
-    assert.equal(upcomingVratForStory(RASHIFAL, SANKASHTI_START)?.campaign, "vaikuntha_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, MG_START)?.campaign, "mgpurnima_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, AFTER_ALL), null);
+    assert.equal(upcomingVratForStory(KUNDLI, TULSI_LAST)?.campaign, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, PRADOSH_START)?.path, "/pradosh-vrat-2026/");
+    assert.equal(upcomingVratForStory(KUNDLI, SANKASHTI_START)?.campaign, "vaikuntha_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, MG_START)?.campaign, "mgpurnima_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, AFTER_ALL), null);
     assert.equal(upcomingVratForStory(DD, new Date("2026-11-20T06:30:00Z")), null);
     assert.equal(upcomingVratForStory(DD, new Date("2026-11-24T18:30:00Z"))?.id, "sankashti_2026");
     const diwali = { slug: "diwali-2026-lakshmi-puja", title: "Diwali 2026 Lakshmi Puja muhurat", category: "Lifestyle" };
@@ -422,8 +424,8 @@ describe("Vaikuntha and Dev Deepawali windows and priority", () => {
   it("keeps Tulsi through 21 Nov, then swaps only Pradosh on Varanasi and festival stories", () => {
     assert.equal(upcomingVratForStory(TULSI, NOV17)?.id, "tulsi_vivah_2026");
     assert.equal(upcomingVratForStory(VARANASI, NOV17)?.id, "tulsi_vivah_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, NOV22)?.id, "pradosh_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, NOV22)?.path, "/pradosh-vrat-2026/");
+    assert.equal(upcomingVratForStory(KUNDLI, NOV22)?.id, "pradosh_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, NOV22)?.path, "/pradosh-vrat-2026/");
     assert.equal(upcomingVratForStory(TULSI, NOV22)?.id, "dev_deepawali_2026");
     assert.equal(upcomingVratForStory(VARANASI, NOV22)?.path, "/dev-deepawali-2026/");
     assert.equal(upcomingVratForStory(VARANASI, NOV22)?.campaign, "dev_deepawali_2026");
@@ -432,13 +434,13 @@ describe("Vaikuntha and Dev Deepawali windows and priority", () => {
 
   it("shows Vaikuntha through 23 Nov IST and Dev Deepawali through 24 Nov IST", () => {
     assert.equal(nextUpcomingVrat(NOV23_LAST)?.id, "vaikuntha_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, NOV23_LAST)?.path, "/vaikuntha-chaturdashi-2026/");
+    assert.equal(upcomingVratForStory(KUNDLI, NOV23_LAST)?.path, "/vaikuntha-chaturdashi-2026/");
     assert.equal(upcomingVratForStory(VARANASI, NOV23_LAST)?.id, "vaikuntha_2026");
     assert.equal(nextUpcomingVrat(NOV24_START)?.id, "dev_deepawali_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, NOV24)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, NOV24)?.id, "dev_deepawali_2026");
     assert.equal(upcomingVratForStory(VARANASI, NOV24_LAST)?.id, "dev_deepawali_2026");
     assert.equal(nextUpcomingVrat(NOV25_START)?.id, "sankashti_2026");
-    assert.equal(upcomingVratForStory(RASHIFAL, NOV25_START)?.id, "sankashti_2026");
+    assert.equal(upcomingVratForStory(KUNDLI, NOV25_START)?.id, "sankashti_2026");
   });
 
   it("revalidate follows the guide that is actually showing", () => {
@@ -447,7 +449,7 @@ describe("Vaikuntha and Dev Deepawali windows and priority", () => {
     assert.equal(partnerPageRevalidateSeconds([dev], NOV22), 3600);
     assert.equal(secondsUntilFestivalCtaExpiry(dev, new Date("2026-11-24T18:00:00Z")), 1800);
     assert.equal(secondsUntilFestivalCtaExpiry(dev, NOV25_START), 1);
-    const vaikuntha = upcomingVratForStory(RASHIFAL, NOV23_LAST)!;
+    const vaikuntha = upcomingVratForStory(KUNDLI, NOV23_LAST)!;
     assert.equal(vaikuntha.untilIst, "2026-11-23");
     assert.equal(secondsUntilFestivalCtaExpiry(vaikuntha, new Date("2026-11-23T18:00:00Z")), 1800);
     assert.equal(secondsUntilFestivalCtaExpiry(vaikuntha, NOV24_START), 1);
@@ -562,7 +564,12 @@ describe("new guide rotation and Sponsored end windows", () => {
   it("restricts Vrishchika to astrology metadata and keeps the rotation sorted", () => {
     for (const story of [RASHIFAL, { title: "Today's horoscope" }, { tags: "panchang" }, { title: "संक्रांति पंचांग" }]) {
       assert.equal(upcomingVratForStory(story, NOV16_LAST)?.id, "vrishchika_sankranti_2026");
+    }
+    for (const story of [{ tags: "panchang" }, { title: "संक्रांति पंचांग" }, { title: "Sankranti panchang" }]) {
       assert.equal(upcomingVratForStory(story, NOV17)?.id, "tulsi_vivah_2026");
+    }
+    for (const story of [RASHIFAL, { title: "Today's horoscope" }, { title: "Zodiac week" }]) {
+      assert.equal(upcomingVratForStory(story, NOV17)?.id, "rashifal_2027");
     }
     for (const title of ["Diwali puja guide", "Tulsi Vivah guide", "Varanasi ghat aarti timings"]) {
       assert.equal(upcomingVratForStory({ title }, NOV14)?.id, "tulsi_vivah_2026");
@@ -578,7 +585,7 @@ describe("new guide rotation and Sponsored end windows", () => {
       ["2026-12-05T06:30:00Z", "mgpurnima_2026"],
     ]) {
       assert.equal(nextUpcomingVrat(new Date(now))?.id, id);
-      assert.equal(upcomingVratForStory(RASHIFAL, new Date(now))?.id, id);
+      assert.equal(upcomingVratForStory(KUNDLI, new Date(now))?.id, id);
     }
   });
 
@@ -679,6 +686,207 @@ describe("new guide rotation and Sponsored end windows", () => {
     const src = readFileSync(new URL("../pages/articles/[slug].tsx", import.meta.url), "utf8");
     assert.ok(src.includes("sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow)"));
     assert.ok(src.includes("...sponsoredEndWindowsForStory(article, partnerNow)"));
+    assert.ok(src.includes("...pendingVratStartsForStory(article, partnerNow)"));
     assert.equal(src.split('mode={sponsoredEndMode ?? "a"}').length - 1, 2);
+  });
+});
+
+describe("Rashifal 2027, Kharmas, Saphala and Lohri guides", () => {
+  const NOV14 = new Date("2026-11-14T06:30:00Z");
+  const NOV16_LAST = new Date("2026-11-16T18:29:59.999Z");
+  const NOV17 = new Date("2026-11-16T18:30:00Z");
+  const DEC2 = new Date("2026-12-02T06:30:00Z");
+  const DEC4_LAST = new Date("2026-12-04T18:29:59.999Z");
+  const DEC4_LATE = new Date("2026-12-04T18:00:00Z");
+  const DEC5 = new Date("2026-12-04T18:30:00Z");
+  const JAN3_LAST = new Date("2027-01-03T18:29:59.999Z");
+  const JAN4 = new Date("2027-01-03T18:30:00Z");
+  const JAN14_LAST = new Date("2027-01-14T18:29:59.999Z");
+  const JAN15 = new Date("2027-01-14T18:30:00Z");
+  const JAN15_LAST = new Date("2027-01-15T18:29:59.999Z");
+  const JAN16 = new Date("2027-01-15T18:30:00Z");
+  const JAN31_LAST = new Date("2027-01-31T18:29:59.999Z");
+  const FEB1 = new Date("2027-01-31T18:30:00Z");
+
+  const WEDDING = { slug: "vivah-muhurat-2026", title: "Vivah muhurat 2026 dates", category: "Lifestyle" };
+  const WEDDING_NEWS = { slug: "celebrity-wedding-mumbai", title: "Celebrity wedding in Mumbai", category: "Entertainment" };
+  const WEDDING_HI = { slug: "shaadi-muhurat", title: "शादी का मुहूर्त", category: "Lifestyle" };
+  const SENSITIVE_WEDDING = { slug: "dowry-death-after-wedding", title: "Dowry death after the wedding", category: "Crime" };
+  const EKADASHI = { slug: "pausha-ekadashi-2026", title: "Pausha Ekadashi vrat", category: "Lifestyle" };
+  const EKADASHI_RASHI = { slug: "pausha-rashifal", title: "Pausha Ekadashi rashifal", category: "Astrology" };
+  const LOHRI = { slug: "lohri-2027-date", title: "Lohri 2027 date", category: "Lifestyle" };
+  const PONGAL = { slug: "pongal-2027", title: "Pongal 2027", category: "Lifestyle" };
+  const MAKAR = { slug: "makar-sankranti-2027", title: "Makar Sankranti 2027", category: "Lifestyle" };
+  const TULSI = { slug: "tulsi-vivah-2026-muhurat", title: "Tulsi Vivah 2026 muhurat", category: "Lifestyle" };
+  const RASHI_NEWS = { slug: "minister-rashifal-remark", title: "Minister comments on the rashifal", category: "Politics" };
+  const CHHATH_WEDDING = { slug: "chhath-wedding-holiday", title: "Minister announces Chhath and wedding holiday", category: "Politics" };
+
+  const utm = (medium: string, campaign: string, slug: string) => ({
+    utm_source: "dalimss_news",
+    utm_medium: medium,
+    utm_campaign: campaign,
+    utm_content: slug,
+  });
+
+  it("keeps Vrishchika on a rashifal story through 16 Nov and switches on 17 Nov", () => {
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV14)?.id, "vrishchika_sankranti_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV16_LAST)?.path, "/vrishchika-sankranti-2026/");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV17)?.id, "rashifal_2027");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV17)?.path, "/rashifal-2027/");
+    assert.equal(upcomingVratForStory(RASHIFAL, NOV17)?.campaign, "rashifal_2027");
+    assert.equal(upcomingVratForStory({ title: "राशिफल आज" }, NOV17)?.id, "rashifal_2027");
+    assert.equal(upcomingVratForStory({ title: "Astrology class timetable" }, NOV17)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(RASHIFAL, JAN31_LAST)?.id, "rashifal_2027");
+    assert.equal(upcomingVratForStory(RASHIFAL, FEB1), null);
+  });
+
+  it("shows Kharmas on an eligible wedding story and in the end unit, off on 15 Jan", () => {
+    assert.equal(isPartnerEligibleStory(WEDDING), true);
+    assert.equal(upcomingVratForStory(WEDDING, NOV14)?.id, "kharmas_2026");
+    assert.equal(upcomingVratForStory(WEDDING, NOV14)?.path, "/kharmas-2026/");
+    assert.equal(upcomingVratForStory(WEDDING, NOV14)?.campaign, "kharmas_2026");
+    assert.equal(upcomingVratForStory(WEDDING_HI, NOV14)?.id, "kharmas_2026");
+    assert.equal(upcomingVratForStory({ title: "Kharmas 2026 vivah dates", category: "Festivals" }, JAN14_LAST)?.id, "kharmas_2026");
+    assert.equal(upcomingVratForStory(WEDDING, JAN15), null);
+    assert.equal(canShowSponsoredEndUnit(WEDDING, { now: NOV14 }), false);
+    assert.equal(sponsoredEndModeForStory(WEDDING, NOV14), null);
+
+    assert.equal(isPartnerEligibleStory(WEDDING_NEWS), false);
+    assert.equal(canShowSponsoredEndUnit(WEDDING_NEWS, { now: NOV14 }), true);
+    assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, NOV14), "kharmas");
+    assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, JAN14_LAST), "kharmas");
+    assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, JAN15), "a");
+    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV16_LAST), "chhath");
+    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV17), "kharmas");
+
+    for (const lang of ["en", "hi"] as const) {
+      const markup = html(React.createElement(PartnerSponsoredUnit, {
+        lang, slug: WEDDING_NEWS.slug, tone: "general", placement: "after-body", mode: "kharmas",
+      }));
+      const links = hrefs(markup);
+      assert.equal(links.length, 3);
+      assert.deepEqual(links.map((h) => new URL(h).pathname), ["/kharmas-2026/", "/kundli/", "/rashifal/"]);
+      assert.deepEqual(params(links[0]), utm("ad", "kharmas_2026", WEDDING_NEWS.slug));
+      assert.equal(params(links[1]).utm_campaign, "evergreen");
+      assert.equal(params(links[2]).utm_campaign, "evergreen");
+      assert.ok(markup.includes(lang === "hi" ? "खरमास 2026 तिथियां और अंतिम विवाह मुहूर्त" : "Kharmas 2026 dates and last vivah muhurat"));
+      assert.ok(markup.includes("Sponsored"));
+      assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
+      assert.match(markup, /-webkit-line-clamp:3/);
+      assert.ok(!markup.includes("/chat/"));
+      assert.ok(!/advertisement|click here|—/i.test(markup));
+    }
+  });
+
+  it("gives a sensitive wedding story no widget and no end unit", () => {
+    assert.equal(isSensitiveStory(SENSITIVE_WEDDING), true);
+    assert.equal(upcomingVratForStory(SENSITIVE_WEDDING, NOV14), null);
+    assert.equal(canShowSponsoredEndUnit(SENSITIVE_WEDDING, { now: NOV14 }), false);
+    assert.equal(sponsoredEndModeForStory(SENSITIVE_WEDDING, NOV14), null);
+    assert.equal(upcomingVratForStory({ title: "Wedding crime leaves one dead" }, NOV14), null);
+    assert.equal(canShowSponsoredEndUnit({ title: "Wedding crime leaves one dead" }, { now: NOV14 }), false);
+  });
+
+  it("keeps Utpanna on an Ekadashi story through 4 Dec, then Saphala, off on 4 Jan", () => {
+    assert.equal(upcomingVratForStory(EKADASHI, DEC2)?.id, "utpanna_ekadashi_2026");
+    assert.equal(upcomingVratForStory(EKADASHI, DEC4_LAST)?.id, "utpanna_ekadashi_2026");
+    assert.equal(upcomingVratForStory(EKADASHI, DEC5)?.id, "saphala_ekadashi_2027");
+    assert.equal(upcomingVratForStory(EKADASHI, DEC5)?.path, "/saphala-ekadashi-2027/");
+    assert.equal(upcomingVratForStory(EKADASHI, DEC5)?.campaign, "saphala_2027");
+    assert.equal(upcomingVratForStory({ title: "विष्णु एकादशी", category: "Lifestyle" }, DEC5)?.id, "saphala_ekadashi_2027");
+    assert.equal(upcomingVratForStory(EKADASHI, JAN3_LAST)?.id, "saphala_ekadashi_2027");
+    assert.equal(upcomingVratForStory(EKADASHI, JAN4), null);
+    const saphala = UPCOMING_VRAT_CTAS.find((c) => c.id === "saphala_ekadashi_2027")!;
+    assert.equal(saphala.fromIst, "2026-12-05");
+    assert.equal(saphala.untilIst, "2027-01-03");
+  });
+
+  it("shows Lohri and Makar Sankranti through 15 Jan and is off on 16 Jan", () => {
+    assert.equal(upcomingVratForStory(LOHRI, NOV14)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory(LOHRI, NOV14)?.path, "/lohri-makar-sankranti-2027/");
+    assert.equal(upcomingVratForStory(LOHRI, NOV14)?.campaign, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory(PONGAL, NOV17)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory({ title: "लोहड़ी 2027" }, NOV17)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory(MAKAR, NOV14)?.id, "vrishchika_sankranti_2026");
+    assert.equal(upcomingVratForStory(MAKAR, NOV17)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory({ title: "मकर संक्रांति 2027" }, NOV17)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory(LOHRI, JAN15_LAST)?.id, "lohri_sankranti_2027");
+    assert.equal(upcomingVratForStory(LOHRI, JAN16), null);
+  });
+
+  it("leaves a non-matching eligible story on the general rotation", () => {
+    assert.equal(upcomingVratForStory(TULSI, NOV14)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory({ title: "तुलसी विवाह 2026", category: "Lifestyle" }, NOV14)?.id, "tulsi_vivah_2026");
+    assert.equal(nextUpcomingVrat(NOV14)?.id, "tulsi_vivah_2026");
+    assert.equal(nextUpcomingVrat(NOV14, TULSI)?.id, "tulsi_vivah_2026");
+  });
+
+  it("puts full UTMs on widget, sidebar and end card, and does not call the chat free", () => {
+    const cases = [
+      ["rashifal_2027", RASHIFAL.slug],
+      ["kharmas_2026", WEDDING.slug],
+      ["saphala_ekadashi_2027", EKADASHI.slug],
+      ["lohri_sankranti_2027", LOHRI.slug],
+    ] as const;
+    for (const [id, slug] of cases) {
+      const cta = UPCOMING_VRAT_CTAS.find((c) => c.id === id)!;
+      const end = html(React.createElement(PartnerEndCard, { lang: "en", slug, upcomingVratId: id }));
+      const side = html(React.createElement(PartnerSidebar, { lang: "hi", slug, upcomingVratId: id }));
+      const widget = html(React.createElement(PartnerRashifal, { sign: "mesh", lang: "en", slug, upcomingVratId: id }));
+      assert.equal(new URL(hrefs(end)[0]).pathname, cta.path);
+      assert.deepEqual(params(hrefs(end)[0]), utm("ad", cta.campaign, slug));
+      const sideGuide = hrefs(side).find((h) => new URL(h).pathname === cta.path)!;
+      assert.deepEqual(params(sideGuide), utm("sidebar", cta.campaign, slug));
+      const widgetGuide = hrefs(widget).find((h) => h.includes(cta.path))!;
+      assert.deepEqual(params(widgetGuide), utm("widget", cta.campaign, slug));
+      assert.ok(end.includes(cta.text.en.endCard));
+      assert.ok(side.includes(cta.text.hi.sidebarBody));
+      for (const markup of [end, side, widget]) {
+        assert.ok(!/advertisement|click here|—/.test(markup));
+        for (const anchor of Array.from(markup.matchAll(/<a [^>]*>([^<]*)<\/a>/g))) {
+          assert.match(anchor[0], /rel="sponsored noopener"/);
+          assert.match(anchor[0], /target="_blank"/);
+          if (anchor[0].includes("/chat/")) assert.ok(!/free|मुफ़्त|मुफ्त/i.test(anchor[1]));
+        }
+      }
+    }
+    const rashifalSide = html(React.createElement(PartnerSidebar, { lang: "en", slug: RASHIFAL.slug, upcomingVratId: "rashifal_2027" }));
+    assert.ok(rashifalSide.includes("See the Rashifal 2027 guide on our partner site."));
+    const rashifalNews = html(React.createElement(PartnerSponsoredUnit, {
+      lang: "en", slug: RASHI_NEWS.slug, tone: "hard-news", placement: "before-related", mode: "rashifal",
+    }));
+    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, NOV14), "rashifal");
+    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, JAN31_LAST), "rashifal");
+    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, FEB1), "a");
+    assert.equal(sponsoredEndModeForStory(RASHIFAL, NOV17), null);
+    const newsLinks = hrefs(rashifalNews);
+    assert.deepEqual(newsLinks.map((h) => new URL(h).pathname), ["/rashifal-2027/", "/kundli/", "/rashifal/"]);
+    assert.deepEqual(params(newsLinks[0]), utm("ad", "rashifal_2027", RASHI_NEWS.slug));
+    assert.ok(rashifalNews.includes("Rashifal 2027 for all 12 signs"));
+    assert.ok(!rashifalNews.includes("/chat/"));
+    assert.equal(hrefs(rashifalNews).length, 3);
+  });
+
+  it("expires ISR at each new untilIst midnight and at the Saphala start", () => {
+    const kharmasLate = new Date("2027-01-14T18:00:00Z");
+    const rashifalLate = new Date("2027-01-31T18:00:00Z");
+    const saphalaLate = new Date("2027-01-03T18:00:00Z");
+    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(WEDDING_NEWS, kharmasLate), kharmasLate), 1800);
+    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(RASHI_NEWS, rashifalLate), rashifalLate), 1800);
+    assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(EKADASHI, saphalaLate)], saphalaLate), 1800);
+    assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(LOHRI, new Date("2027-01-15T18:00:00Z"))], new Date("2027-01-15T18:00:00Z")), 1800);
+    assert.equal(upcomingVratForStory(EKADASHI_RASHI, DEC4_LATE)?.id, "rashifal_2027");
+    assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(EKADASHI_RASHI, DEC4_LATE)], DEC4_LATE), 3600);
+    assert.deepEqual(pendingVratStartsForStory(EKADASHI_RASHI, DEC4_LATE), [{ untilIst: "2026-12-04" }]);
+    assert.equal(
+      partnerPageRevalidateSeconds(
+        [upcomingVratForStory(EKADASHI_RASHI, DEC4_LATE), ...pendingVratStartsForStory(EKADASHI_RASHI, DEC4_LATE)],
+        DEC4_LATE
+      ),
+      1800
+    );
+    assert.deepEqual(pendingVratStartsForStory(EKADASHI, DEC5), []);
+    assert.deepEqual(pendingVratStartsForStory(SENSITIVE_WEDDING, DEC2), []);
+    assert.deepEqual(pendingVratStartsForStory(TULSI, DEC2), []);
   });
 });
