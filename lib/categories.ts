@@ -251,6 +251,25 @@ export function getCategoriesByDbValue(
     });
 }
 
+/** City sections that should own the article breadcrumb when present. */
+const BREADCRUMB_CITY_SLUGS = new Set(["varanasi", "gurgaon"]);
+
+/**
+ * Category shown in the article breadcrumb and BreadcrumbList.
+ * Varanasi (`varanasi`) and Gurugram (`gurgaon`) win over a trailing topic
+ * such as Business or Education. When both cities are present, the later
+ * one in category order is used. Otherwise the last category is kept.
+ */
+export function pickBreadcrumbCategory(
+  categories: readonly Category[]
+): Category | undefined {
+  for (let index = categories.length - 1; index >= 0; index -= 1) {
+    const category = categories[index];
+    if (category && BREADCRUMB_CITY_SLUGS.has(category.slug)) return category;
+  }
+  return categories.length > 0 ? categories[categories.length - 1] : undefined;
+}
+
 /**
  * Get the category slug for a given article's DB category value
  */
