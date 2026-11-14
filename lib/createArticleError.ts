@@ -1,4 +1,5 @@
 const DETAIL_LIMIT = 240;
+const VALIDATION_DETAIL_LIMIT = 300;
 
 const URL_WITH_CREDENTIALS =
   /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):\/\/\S+/gi;
@@ -56,9 +57,35 @@ function fieldTarget(meta: unknown): string {
 }
 
 /**
+ * Prisma's validation message starts with the whole data object, including
+ * the article HTML. Keep the argument path and the expected type.
+ */
+export function validationErrorDetail(message: string): string {
+  const redacted = message
+    .replace(URL_WITH_CREDENTIALS, "[redacted-url]")
+    .replace(/\b(password|pwd|api[_-]?key|secret)=[^\s&]+/gi, "$1=[redacted]");
+  const lines = redacted
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  const diagnostic = lines.filter(
+    (line) =>
+      line.startsWith("Argument `") ||
+      line.startsWith("Unknown argument ") ||
+      line.startsWith("Invalid argument")
+  );
+  const chosen = diagnostic.length > 0 ? diagnostic.join(" ") : redacted;
+  return chosen
+    .replace(/"(?:\\.|[^"\\]){80,}"/g, '"[stripped]"')
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, VALIDATION_DETAIL_LIMIT);
+}
+
+/**
  * Prisma code plus a short message for an authenticated admin.
- * Validation errors echo the article body, so those stay a fixed sentence.
- * `code` is set only for a real Prisma code (P1000, P2002, …).
+ * `code` is set only for a real Prisma code (P1000, P2002, …) or VALIDATION.
  */
 export function describeArticleCreateError(err: unknown): {
   code?: string;
@@ -83,7 +110,7 @@ export function describeArticleCreateError(err: unknown): {
   if (name === "PrismaClientValidationError") {
     return {
       code: "VALIDATION",
-      detail: "The article payload was rejected before it was saved.",
+      detail: validationErrorDetail(message),
     };
   }
 
