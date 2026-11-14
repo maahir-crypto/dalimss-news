@@ -429,8 +429,9 @@ export function PartnerFestivalLine({
  * Evergreen Sponsored house ad for stories that have no partner end unit.
  * Fixed 220px box: 2px border and 16px padding on each side, 16px label,
  * 12px gap, 72px copy, 12px gap, and three 24px link rows. The AI Astrologer
- * chat is the default main link. Chhath and the tools test replace it during
- * their IST windows. At most three links, with Kundli and rashifal secondary. No image, no iframe, no third-party script.
+ * chat is the default main link. Chhath, Kharmas, Rashifal 2027 and the tools
+ * test replace it during their IST windows. At most three links, with Kundli
+ * and rashifal secondary. No image, no iframe, no third-party script.
  * Amber border and background so it is not story text and not an AdSense
  * "Advertisement" slot. Hard-news copy stays the neutral sentence and does
  * not mention the article. The chat is not called a free human astrologer
@@ -459,26 +460,33 @@ export function PartnerSponsoredUnit({
       campaign,
       slug,
     });
+  const guide =
+    mode === "kharmas" ? getUpcomingVrat("kharmas_2026") : mode === "rashifal" ? getUpcomingVrat("rashifal_2027") : null;
+  const guideText = guide ? (hi ? guide.text.hi.endCard : guide.text.en.endCard) : null;
   const primary = mode === "chhath"
     ? link("/chhath-puja-2026/", "chhath2026")
-    : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
+    : guide
+      ? link(guide.path, guide.campaign)
+      : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
   const rahuKaal = link("/rahu-kaal/", "rahukaal");
   const kundli = link("/kundli/");
   const rashifal = link("/rashifal/");
   const copy =
     mode === "chhath"
       ? hi ? "छठ पूजा 2026 तिथि और पूजा समय" : "Chhath Puja 2026 dates and puja timings"
-      : mode === "b"
-        ? hi
-          ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
-          : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
-        : tone === "hard-news"
-          ? SPONSORED_HARD_NEWS_COPY
-          : hi
-            ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
-            : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
+      : guideText
+        ? guideText
+        : mode === "b"
+          ? hi
+            ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+            : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
+          : tone === "hard-news"
+            ? SPONSORED_HARD_NEWS_COPY
+            : hi
+              ? "Pocket Jyotish के AI ज्योतिषी से पूछें. रोज़ 10 सवाल मुफ़्त हैं."
+              : "Ask the Pocket Jyotish AI Astrologer. 10 questions a day are free.";
   const chatLabel = tone === "hard-news" || !hi ? "AI Astrologer" : "AI ज्योतिषी";
-  const primaryLabel = mode === "chhath"
+  const primaryLabel = mode === "chhath" || guide
     ? copy
     : mode === "b" ? hi ? "आज का चौघड़िया" : "Today's Choghadiya" : chatLabel;
   const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";

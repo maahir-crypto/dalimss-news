@@ -131,6 +131,7 @@ import {
   getFestivalPartnerCta,
   upcomingVratForStory,
   partnerPageRevalidateSeconds,
+  pendingVratStartsForStory,
   sponsoredEndModeForStory,
   sponsoredEndWindowsForStory,
   type SponsoredEndMode,
@@ -1103,9 +1104,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       upcomingVratId: upcomingVrat?.id ?? null,
       sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow),
     },
-    // Regenerate at 00:00 IST when a partner window expires, else hourly.
+    // Regenerate at 00:00 IST when a partner window expires or a guide starts, else hourly.
     revalidate: partnerPageRevalidateSeconds(
-      [festivalCta, upcomingVrat, ...sponsoredEndWindowsForStory(article, partnerNow)],
+      [
+        festivalCta,
+        upcomingVrat,
+        ...pendingVratStartsForStory(article, partnerNow),
+        ...sponsoredEndWindowsForStory(article, partnerNow),
+      ],
       partnerNow
     ),
   };
