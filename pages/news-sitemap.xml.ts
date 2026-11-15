@@ -2,6 +2,7 @@
 // Google News sitemap: articles from the last 2 days only.
 
 import { isDuplicateArticleCopy } from "@/lib/duplicateArticles";
+import { isEvergreenGuide } from "@/lib/isEvergreenGuide";
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { decodeEntities } from "@/lib/decodeEntities";
@@ -35,6 +36,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     select: {
       slug: true,
       title: true,
+      category: true,
       createdAt: true,
       language: true,
     },
@@ -55,6 +57,15 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     const slug = canonicalArticleSlug(article.slug);
     if (!title || !publishedAt || !isPublicSlug(slug)) continue;
     if (isDuplicateArticleCopy(article.slug)) continue;
+    if (
+      isEvergreenGuide({
+        slug: article.slug,
+        title,
+        category: article.category,
+      })
+    ) {
+      continue;
+    }
     if (publishedAt < twoDaysAgo || publishedAt > now) continue;
 
     const loc = `${SITE_URL}/articles/${slug}`;

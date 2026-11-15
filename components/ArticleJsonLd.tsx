@@ -1,5 +1,6 @@
 // components/ArticleJsonLd.tsx
-// Reusable NewsArticle JSON-LD structured data component
+// Reusable article JSON-LD structured data component.
+// Evergreen how-to guides use Article; news stories stay NewsArticle.
 
 import React from "react";
 import {
@@ -19,6 +20,7 @@ import { authorSameAsUrls, type AuthorBoxProfile } from "@/lib/authorBoxes";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { normalizeImageCaption } from "@/lib/imageCaption";
 import { articlePath } from "@/lib/publicPaths";
+import { articleSchemaType } from "@/lib/isEvergreenGuide";
 
 interface ArticleJsonLdProps {
   article: {
@@ -109,7 +111,7 @@ export function ArticleJsonLd({
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "NewsArticle",
+    "@type": articleSchemaType(article),
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": url,
