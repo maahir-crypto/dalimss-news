@@ -229,7 +229,7 @@ const ArticlePage: React.FC<Props> = ({
   const ogImageUrl = absoluteImageUrl(article.mediaUrl);
 
   const categories = getCategoriesByDbValue(article.category);
-  const breadcrumbCategory = pickBreadcrumbCategory(article.category);
+  const breadcrumbCategory = pickBreadcrumbCategory(categories);
   const isOpinion = categories.some((category) => category.slug === "opinion");
   const sources = normalizeArticleSources(article.sourceUrls);
   const visibleSources = [
