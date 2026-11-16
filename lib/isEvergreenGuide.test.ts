@@ -192,6 +192,10 @@ const NEWS_FROM_SITE = [
     title: "Gurugram ACB arrests HSVP engineer in bribe case",
     category: "India, Gurugram, Crime",
   },
+] as const;
+
+
+const EVERGREEN_PRICE_FROM_SITE = [
   {
     slug: "tvs-x-price-266141",
     title: "TVS X price: Rs 2,66,141, charger included",
@@ -207,6 +211,99 @@ const NEWS_FROM_SITE = [
     title: "Voltas 245INV Vectra Plush price: Rs 60,000 for the 2 ton AC",
     category: "Technology",
   },
+  {
+    slug: "redmi-13-5g-price-list-12499-to-13999",
+    title: "Redmi 13 5G price list: Rs 12,499 to Rs 13,999",
+    category: "Technology",
+  },
+  {
+    slug: "bajaj-pulsar-n250-ss-145270",
+    title: "Bajaj Pulsar N250 SS at Rs 1,45,270: full model guide",
+    category: "Automotive",
+  },
+  {
+    slug: "bajaj-pulsar-ns160-price-list-126242-to-134626",
+    title: "Bajaj Pulsar NS160 price list: Rs 1,26,242 to Rs 1,34,626",
+    category: "Automotive",
+  },
+  {
+    slug: "canon-mf289dw-mf284dw-42995-36665",
+    title: "Canon MF289dw vs MF284dw price: MF284dw starts lower at Rs 36,665",
+    category: "Technology",
+  },
+  {
+    slug: "canon-gm2070-gm4070-16895-20995",
+    title: "Canon GM2070 at Rs 16,895 or GM4070 at Rs 20,995: functions compared",
+    category: "Technology",
+  },
+  {
+    slug: "canon-mf756cx-lbp674cx-ii-108265-112070",
+    title: "Canon colour laser choice: MF756Cx Rs 1,08,265, LBP674Cx II Rs 1,12,070",
+    category: "Technology",
+  },
+  {
+    slug: "hp-omnibook-5-3-114999-89999",
+    title: "HP OmniBook 5 vs OmniBook 3 price: OmniBook 3 starts lower at Rs 89,999",
+    category: "Technology",
+  },
+  {
+    slug: "acer-aspire-one-a114-45-35999",
+    title: "Reading the Acer Aspire One A114-45 listing at Rs 35,999",
+    category: "Technology",
+  },
+  {
+    slug: "acer-aspire-lite-al15-42-46999",
+    title: "Acer Aspire Lite AL15-42 guide: Rs 46,999 and data-only USB-C",
+    category: "Technology",
+  },
+  {
+    slug: "triumph-rocket-3-storm-2403100-2467200",
+    title: "Rocket 3 Storm GT vs R price: R starts lower at Rs 24,03,100",
+    category: "Automotive",
+  },
+  {
+    slug: "ashok-leyland-cheetah-3260000",
+    title: "Choosing the Ashok Leyland Cheetah at Rs 32,60,000 onwards",
+    category: "Automotive",
+  },
+] as const;
+
+const NEWS_PRICE_BORDERLINE = [
+  {
+    slug: "maharashtra-ev-private-car-incentive-150000",
+    title: "Maharashtra EV policy: private-car incentive capped at Rs 1,50,000",
+    category: "Automotive",
+  },
+  {
+    slug: "karnataka-ev-charging-50-km-1243",
+    title: "Karnataka targets 50 km EV charging gaps; 1,243 chargers approved",
+    category: "Automotive",
+  },
+  {
+    slug: "pm-e-drive-charging-851-crore-8147",
+    title: "PM E-DRIVE charging: Rs 851 crore approved for 8,147 chargers",
+    category: "Automotive",
+  },
+  {
+    slug: "sugar-free-vs-no-added-sugar-fssai-claims",
+    title: "Sugar free vs no added sugar: what FSSAI food claims mean",
+    category: "India",
+  },
+  {
+    slug: "ai-plus-smartphone-price-hike-november-2026",
+    title: "Ai+ smartphone price hike from November 2026",
+    category: "Technology",
+  },
+  {
+    slug: "hyundai-airbag-recall-india-2026",
+    title: "Hyundai airbag recall in India: models and next steps",
+    category: "Automotive",
+  },
+  {
+    slug: "vivo-x500-series-india-launch-26-november",
+    title: "Vivo X500 series India launch set for 26 November",
+    category: "Technology",
+  },
 ] as const;
 
 describe("isEvergreenGuide", () => {
@@ -217,8 +314,22 @@ describe("isEvergreenGuide", () => {
     });
   }
 
+  for (const story of EVERGREEN_PRICE_FROM_SITE) {
+    it(`classifies ${story.slug} as an evergreen price or comparison page`, () => {
+      assert.equal(isEvergreenGuide(story), true, story.slug);
+      assert.equal(articleSchemaType(story), "Article");
+    });
+  }
+
   for (const story of NEWS_FROM_SITE) {
     it(`keeps ${story.slug} as news`, () => {
+      assert.equal(isEvergreenGuide(story), false, story.slug);
+      assert.equal(articleSchemaType(story), "NewsArticle");
+    });
+  }
+
+  for (const story of NEWS_PRICE_BORDERLINE) {
+    it(`leaves ${story.slug} as news`, () => {
       assert.equal(isEvergreenGuide(story), false, story.slug);
       assert.equal(articleSchemaType(story), "NewsArticle");
     });
