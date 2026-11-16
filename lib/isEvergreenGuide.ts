@@ -1,7 +1,9 @@
-// Conservative classifier for evergreen how-to guides and explainers.
+// Conservative classifier for evergreen how-to guides, explainers,
+// product price or specification lists, and product comparison pages.
 // These stay in the main sitemap and in search, but they do not belong
 // in the Google News sitemap and should use Article rather than NewsArticle.
-// Real news must never be classified as evergreen.
+// Real news must never be classified as evergreen, including timely
+// launch, price-hike and recall stories.
 
 import { getCategoriesByDbValue } from "./categories";
 
@@ -35,10 +37,35 @@ const CITY_SLUG_PREFIX =
 const DATED_CITY_TOKEN =
   /(?:january|february|march|april|may|june|july|august|september|october|november|december)-\d{1,2}(?:-|$)|[a-z]{3}\d{2}-\d{4}(?:-|$)/;
 
-// Timely announcements and hard news. Checked before any how-to pattern,
-// so a result page that also says "how to check" stays in the news sitemap.
+// Timely announcements and hard news. Checked before any evergreen
+// pattern, so a result page that also says "how to check" stays in the
+// news sitemap, as do price hikes, cuts and recalls.
 const TIMELY_NEWS_SLUG =
-  /(?:^|-)(?:final-result|merit-list|time-table|timetable|exam-dates|recruitment-\d{4}|ruling|arrest|tenders?|hearing-dates|chargesheets?|acquittal)(?:-|$)/;
+  /(?:^|-)(?:final-result|merit-list|time-table|timetable|exam-dates|recruitment-\d{4}|ruling|arrest|tenders?|hearing-dates|chargesheets?|acquittal|price-hike|prices-hiked|price-cut|price-cuts|price-increase|price-drop|price-revision|price-rise|hikes-price|cuts-price|recall|recalled)(?:-|$)/;
+
+const TIMELY_PRICE_NEWS_TITLE =
+  /\b(price hike|prices hiked|price cut|price increase|price drop|price revision|recall(?:ed)?)\b/i;
+
+const LAUNCH_NEWS_SLUG =
+  /(?:^|-)(?:launches?|launched|unveils?|unveiled|india-launch)(?:-|$)/;
+
+const LAUNCH_NEWS_TITLE =
+  /\b(launches?|launched|unveils?|unveiled|india launch)\b/i;
+
+const POLICY_SLUG =
+  /(?:^|-)(?:incentive|subsidy|policy|tax-relief|registration-fee|chargers?|approved)(?:-|$)/;
+
+const POLICY_TITLE =
+  /\b(incentive|subsidy|policy|tax relief|registration fee)\b/i;
+
+const SPORTS_SLUG =
+  /(?:^|-)(?:odi|t20|t20i|test-match|world-cup|fifa|ipl|premier-league|la-liga|nba|fixtures|squads?)(?:-|$)/;
+
+const SPORTS_TITLE =
+  /\b(odi|t20|world cup|premier league|fixtures|squads?)\b/i;
+
+const COUNTRY_VS_SLUG =
+  /(?:^|-)(?:india|australia|england|pakistan|new-zealand|south-africa|sri-lanka|bangladesh|west-indies)-vs-/;
 
 const EVERGREEN_SLUG_PATTERNS: RegExp[] = [
   /(?:^|-)how-to(?:-|$)/,
@@ -80,8 +107,22 @@ const EVERGREEN_TITLE_PATTERNS: RegExp[] = [
   /क्या है/,
 ];
 
-function isTimelyNews(slug: string): boolean {
-  if (TIMELY_NEWS_SLUG.test(slug)) return true;
+const PRICE_LIST_SLUG =
+  /(?:^|-)price-list(?:-|$)|(?:^|-)price(?:-|$)|(?:^|-)\d{4,9}-to-\d{4,9}(?:-|$)/;
+
+const TWO_PRICE_TAIL = /(?:^|-)\d{4,9}-\d{4,9}$/;
+
+const TRAILING_PRICE = /-\d{5,9}$/;
+
+const PRICE_TITLE =
+  /\bprice list\b|\bprice:\s*rs\b|\bex-showroom\b|\bon-road price\b|\bstarting figure\b|\b(?:at|from|listing at)\s*rs\s*[\d,]|\bकीमत\b|\bमूल्य सूची\b/i;
+
+const RUPEE_TITLE = /(?:rs\.?|₹)\s*[\d,]/i;
+
+function isTimelyNews(slug: string, title: string): boolean {
+  if (TIMELY_NEWS_SLUG.test(slug) || TIMELY_PRICE_NEWS_TITLE.test(title)) {
+    return true;
+  }
   if (CITY_SLUG_PREFIX.test(slug) && DATED_CITY_TOKEN.test(slug)) return true;
   return false;
 }
@@ -106,17 +147,94 @@ function matchesEvergreenTitle(title: string): boolean {
   return EVERGREEN_TITLE_PATTERNS.some((pattern) => pattern.test(title));
 }
 
+function isTechOrAuto(category: string | null | undefined): boolean {
+  const value = category || "";
+  if (/\b(technology|automotive)\b/i.test(value)) return true;
+  return getCategoriesByDbValue(value).some((item) =>
+    item.slug === "technology" || item.slug === "automotive"
+  );
+}
+
+function isPolicyNews(slug: string, title: string): boolean {
+  return POLICY_SLUG.test(slug) || POLICY_TITLE.test(title);
+}
+
+function isSportsMatchup(
+  slug: string,
+  title: string,
+  category: string | null | undefined
+): boolean {
+  if (/\bsports\b/i.test(category || "") || /खेल/.test(category || "")) return true;
+  if (SPORTS_SLUG.test(slug) || SPORTS_TITLE.test(title)) return true;
+  if (COUNTRY_VS_SLUG.test(slug)) return true;
+  return false;
+}
+
+function hasExplicitPriceListSignal(slug: string, title: string): boolean {
+  return PRICE_LIST_SLUG.test(slug) || PRICE_TITLE.test(title);
+}
+
+function hasComparisonToken(slug: string, title: string): boolean {
+  return /(?:^|-)vs(?:-|$)/.test(slug) || /\bvs\b/i.test(title) || /बनाम/.test(title);
+}
+
+function isLaunchNewsWithoutPriceList(slug: string, title: string): boolean {
+  if (!LAUNCH_NEWS_SLUG.test(slug) && !LAUNCH_NEWS_TITLE.test(title)) return false;
+  if (hasExplicitPriceListSignal(slug, title)) return false;
+  if (hasComparisonToken(slug, title) && (TWO_PRICE_TAIL.test(slug) || TRAILING_PRICE.test(slug) || RUPEE_TITLE.test(title))) {
+    return false;
+  }
+  return true;
+}
+
+function isProductPricePage(
+  slug: string,
+  title: string,
+  category: string | null | undefined
+): boolean {
+  if (isPolicyNews(slug, title)) return false;
+  if (hasExplicitPriceListSignal(slug, title)) return true;
+  if (TWO_PRICE_TAIL.test(slug) && (isTechOrAuto(category) || RUPEE_TITLE.test(title))) {
+    return true;
+  }
+  if (TRAILING_PRICE.test(slug) && RUPEE_TITLE.test(title)) {
+    return true;
+  }
+  return false;
+}
+
+function isProductComparison(
+  slug: string,
+  title: string,
+  category: string | null | undefined
+): boolean {
+  if (!hasComparisonToken(slug, title)) return false;
+  if (isSportsMatchup(slug, title, category)) return false;
+  if (isPolicyNews(slug, title)) return false;
+  if (hasExplicitPriceListSignal(slug, title) || TWO_PRICE_TAIL.test(slug) || TRAILING_PRICE.test(slug)) {
+    return true;
+  }
+  if (isTechOrAuto(category)) return true;
+  return false;
+}
+
 /**
- * True for evergreen how-to guides and explainers. Conservative: returns
- * false unless a clear category, slug or title signal is present, and
- * always returns false for timely or city-dated news.
+ * True for evergreen how-to guides, explainers, product price or
+ * specification lists, and product comparison pages. Conservative:
+ * returns false unless a clear category, slug or title signal is
+ * present, and always returns false for timely, city-dated, launch,
+ * price-hike or recall news.
  */
 export function isEvergreenGuide(article: EvergreenGuideFields): boolean {
   const slug = hyphenate(article.slug);
-  if (isTimelyNews(slug)) return false;
+  const title = titleText(article.title);
+  if (isTimelyNews(slug, title)) return false;
+  if (isLaunchNewsWithoutPriceList(slug, title)) return false;
   if (hasExplainersCategory(article.category)) return true;
   if (matchesEvergreenSlug(slug)) return true;
-  if (matchesEvergreenTitle(titleText(article.title))) return true;
+  if (matchesEvergreenTitle(title)) return true;
+  if (isProductPricePage(slug, title, article.category)) return true;
+  if (isProductComparison(slug, title, article.category)) return true;
   return false;
 }
 
