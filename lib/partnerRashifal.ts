@@ -2,9 +2,9 @@ import { getCategoriesByDbValue, pickBreadcrumbCategory } from "@/lib/categories
 
 // Decide whether a story gets the partner rashifal widget, and which sign to show.
 const EN_KEYWORDS =
-  /\b(rashifal|rashi|horoscopes?|jyotish|kundli|kundali|astrology|astrological|zodiac|panchang|muhurat|muhurta|vrat|vrats|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi[\s-]?vivah|dev[\s-]?uthani|dev[\s-]?diwali|kartik[\s-]?purnima|purnima|amavasya|sankranti|makar[\s-]?sankranti|lohri|pongal|holi|janmashtami|maha[\s-]?shivratri|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan)\b/i;
+  /\b(rashifal|rashi|horoscopes?|jyotish|kundli|kundali|astrology|astrological|zodiac|panchang|muhurat|muhurta|vrat|vrats|puja|pooja|aarti|chalisa|karwa[\s-]?chauth|diwali|deepavali|deepawali|chhath|dhanteras|ekadashi|navratri|bhai[\s-]?dooj|govardhan|tulsi[\s-]?vivah|dev[\s-]?uthani|dev[\s-]?diwali|kartik[\s-]?purnima|purnima|amavasya|sankranti|makar[\s-]?sankranti|lohri|pongal|holi|janmashtami|maha[\s-]?shivratri|shivratri|ganesh[\s-]?chaturthi|durga[\s-]?puja|raksha[\s-]?bandhan|rakhi|dussehra|vijayadashami|ram[\s-]?navami|hanuman[\s-]?jayanti|akshaya[\s-]?tritiya|teej|hartalika|pitru[\s-]?paksha|shradh|shraddha|sawan|shravan|jagaddhatri|jagadhatri|karthigai|kartigai|tiruvannamalai[\s-]deepam|somvar[\s-]vrat|somwar[\s-]vrat|monday[\s-]fast|guruvar[\s-]vrat|brihaspativar[\s-]vrat|thursday[\s-]fast|vivah[\s-]panchami|ram[\s-]sita[\s-]vivah|sita[\s-]vivah|janakpur|mokshada|(?:gita|geeta)[\s-]jayanti|gita[\s-]discourses?|kurukshetra[\s-]gita)\b/i;
 const HI_KEYWORDS =
-  /(राशिफल|राशि|ज्योतिष|कुंडली|कुण्डली|पंचांग|मुहूर्त|व्रत|पूजा|आरती|चालीसा|करवा\s?चौथ|दिवाली|दीपावली|छठ|धनतेरस|एकादशी|नवरात्रि|नवरात्र|भाई\s?दूज|गोवर्धन|तुलसी\s?विवाह|देव\s?दीपावली|देव\s?दिवाली|कार्तिक\s?पूर्णिमा|पूर्णिमा|अमावस्या|संक्रांति|लोहड़ी|होली|जन्माष्टमी|शिवरात्रि|गणेश\s?चतुर्थी|दुर्गा\s?पूजा|रक्षाबंधन|दशहरा|रामनवमी|हनुमान\s?जयंती|अक्षय\s?तृतीया|तीज|पितृ\s?पक्ष|श्राद्ध|सावन)/;
+  /(राशिफल|राशि|ज्योतिष|कुंडली|कुण्डली|पंचांग|मुहूर्त|व्रत|पूजा|आरती|चालीसा|करवा\s?चौथ|दिवाली|दीपावली|छठ|धनतेरस|एकादशी|नवरात्रि|नवरात्र|भाई\s?दूज|गोवर्धन|तुलसी\s?विवाह|देव\s?दीपावली|देव\s?दिवाली|कार्तिक\s?पूर्णिमा|पूर्णिमा|अमावस्या|संक्रांति|लोहड़ी|होली|जन्माष्टमी|शिवरात्रि|गणेश\s?चतुर्थी|दुर्गा\s?पूजा|रक्षाबंधन|दशहरा|रामनवमी|हनुमान\s?जयंती|अक्षय\s?तृतीया|तीज|पितृ\s?पक्ष|श्राद्ध|सावन|जगद्धात्री|कार्तिगई|विवाह\s?पंचमी|राम\s?सीता\s?विवाह|सीता\s?विवाह|(?<![\u0900-\u097F])जनकपुर(?![\u0900-\u097F])|मोक्षदा|गीता\s?जयंती)/;
 
 /** Story categories that are astrology / religion by definition. */
 const RELIGION_CATEGORY = /^(astrology|religion|spirituality|spiritual|dharm|dharma|festivals?|धर्म|ज्योतिष|अध्यात्म)$/i;
@@ -393,6 +393,8 @@ export function festivalPartnerHref(
 // sit ahead of the general rotation) keep first place while their IST window
 // is open. Later story-predicate guides then beat the general rotation when
 // the story matches. Otherwise the soonest open general guide is used.
+// Predicate guides stay in untilIst order, so the earlier last day wins when
+// two match: Vivah Panchami before Kharmas, Mokshada Ekadashi before Saphala.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -417,6 +419,16 @@ export const VAIKUNTHA_VRAT_UNTIL_IST = "2026-11-23";
 export const DEV_DEEPAWALI_UNTIL_IST = "2026-11-24";
 export const SANKASHTI_UNTIL_IST = "2026-11-27";
 export const MARGASHIRSHA_PURNIMA_UNTIL_IST = "2026-12-24";
+export const JAGADDHATRI_UNTIL_IST = "2026-11-18";
+export const SOMVAR_VRAT_NOV_UNTIL_IST = "2026-11-23";
+export const KARTHIGAI_DEEPAM_UNTIL_IST = "2026-11-24";
+export const GURUVAR_VRAT_NOV_UNTIL_IST = "2026-11-26";
+/** Inclusive first IST day. Other vivah stories stay on Kharmas outside this window. */
+export const VIVAH_PANCHAMI_FROM_IST = "2026-12-01";
+export const VIVAH_PANCHAMI_UNTIL_IST = "2026-12-14";
+/** Inclusive first IST day. Other Ekadashi stories stay on Saphala outside this window. */
+export const MOKSHADA_EKADASHI_FROM_IST = "2026-12-10";
+export const MOKSHADA_EKADASHI_UNTIL_IST = "2026-12-20";
 /**
  * Inclusive IST days when Dev Deepawali replaces Pradosh on Varanasi and
  * festival stories. Off at 00:00 IST on 25 Nov. Tulsi and Vaikuntha are unchanged.
@@ -435,14 +447,20 @@ export const PARTNER_CAMPAIGN_SPONSORED_EVERGREEN = "evergreen";
 export type UpcomingVratId =
   | "chhath_2026"
   | "vrishchika_sankranti_2026"
+  | "jagaddhatri_2026"
   | "kaal_bhairav_2026"
   | "utpanna_ekadashi_2026"
   | "tulsi_vivah_2026"
   | "pradosh_2026"
+  | "somvar_vrat_nov_2026"
   | "vaikuntha_2026"
+  | "karthigai_deepam_2026"
   | "dev_deepawali_2026"
+  | "guruvar_vrat_nov_2026"
   | "sankashti_2026"
   | "mgpurnima_2026"
+  | "vivah_panchami_2026"
+  | "mokshada_ekadashi_2026"
   | "saphala_ekadashi_2027"
   | "kharmas_2026"
   | "lohri_sankranti_2027"
@@ -507,6 +525,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    id: "jagaddhatri_2026",
+    path: "/jagaddhatri-puja-2026/",
+    campaign: "jagaddhatri_2026",
+    untilIst: JAGADDHATRI_UNTIL_IST,
+    appliesTo: isJagaddhatriStory,
+    text: {
+      en: {
+        endCard: "Jagaddhatri Puja 2026 guide",
+        sidebarTitle: "Jagaddhatri Puja 2026",
+        sidebarBody: "See the Jagaddhatri Puja 2026 guide on our partner site.",
+        sidebarLink: "Jagaddhatri Puja 2026 guide",
+      },
+      hi: {
+        endCard: "जगद्धात्री पूजा 2026 गाइड",
+        sidebarTitle: "जगद्धात्री पूजा 2026",
+        sidebarBody: "जगद्धात्री पूजा 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "जगद्धात्री पूजा 2026 गाइड",
+      },
+    },
+  },
+  {
     id: "tulsi_vivah_2026",
     path: "/tulsi-vivah-2026/",
     campaign: PARTNER_CAMPAIGN_TULSI_VIVAH,
@@ -547,6 +586,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    id: "somvar_vrat_nov_2026",
+    path: "/somvar-vrat/",
+    campaign: "somvar_vrat_nov_2026",
+    untilIst: SOMVAR_VRAT_NOV_UNTIL_IST,
+    appliesTo: isSomvarVratStory,
+    text: {
+      en: {
+        endCard: "Somvar Vrat vidhi guide",
+        sidebarTitle: "Somvar Vrat vidhi",
+        sidebarBody: "See the Somvar Vrat vidhi guide on our partner site.",
+        sidebarLink: "Somvar Vrat vidhi guide",
+      },
+      hi: {
+        endCard: "सोमवार व्रत विधि गाइड",
+        sidebarTitle: "सोमवार व्रत विधि",
+        sidebarBody: "सोमवार व्रत विधि गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "सोमवार व्रत विधि गाइड",
+      },
+    },
+  },
+  {
     id: "vaikuntha_2026",
     path: "/vaikuntha-chaturdashi-2026/",
     campaign: PARTNER_CAMPAIGN_VAIKUNTHA,
@@ -567,6 +627,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    id: "karthigai_deepam_2026",
+    path: "/karthigai-deepam-2026/",
+    campaign: "karthigai_deepam_2026",
+    untilIst: KARTHIGAI_DEEPAM_UNTIL_IST,
+    appliesTo: isKarthigaiDeepamStory,
+    text: {
+      en: {
+        endCard: "Karthigai Deepam 2026 guide",
+        sidebarTitle: "Karthigai Deepam 2026",
+        sidebarBody: "See the Karthigai Deepam 2026 guide on our partner site.",
+        sidebarLink: "Karthigai Deepam 2026 guide",
+      },
+      hi: {
+        endCard: "कार्तिगई दीपम 2026 गाइड",
+        sidebarTitle: "कार्तिगई दीपम 2026",
+        sidebarBody: "कार्तिगई दीपम 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "कार्तिगई दीपम 2026 गाइड",
+      },
+    },
+  },
+  {
     id: "dev_deepawali_2026",
     path: "/dev-deepawali-2026/",
     campaign: PARTNER_CAMPAIGN_DEV_DEEPAWALI,
@@ -583,6 +664,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "देव दीपावली 2026",
         sidebarBody: "देव दीपावली 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "देव दीपावली 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "guruvar_vrat_nov_2026",
+    path: "/guruvar-vrat/",
+    campaign: "guruvar_vrat_nov_2026",
+    untilIst: GURUVAR_VRAT_NOV_UNTIL_IST,
+    appliesTo: isGuruvarVratStory,
+    text: {
+      en: {
+        endCard: "Guruvar Vrat vidhi guide",
+        sidebarTitle: "Guruvar Vrat vidhi",
+        sidebarBody: "See the Guruvar Vrat vidhi guide on our partner site.",
+        sidebarLink: "Guruvar Vrat vidhi guide",
+      },
+      hi: {
+        endCard: "गुरुवार व्रत विधि गाइड",
+        sidebarTitle: "गुरुवार व्रत विधि",
+        sidebarBody: "गुरुवार व्रत विधि गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गुरुवार व्रत विधि गाइड",
       },
     },
   },
@@ -643,6 +745,54 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "उत्पन्ना एकादशी 2026",
         sidebarBody: "उत्पन्ना एकादशी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "उत्पन्ना एकादशी 2026 गाइड",
+      },
+    },
+  },
+  {
+    // Earlier untilIst than Kharmas, so a matching story takes this guide
+    // through 14 Dec and returns to Kharmas on 15 Dec.
+    id: "vivah_panchami_2026",
+    path: "/vivah-panchami-2026/",
+    campaign: "vivah_panchami_2026",
+    fromIst: VIVAH_PANCHAMI_FROM_IST,
+    untilIst: VIVAH_PANCHAMI_UNTIL_IST,
+    appliesTo: isVivahPanchamiStory,
+    text: {
+      en: {
+        endCard: "Vivah Panchami 2026 guide",
+        sidebarTitle: "Vivah Panchami 2026",
+        sidebarBody: "See the Vivah Panchami 2026 guide on our partner site.",
+        sidebarLink: "Vivah Panchami 2026 guide",
+      },
+      hi: {
+        endCard: "विवाह पंचमी 2026 गाइड",
+        sidebarTitle: "विवाह पंचमी 2026",
+        sidebarBody: "विवाह पंचमी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "विवाह पंचमी 2026 गाइड",
+      },
+    },
+  },
+  {
+    // Earlier untilIst than Saphala, so a matching story takes this guide
+    // through 20 Dec and returns to Saphala on 21 Dec when that guide also matches.
+    id: "mokshada_ekadashi_2026",
+    path: "/mokshada-ekadashi-2026/",
+    campaign: "mokshada_ekadashi_2026",
+    fromIst: MOKSHADA_EKADASHI_FROM_IST,
+    untilIst: MOKSHADA_EKADASHI_UNTIL_IST,
+    appliesTo: isMokshadaEkadashiStory,
+    text: {
+      en: {
+        endCard: "Mokshada Ekadashi and Gita Jayanti 2026 guide",
+        sidebarTitle: "Mokshada Ekadashi and Gita Jayanti 2026",
+        sidebarBody: "See the Mokshada Ekadashi and Gita Jayanti 2026 guide on our partner site.",
+        sidebarLink: "Mokshada Ekadashi and Gita Jayanti 2026 guide",
+      },
+      hi: {
+        endCard: "मोक्षदा एकादशी और गीता जयंती 2026 गाइड",
+        sidebarTitle: "मोक्षदा एकादशी और गीता जयंती 2026",
+        sidebarBody: "मोक्षदा एकादशी और गीता जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "मोक्षदा एकादशी और गीता जयंती 2026 गाइड",
       },
     },
   },
@@ -793,7 +943,8 @@ function previousIstDate(istDate: string): string {
 /**
  * ISR caps for story guides that have not started yet. 00:00 IST on fromIst
  * is the expiry of the previous IST date, so partnerPageRevalidateSeconds
- * already lands on that midnight. Saphala starts 2026-12-05.
+ * already lands on that midnight. Saphala starts 2026-12-05, Vivah Panchami
+ * starts 2026-12-01, and Mokshada Ekadashi starts 2026-12-10.
  */
 export function pendingVratStartsForStory(a: StoryFields, now: Date = new Date()): { untilIst: string }[] {
   if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return [];
@@ -938,6 +1089,9 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
 /**
  * Partner widget eligibility: astrology, rashifal, festival, vrat and
  * puja-guide stories, plus Varanasi festival / ghat service guides.
+ * Named guides add only their exact phrases: Jagaddhatri, Karthigai,
+ * Tiruvannamalai Deepam, Monday fast, Thursday fast, Vivah Panchami,
+ * Ram-Sita vivah, Janakpur, Mokshada, and Gita Jayanti.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1125,6 +1279,55 @@ export function isSaphalaEkadashiStory(a: StoryFields): boolean {
 /** Lohri, Makar Sankranti and Pongal. A bare sankranti is not enough. */
 export function isLohriSankrantiStory(a: StoryFields): boolean {
   return /\b(lohri|pongal)\b|makar[\s-]?sankranti|लोहड़ी|मकर\s?संक्रांति/i.test(partnerHay(a));
+}
+
+/** Jagaddhatri or Jagadhatri. A bare puja is not a match. */
+export function isJagaddhatriStory(a: StoryFields): boolean {
+  return /\bjagaddhatri\b|\bjagadhatri\b|जगद्धात्री/i.test(partnerHay(a));
+}
+
+/** Karthigai, Kartigai, or the Tiruvannamalai Deepam phrase. */
+export function isKarthigaiDeepamStory(a: StoryFields): boolean {
+  return /\b(?:karthigai|kartigai)\b|\btiruvannamalai[\s-]deepam\b|कार्तिगई/i.test(partnerHay(a));
+}
+
+/** Somvar vrat, Somwar vrat, Monday vrat, or Monday fast. */
+export function isSomvarVratStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return /\b(?:somvar|somwar)[\s-]vrat\b|\bmonday[\s-](?:vrat|fast)\b/i.test(hay) || /सोमवार\s?व्रत/.test(hay);
+}
+
+/** Guruvar vrat, Brihaspativar vrat, Thursday vrat, or Thursday fast. */
+export function isGuruvarVratStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:guruvar|brihaspativar)[\s-]vrat\b|\bthursday[\s-](?:vrat|fast)\b/i.test(hay) ||
+    /गुरुवार\s?व्रत|बृहस्पतिवार\s?व्रत/.test(hay)
+  );
+}
+
+/** Vivah Panchami, Ram-Sita vivah, Sita vivah, or Janakpur. */
+export function isVivahPanchamiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\bvivah[\s-]panchami\b/i.test(hay) ||
+    /\bram[\s-]sita[\s-]vivah\b/i.test(hay) ||
+    /\bsita[\s-]vivah\b/i.test(hay) ||
+    /\bjanakpur\b/i.test(hay) ||
+    /विवाह\s?पंचमी|राम\s?सीता\s?विवाह|सीता\s?विवाह|(?<![\u0900-\u097F])जनकपुर(?![\u0900-\u097F])/.test(hay)
+  );
+}
+
+/** Mokshada, Gita Jayanti, a Gita discourse, or Kurukshetra Gita. */
+export function isMokshadaEkadashiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\bmokshada\b/i.test(hay) ||
+    /\b(?:gita|geeta)[\s-]jayanti\b/i.test(hay) ||
+    /\bgita[\s-]discourses?\b/i.test(hay) ||
+    /\bkurukshetra[\s-]gita\b/i.test(hay) ||
+    /मोक्षदा|गीता\s?जयंती/.test(hay)
+  );
 }
 
 /** Inclusive last IST day of the Sponsored end unit A/B test. */
