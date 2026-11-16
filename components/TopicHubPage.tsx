@@ -1,9 +1,11 @@
 import LatestStories from "@/components/LatestStories";
+import { ListingPager } from "@/components/ListingPager";
 import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { decodeEntities } from "@/lib/decodeEntities";
+import { listingPath, listingRelHrefs, withPageSuffix } from "@/lib/pagination";
 import { articlePath } from "@/lib/publicPaths";
 import {
   ORGANIZATION_ID,
@@ -21,10 +23,16 @@ export default function TopicHubPage({
   articles,
   latestUpdate,
   latestArticles,
+  page,
+  totalPages,
 }: TopicHubProps) {
-  const canonicalUrl = `${SITE_URL}${hub.canonicalPath}`;
-  const pageTitle =
+  const canonicalPath = listingPath(hub.canonicalPath, page);
+  const canonicalUrl = `${SITE_URL}${canonicalPath}`;
+  const baseTitle =
     hub.seoTitle || `${hub.title} - Latest Verified Updates | ${SITE_NAME}`;
+  const pageTitle = withPageSuffix(baseTitle, page);
+  const description = withPageSuffix(hub.description, page);
+  const rel = listingRelHrefs(hub.canonicalPath, page, totalPages);
   const heading = hub.h1 || hub.title;
   const heroArticle = articles[0];
   const ogImage = heroArticle
@@ -48,7 +56,7 @@ export default function TopicHubPage({
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: pageTitle,
-    description: hub.description,
+    description,
     url: canonicalUrl,
     inLanguage: "en-IN",
     isPartOf: {
@@ -85,8 +93,10 @@ export default function TopicHubPage({
     <>
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content={hub.description} />
+        <meta name="description" content={description} />
         <link rel="canonical" href={canonicalUrl} />
+        {rel.prev && <link rel="prev" href={rel.prev} />}
+        {rel.next && <link rel="next" href={rel.next} />}
         {hub.feedPath && (
           <link
             rel="alternate"
@@ -98,14 +108,14 @@ export default function TopicHubPage({
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={hub.description} />
+        <meta property="og:description" content={description} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={ogImage} />
         <meta property="og:locale" content="en_IN" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@dalimss_news" />
         <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={hub.description} />
+        <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={ogImage} />
         <script
           type="application/ld+json"
@@ -122,7 +132,7 @@ export default function TopicHubPage({
       </Head>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumbs items={[{ name: hub.title, href: hub.canonicalPath }]} />
+        <Breadcrumbs items={[{ name: hub.title, href: canonicalPath }]} />
 
         <header className="border-b-2 border-red-600 pb-4 mb-8">
           <p className="text-xs uppercase tracking-wide text-red-600 font-bold mb-2">
@@ -204,6 +214,12 @@ export default function TopicHubPage({
             </div>
           </section>
         )}
+
+        <ListingPager
+          page={page}
+          pathname={hub.canonicalPath}
+          hasMore={page < totalPages}
+        />
 
         <section className="border-t border-gray-200 pt-8">
           <h2 className="text-xl md:text-2xl font-bold font-serif text-gray-900 mb-5">

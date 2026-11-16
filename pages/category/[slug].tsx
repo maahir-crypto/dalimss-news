@@ -1,56 +1,68 @@
-import { GetStaticPaths, GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleMediaPreview from "@/components/ArticleMediaPreview";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ListingPager } from "@/components/ListingPager";
 import { Article } from "@/types";
 import { decodeEntities } from "@/lib/decodeEntities";
+import { loadCategoryListing } from "@/lib/categoryListing";
 import {
   SITE_URL,
   SITE_NAME,
   absoluteImageUrl,
-  canonicalAuthorName,
   formatDateIST,
   itemListSchema,
 } from "@/lib/seo";
-import { CATEGORIES, getCategoryBySlug, Category } from "@/lib/categories";
-import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
+import { getCategoryBySlug, Category } from "@/lib/categories";
+import { listingHtmlCacheTag, setPublicPageCache } from "@/lib/publicCache";
 import { articlePath, sectionPath } from "@/lib/publicPaths";
-import { englishArticleWhere } from "@/lib/articleLanguage";
-import prisma from "@/lib/prisma";
+import {
+  CATEGORY_ARCHIVE_PAGE_SIZE,
+  listingPath,
+  listingRelHrefs,
+  parsePageParam,
+  withPageSuffix,
+} from "@/lib/pagination";
 
 interface Props {
   category: Category;
   articles: Article[];
   totalCount: number;
+  page: number;
+  totalPages: number;
 }
 
-const ARTICLES_PER_PAGE = 20;
-
-export default function CategoryPage({ category, articles, totalCount }: Props) {
+export default function CategoryPage({
+  category,
+  articles,
+  totalCount,
+  page,
+  totalPages,
+}: Props) {
   const [articleList, setArticleList] = useState<Article[]>(articles);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(articles.length >= ARTICLES_PER_PAGE);
+  const [loadedPage, setLoadedPage] = useState(page);
+  const [hasMore, setHasMore] = useState(page < totalPages);
   const [loadingMore, setLoadingMore] = useState(false);
   // Sync when initial props change (navigation)
   useEffect(() => {
     setArticleList(articles);
-    setPage(1);
-    setHasMore(articles.length >= ARTICLES_PER_PAGE);
-  }, [articles]);
+    setLoadedPage(page);
+    setHasMore(page < totalPages);
+  }, [articles, page, totalPages]);
 
   const loadMore = async () => {
     if (loadingMore) return;
     setLoadingMore(true);
 
     try {
-      const nextPage = page + 1;
+      const nextPage = loadedPage + 1;
       const params = new URLSearchParams({
         category: category.dbValues[0],
         page: String(nextPage),
-        limit: String(ARTICLES_PER_PAGE),
+        limit: String(CATEGORY_ARCHIVE_PAGE_SIZE),
       });
 
       const res = await fetch(`/api/articles?${params.toString()}`);
@@ -63,9 +75,12 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
         const uniqueNew = newArticles.filter((a) => !existingIds.has(a.id));
         return [...prev, ...uniqueNew];
       });
-      setPage(nextPage);
+      setLoadedPage(nextPage);
 
-      if (newArticles.length < ARTICLES_PER_PAGE) {
+      if (
+        newArticles.length < CATEGORY_ARCHIVE_PAGE_SIZE ||
+        nextPage >= totalPages
+      ) {
         setHasMore(false);
       }
     } catch (err) {
@@ -75,11 +90,16 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
     }
   };
 
-  const sectionUrl = `${SITE_URL}${sectionPath(category.slug)}`;
-  const canonicalUrl = sectionUrl;
-  const pageTitle =
+  const archivePath = `/category/${category.slug}`;
+  const canonicalPath =
+    page > 1 ? listingPath(archivePath, page) : sectionPath(category.slug);
+  const canonicalUrl = `${SITE_URL}${canonicalPath}`;
+  const baseTitle =
     category.seoTitle ||
     `${category.name} News - Latest ${category.name} Headlines | ${SITE_NAME}`;
+  const pageTitle = withPageSuffix(baseTitle, page);
+  const description = withPageSuffix(category.description, page);
+  const rel = listingRelHrefs(archivePath, page, totalPages);
   const heading = category.h1 || `${category.name} News`;
   const heroArticle = articleList[0];
   const heroTitle = heroArticle ? decodeEntities(heroArticle.title) : "";
@@ -102,7 +122,7 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: pageTitle,
-    description: category.description,
+    description,
     url: canonicalUrl,
     mainEntity: itemList,
     publisher: {
@@ -119,14 +139,16 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
     <>
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content={category.description} />
+        <meta name="description" content={description} />
         <link rel="canonical" href={canonicalUrl} />
+        {rel.prev && <link rel="prev" href={rel.prev} />}
+        {rel.next && <link rel="next" href={rel.next} />}
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={category.description} />
+        <meta property="og:description" content={description} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={heroOgImage} />
         <meta property="og:image:width" content="1200" />
@@ -137,7 +159,7 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@dalimss_news" />
         <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={category.description} />
+        <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={heroOgImage} />
 
         {/* JSON-LD */}
@@ -154,7 +176,7 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumbs */}
         <Breadcrumbs
-          items={[{ name: category.name, href: sectionPath(category.slug) }]}
+          items={[{ name: category.name, href: canonicalPath }]}
         />
 
         {/* Category Header */}
@@ -283,21 +305,17 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
                     />
                   ))}
                 </div>
-
-                {/* Load More Button */}
-                {hasMore && (
-                  <div className="mt-10 text-center bg-gray-50 p-4 rounded-lg">
-                    <button
-                      onClick={loadMore}
-                      disabled={loadingMore}
-                      className="bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
-                    >
-                      {loadingMore ? "Loading..." : "Load More Articles"}
-                    </button>
-                  </div>
-                )}
               </section>
             )}
+
+            <ListingPager
+              page={page}
+              pathname={archivePath}
+              hasMore={hasMore}
+              nextPage={loadedPage + 1}
+              loadingMore={loadingMore}
+              onLoadMore={loadMore}
+            />
           </>
         )}
       </div>
@@ -305,101 +323,53 @@ export default function CategoryPage({ category, articles, totalCount }: Props) 
   );
 }
 
-export const getStaticPaths: GetStaticPaths = async () => ({
-  paths: CATEGORIES.map((category) => ({ params: { slug: category.slug } })),
-  fallback: false,
-});
+export const getServerSideProps: GetServerSideProps<Props> = async (
+  context
+) => {
+  const slugParam = context.params?.slug;
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam;
+  const category = slug ? getCategoryBySlug(slug) : undefined;
 
-export const getStaticProps: GetStaticProps = async (context) => {
-  const slug = context.params?.slug as string;
-  const category = getCategoryBySlug(slug);
+  if (!category) return { notFound: true };
 
-  if (!category) {
-    return { notFound: true };
+  const page = parsePageParam(context.query.page);
+  if (page === null) return { notFound: true };
+  if (page === 1 && context.query.page !== undefined) {
+    return {
+      redirect: { destination: `/category/${category.slug}`, permanent: true },
+    };
   }
 
   try {
-    const categoryFilter = {
-      AND: [
-        englishArticleWhere,
-        {
-          OR: category.dbValues.map((val) => ({
-            category: {
-              contains: val,
-              mode: "insensitive" as const,
-            },
-          })),
-        },
-      ],
-    };
+    const listing = await loadCategoryListing(category, page);
+    if (!listing) return { notFound: true };
 
-    // Query articles matching the category's dbValues (case-insensitive contains)
-    const [articles, totalCount] = await Promise.all([
-      prisma.article.findMany({
-        where: categoryFilter,
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        take: ARTICLES_PER_PAGE,
-        select: {
-          id: true,
-          slug: true,
-          title: true,
-          content: true,
-          mediaUrl: true,
-          mediaType: true,
-          readTimeInMinutes: true,
-          category: true,
-          customAuthor: true,
-          createdAt: true,
-          metaTitle: true,
-          metaDescription: true,
-          focusKeyword: true,
-        },
-      }),
-      prisma.article.count({
-        where: categoryFilter,
-      }),
-    ]);
-
-    // Serialize articles to match the Article type used by ArticleCard
-    const serializedArticles: Article[] = articles.map((a) => ({
-      id: a.id,
-      slug: a.slug,
-      title: a.title,
-      content: a.content,
-      mediaUrl: a.mediaUrl,
-      mediaType: a.mediaType as Article["mediaType"],
-      createdAt: a.createdAt.toISOString(),
-      authorName: canonicalAuthorName(
-        a.customAuthor || "Dalimss News Desk"
-      ),
-      authorAvatarUrl: "",
-      readTimeInMinutes: a.readTimeInMinutes,
-      claps: 0,
-      commentsCount: 0,
-      category: a.category,
-      metaTitle: a.metaTitle,
-      metaDescription: a.metaDescription,
-      focusKeyword: a.focusKeyword,
-    }));
-
+    setPublicPageCache(
+      context.req,
+      context.res,
+      listingHtmlCacheTag(`/category/${category.slug}`)
+    );
     return {
       props: {
         category,
-        articles: serializedArticles,
-        totalCount,
+        articles: listing.articles,
+        totalCount: listing.totalCount,
+        page: listing.page,
+        totalPages: listing.totalPages,
       },
-      revalidate: LISTING_REVALIDATE_SECONDS,
     };
   } catch (error) {
     console.error("Error fetching category articles:", error);
     if (process.env.DATABASE_URL) throw error;
+    if (page > 1) return { notFound: true };
     return {
       props: {
         category,
         articles: [],
         totalCount: 0,
+        page: 1,
+        totalPages: 0,
       },
-      revalidate: LISTING_REVALIDATE_SECONDS,
     };
   }
 };
