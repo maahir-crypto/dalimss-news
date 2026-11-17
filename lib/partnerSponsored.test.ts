@@ -576,9 +576,8 @@ describe("new guide rotation and Sponsored end windows", () => {
     }
     assert.deepEqual(UPCOMING_VRAT_CTAS.map((c) => c.untilIst), UPCOMING_VRAT_CTAS.map((c) => c.untilIst).sort());
     for (const [now, id] of [
-      // Kaal Bhairav is story-matched, so the general rotation moves on to Utpanna.
-      ["2026-11-28T06:30:00Z", "utpanna_ekadashi_2026"],
-      ["2026-12-01T18:29:59.999Z", "utpanna_ekadashi_2026"],
+      ["2026-11-28T06:30:00Z", "kaal_bhairav_2026"],
+      ["2026-12-01T18:29:59.999Z", "kaal_bhairav_2026"],
       ["2026-12-01T18:30:00Z", "utpanna_ekadashi_2026"],
       ["2026-12-02T06:30:00Z", "utpanna_ekadashi_2026"],
       ["2026-12-04T18:29:59.999Z", "utpanna_ekadashi_2026"],
@@ -1436,6 +1435,7 @@ describe("story-matched Kaal Bhairav, Guru Nanak, Akshaya Navami and Griha Prave
       }
     }
     const kaal = UPCOMING_VRAT_CTAS.find((c) => c.id === "kaal_bhairav_2026")!;
+    assert.equal(kaal.alsoGeneral, true);
     assert.equal(kaal.text.en.endCard, "Kaal Bhairav Ashtami 2026 guide");
     assert.equal(kaal.text.en.sidebarLink, "Kaal Bhairav Ashtami 2026 guide");
     assert.equal(kaal.text.en.sidebarTitle, "Kaal Bhairav Ashtami 2026");
