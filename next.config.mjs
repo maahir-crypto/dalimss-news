@@ -2,6 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  // Vercel sets VERCEL_ENV at build (production, preview, or development)
+  // and does not send it to the browser. Inline it so Clarity in
+  // pages/_app.tsx can skip preview and dev without a server/client
+  // mismatch. Empty means the variable was not set; the snippet then
+  // loads only on dalimss.news.
+  env: {
+    NEXT_PUBLIC_VERCEL_ENV:
+      process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV || "",
+  },
+
   images: {
     // 31-day edge cache for optimized images. WebP only, so each
     // photo is not also encoded as AVIF. deviceSizes drops 2048 and

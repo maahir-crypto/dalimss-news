@@ -21,9 +21,9 @@ const SERVICE_GUIDE =
  * a festival or a puja. Exclusion always wins over inclusion.
  */
 const HARD_NEWS_EN =
-  /\b(crimes?|criminal|accidents?|crash(es|ed)?|collisions?|deaths?|dead|died|dies|dying|killed|kills?|killing|murder(s|ed)?|homicide|drown(s|ed|ing)?|bod(y|ies)[\s-]found|corpse|disasters?|flood(s|ed|ing)?|earthquakes?|cyclone|landslides?|stampedes?|collapse[sd]?|fires?|blaze|burn(t|ed)|explosions?|blasts?|police|cops?|arrest(s|ed)?|fir|custody|probe|raids?|rape[sd]?|assault(s|ed)?|molest(ed|ation)?|suicide|missing|injur(ed|ies|y)|victims?|tragedy|riots?|clash(es)?|violence|protests?|terror(ist|ism)?|shoot(ing|out)|stabb(ed|ing)|politics?|political|elections?|polls?|bjp|congress|samajwadi|aap|bsp|minister|mla|cm|chief[\s-]minister|court|verdict|bail|scam|fraud|recall(s|ed)?)\b/i;
+  /\b(crimes?|criminal|accidents?|crash(es|ed)?|collisions?|deaths?|dead|died|dies|dying|killed|kills?|killing|murder(s|ed)?|homicide|drown(s|ed|ing)?|bod(y|ies)[\s-]found|corpse|disasters?|flood(s|ed|ing)?|earthquakes?|cyclone|landslides?|stampedes?|collapse[sd]?|fires?|blaze|burn(t|ed)|explosions?|blasts?|police|cops?|arrest(s|ed)?|fir|custody|probe|raids?|rape[sd]?|assault(s|ed)?|molest(ed|ation)?|suicide|missing|injur(ed|ies|y)|victims?|tragedy|riots?|clash(es)?|violence|protests?|terror(ist|ism)?|shoot(ing|out)|stabb(ed|ing)|politics?|political|elections?|polls?|bjp|congress|samajwadi|aap|bsp|minister|mla|cm|chief[\s-]minister|court|verdict|bail|scam|fraud|recall(s|ed)?|thefts?|thie(f|ves)|stolen|steal(s|ing)?|robber(y|ies|s)?|robbed|loot(s|ed|ing)?|burglar(y|ies|s)?|snatch(es|ed|ing|ers?)?|accused|kidnap(s|ped|ping)?|abduct(ed|ion|s)?|extortion|smuggl(ing|ed|ers?)|dacoity|absconding)\b/i;
 const HARD_NEWS_HI =
-  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|घोटाला|ठगी)/;
+  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|घोटाला|ठगी|चोरी|चोर|लूट|डकैती|छिनैती|अपहरण|तस्कर|आरोपी|फरार|रंगदारी)/;
 const HARD_NEWS_CATEGORY = /^(crime|politics|political|police|accident|disaster|राजनीति|अपराध)$/i;
 
 /** Festival stories that get the time-boxed Diwali Partner CTA (EndCard + Sidebar only). */
@@ -394,7 +394,10 @@ export function festivalPartnerHref(
 // is open. Later story-predicate guides then beat the general rotation when
 // the story matches. Otherwise the soonest open general guide is used.
 // Predicate guides stay in untilIst order, so the earlier last day wins when
-// two match: Vivah Panchami before Kharmas, Mokshada Ekadashi before Saphala.
+// two match: Vivah Panchami before Kharmas, Mokshada Ekadashi before Saphala,
+// Kharmas before Griha Pravesh. Guru Nanak Jayanti, Akshaya Navami and Griha
+// Pravesh match only their own phrases. Kaal Bhairav does too, and alsoGeneral
+// keeps it in the general queue. A bare Bhairav is not a Kaal Bhairav match.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -412,6 +415,7 @@ export const SAPHALA_EKADASHI_UNTIL_IST = "2027-01-03";
 export const KHARMAS_UNTIL_IST = "2027-01-14";
 export const LOHRI_SANKRANTI_UNTIL_IST = "2027-01-15";
 export const RASHIFAL_2027_UNTIL_IST = "2027-01-31";
+export const GRIHA_PRAVESH_UNTIL_IST = "2027-12-31";
 export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
 export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
 /** Rotation window. The exact-slug links-only CTA stays on its own later date. */
@@ -448,6 +452,7 @@ export type UpcomingVratId =
   | "chhath_2026"
   | "vrishchika_sankranti_2026"
   | "jagaddhatri_2026"
+  | "akshaya_navami_2026"
   | "kaal_bhairav_2026"
   | "utpanna_ekadashi_2026"
   | "tulsi_vivah_2026"
@@ -456,6 +461,7 @@ export type UpcomingVratId =
   | "vaikuntha_2026"
   | "karthigai_deepam_2026"
   | "dev_deepawali_2026"
+  | "guru_nanak_jayanti_2026"
   | "guruvar_vrat_nov_2026"
   | "sankashti_2026"
   | "mgpurnima_2026"
@@ -464,7 +470,8 @@ export type UpcomingVratId =
   | "saphala_ekadashi_2027"
   | "kharmas_2026"
   | "lohri_sankranti_2027"
-  | "rashifal_2027";
+  | "rashifal_2027"
+  | "griha_pravesh_2027";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
@@ -474,6 +481,12 @@ export type UpcomingVratCta = {
   /** Inclusive first Asia/Calcutta day. Absent means the guide is already active. */
   fromIst?: string;
   appliesTo?: (a: StoryFields) => boolean;
+  /**
+   * Also a general-queue guide. A matching story still takes it ahead of the
+   * queue. Every other eligible story gets it when it is the soonest open
+   * general guide.
+   */
+  alsoGeneral?: boolean;
   text: {
     en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
     hi: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
@@ -542,6 +555,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "जगद्धात्री पूजा 2026",
         sidebarBody: "जगद्धात्री पूजा 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "जगद्धात्री पूजा 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "akshaya_navami_2026",
+    path: "/akshaya-navami-2026/",
+    campaign: PARTNER_CAMPAIGN_AKSHAYA_NAVAMI,
+    untilIst: AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST,
+    appliesTo: isAkshayaNavamiStory,
+    text: {
+      en: {
+        endCard: "Akshaya Navami 2026 guide",
+        sidebarTitle: "Akshaya Navami and Gopashtami",
+        sidebarBody: "See Gopashtami and Akshaya Navami timings on our partner site.",
+        sidebarLink: "Akshaya Navami 2026 guide",
+      },
+      hi: {
+        endCard: "अक्षय नवमी 2026 गाइड",
+        sidebarTitle: "अक्षय नवमी और गोपाष्टमी",
+        sidebarBody: "गोपाष्टमी और अक्षय नवमी का समय हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "अक्षय नवमी 2026 गाइड",
       },
     },
   },
@@ -668,6 +702,28 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // The exact-slug links-only CTA stays on FESTIVAL_PARTNER_CTAS and wins.
+    id: "guru_nanak_jayanti_2026",
+    path: "/guru-nanak-jayanti-2026/",
+    campaign: PARTNER_CAMPAIGN_GURU_NANAK,
+    untilIst: GURU_NANAK_PARTNER_CTA_UNTIL_IST,
+    appliesTo: isGuruNanakJayantiStory,
+    text: {
+      en: {
+        endCard: "Guru Nanak Jayanti 2026 guide",
+        sidebarTitle: "Guru Nanak Jayanti 2026",
+        sidebarBody: "See the Guru Nanak Jayanti 2026 guide on our partner site.",
+        sidebarLink: "Guru Nanak Jayanti 2026 guide",
+      },
+      hi: {
+        endCard: "गुरु नानक जयंती 2026 गाइड",
+        sidebarTitle: "गुरु नानक जयंती 2026",
+        sidebarBody: "गुरु नानक जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गुरु नानक जयंती 2026 गाइड",
+      },
+    },
+  },
+  {
     id: "guruvar_vrat_nov_2026",
     path: "/guruvar-vrat/",
     campaign: "guruvar_vrat_nov_2026",
@@ -709,22 +765,26 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // Matching stories take this ahead of the queue. alsoGeneral keeps it as
+    // the queue guide from 28 Nov through 1 Dec. A bare Bhairav does not match.
     id: "kaal_bhairav_2026",
     path: "/kaal-bhairav-jayanti-2026/",
     campaign: "kaal_bhairav_2026",
     untilIst: KAAL_BHAIRAV_UNTIL_IST,
+    appliesTo: isKaalBhairavStory,
+    alsoGeneral: true,
     text: {
       en: {
-        endCard: "Kaal Bhairav Jayanti 2026 guide",
-        sidebarTitle: "Kaal Bhairav Jayanti 2026",
-        sidebarBody: "See the Kaal Bhairav Jayanti 2026 guide on our partner site.",
-        sidebarLink: "Kaal Bhairav Jayanti 2026 guide",
+        endCard: "Kaal Bhairav Ashtami 2026 guide",
+        sidebarTitle: "Kaal Bhairav Ashtami 2026",
+        sidebarBody: "See the Kaal Bhairav Ashtami 2026 guide on our partner site.",
+        sidebarLink: "Kaal Bhairav Ashtami 2026 guide",
       },
       hi: {
-        endCard: "काल भैरव जयंती 2026 गाइड",
-        sidebarTitle: "काल भैरव जयंती 2026",
-        sidebarBody: "काल भैरव जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
-        sidebarLink: "काल भैरव जयंती 2026 गाइड",
+        endCard: "काल भैरव अष्टमी 2026 गाइड",
+        sidebarTitle: "काल भैरव अष्टमी 2026",
+        sidebarBody: "काल भैरव अष्टमी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "काल भैरव अष्टमी 2026 गाइड",
       },
     },
   },
@@ -901,6 +961,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
       },
     },
   },
+  {
+    id: "griha_pravesh_2027",
+    path: "/griha-pravesh-muhurat-2027/",
+    campaign: "griha_pravesh_2027",
+    untilIst: GRIHA_PRAVESH_UNTIL_IST,
+    appliesTo: isGrihaPraveshStory,
+    text: {
+      en: {
+        endCard: "Griha Pravesh Muhurat 2027 guide",
+        sidebarTitle: "Griha Pravesh Muhurat 2027",
+        sidebarBody: "See Griha Pravesh muhurat dates for 2027 on our partner site.",
+        sidebarLink: "Griha Pravesh Muhurat 2027 guide",
+      },
+      hi: {
+        endCard: "गृह प्रवेश मुहूर्त 2027 गाइड",
+        sidebarTitle: "गृह प्रवेश मुहूर्त 2027",
+        sidebarBody: "2027 के गृह प्रवेश मुहूर्त की तिथियां हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गृह प्रवेश मुहूर्त 2027 गाइड",
+      },
+    },
+  },
 ];
 
 export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta | null {
@@ -912,10 +993,17 @@ function vratIsOpen(c: UpcomingVratCta, today: string): boolean {
   return (!c.fromIst || today >= c.fromIst) && today <= c.untilIst;
 }
 
+/** In the dated general queue. alsoGeneral keeps a predicate guide there too. */
+function isGeneralVrat(c: UpcomingVratCta): boolean {
+  return c.appliesTo === undefined || c.alsoGeneral === true;
+}
+
 /** Next open guide matching the story; without a story, only general guides qualify. */
 export function nextUpcomingVrat(now: Date = new Date(), a?: StoryFields): UpcomingVratCta | null {
   const today = istCalendarDate(now);
-  const firstGeneral = UPCOMING_VRAT_CTAS.findIndex((c) => !c.appliesTo);
+  // Legacy prefix ends at the first guide that is only general. alsoGeneral
+  // guides stay in the later predicate pass and the general fallback.
+  const firstGeneral = UPCOMING_VRAT_CTAS.findIndex((c) => c.appliesTo === undefined);
   const legacyEnd = firstGeneral === -1 ? UPCOMING_VRAT_CTAS.length : firstGeneral;
   for (let i = 0; i < legacyEnd; i++) {
     const c = UPCOMING_VRAT_CTAS[i];
@@ -927,7 +1015,7 @@ export function nextUpcomingVrat(now: Date = new Date(), a?: StoryFields): Upcom
     );
     if (specific) return specific;
   }
-  return UPCOMING_VRAT_CTAS.find((c) => !c.appliesTo && vratIsOpen(c, today)) ?? null;
+  return UPCOMING_VRAT_CTAS.find((c) => isGeneralVrat(c) && vratIsOpen(c, today)) ?? null;
 }
 
 /** Asia/Calcutta calendar day before istDate (YYYY-MM-DD). */
@@ -1058,9 +1146,9 @@ type StoryFields = {
 const SENSITIVE_CATEGORY =
   /^(crime|crimes|criminal|accident|accidents|disaster|disasters|tragedy|violence|terror|terrorism|अपराध|आपदा|हादसा|हिंसा|आतंक)$/i;
 const SENSITIVE_EN =
-  /\b(traged(?:y|ies)|tragic|deaths?|dead|died|dies|dying|killed|kills|killing|murder(?:s|ed|ing)?|homicides?|drown(?:s|ed|ing)?|bod(?:y|ies)[\s-]found|corpses?|disasters?|flood(?:s|ed|ing)?|earthquakes?|cyclones?|landslides?|stampedes?|collapses?|collapsed|fires?|blaze|burn(?:t|ed)|explosions?|blasts?|bomb(?:s|ed|ing)?|accidents?|crash(?:es|ed|ing)?|collisions?|crimes?|criminals?|violence|violent|riots?|assault(?:s|ed|ing)?|rapes?|raped|molest(?:ed|ation)?|suicides?|suicidal|terrors?|terrorists?|terrorism|shoot(?:ing|ings|out)|stabb(?:ed|ing|ings)|communal|massacres?|lynch(?:ed|ing|ings)?|victims?)\b/i;
+  /\b(traged(?:y|ies)|tragic|deaths?|dead|died|dies|dying|killed|kills|killing|murder(?:s|ed|ing)?|homicides?|drown(?:s|ed|ing)?|bod(?:y|ies)[\s-]found|corpses?|disasters?|flood(?:s|ed|ing)?|earthquakes?|cyclones?|landslides?|stampedes?|collapses?|collapsed|fires?|blaze|burn(?:t|ed)|explosions?|blasts?|bomb(?:s|ed|ing)?|accidents?|crash(?:es|ed|ing)?|collisions?|crimes?|criminals?|violence|violent|riots?|assault(?:s|ed|ing)?|rapes?|raped|molest(?:ed|ation)?|suicides?|suicidal|terrors?|terrorists?|terrorism|shoot(?:ing|ings|out)|stabb(?:ed|ing|ings)|communal|massacres?|lynch(?:ed|ing|ings)?|victims?|thefts?|thie(f|ves)|stolen|steal(s|ing)?|robber(y|ies|s)?|robbed|loot(s|ed|ing)?|burglar(y|ies|s)?|snatch(es|ed|ing|ers?)?|accused|kidnap(s|ped|ping)?|abduct(ed|ion|s)?|extortion|smuggl(ing|ed|ers?)|dacoity|absconding)\b/i;
 const SENSITIVE_HI =
-  /(त्रासदी|दुखद|मौत|मृत्यु|निधन|हत्या|मृतक|मृतदेह|मृतकाय|शव|लाश|आपदा|बाढ़|भूकंप|भूकम्प|चक्रवात|भूस्खलन|भगदड़|आगजनी|अग्निकांड|विस्फोट|धमाका|हादसा|दुर्घटना|अपराध|हिंसा|दंगा|हमला|आत्महत्या|खुदकुशी|आतंक|सांप्रदायिक|साम्प्रदायिक|सम्प्रदायिक|संप्रदायिक|बलात्कार|दुष्कर्म|घायल|सुनामी|डूब)/;
+  /(त्रासदी|दुखद|मौत|मृत्यु|निधन|हत्या|मृतक|मृतदेह|मृतकाय|शव|लाश|आपदा|बाढ़|भूकंप|भूकम्प|चक्रवात|भूस्खलन|भगदड़|आगजनी|अग्निकांड|विस्फोट|धमाका|हादसा|दुर्घटना|अपराध|हिंसा|दंगा|हमला|आत्महत्या|खुदकुशी|आतंक|सांप्रदायिक|साम्प्रदायिक|सम्प्रदायिक|संप्रदायिक|बलात्कार|दुष्कर्म|घायल|सुनामी|डूब|चोरी|चोर|लूट|डकैती|छिनैती|अपहरण|तस्कर|आरोपी|फरार|रंगदारी)/;
 const SENSITIVE_HI_BOUNDED =
   /(?:^|[^\u0900-\u097F])(?:आग|मृत)(?:$|[^\u0900-\u097F])/;
 
@@ -1091,7 +1179,8 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * puja-guide stories, plus Varanasi festival / ghat service guides.
  * Named guides add only their exact phrases: Jagaddhatri, Karthigai,
  * Tiruvannamalai Deepam, Monday fast, Thursday fast, Vivah Panchami,
- * Ram-Sita vivah, Janakpur, Mokshada, and Gita Jayanti.
+ * Ram-Sita vivah, Janakpur, Mokshada, Gita Jayanti, Kaal Bhairav,
+ * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, and Griha Pravesh.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1100,6 +1189,14 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
   if (cat && RELIGION_CATEGORY.test(cat)) return true;
   const hay = partnerHay(a);
   if (EN_KEYWORDS.test(hay) || HI_KEYWORDS.test(hay)) return true;
+  if (
+    isKaalBhairavStory(a) ||
+    isGuruNanakJayantiStory(a) ||
+    isAkshayaNavamiStory(a) ||
+    isGrihaPraveshStory(a)
+  ) {
+    return true;
+  }
   return isVaranasiSpiritualGuide(a);
 }
 
@@ -1315,6 +1412,48 @@ export function isVivahPanchamiStory(a: StoryFields): boolean {
     /\bsita[\s-]vivah\b/i.test(hay) ||
     /\bjanakpur\b/i.test(hay) ||
     /विवाह\s?पंचमी|राम\s?सीता\s?विवाह|सीता\s?विवाह|(?<![\u0900-\u097F])जनकपुर(?![\u0900-\u097F])/.test(hay)
+  );
+}
+
+/**
+ * Kaal Bhairav, Kal Bhairav, Kala Bhairav, Bhairav Ashtami, Bhairav Jayanti,
+ * or Bheru Ashtami. A bare Bhairav is a personal name and does not match.
+ */
+export function isKaalBhairavStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:kaal[\s-]?bhairav|kal[\s-]?bhairav|kala[\s-]?bhairav|kalbhairav|kaalbhairav|bhairav[\s-]?ashtami|bhairav[\s-]?jayanti|bhairavashtami|bheru[\s-]?ashtami)\b/i.test(
+      hay
+    ) || /काल\s?भैरव|भैरव\s?अष्टमी|भैरव\s?जयंती/.test(hay)
+  );
+}
+
+/** Guru Nanak, Gurpurab, or Prakash Purab / Parv / Utsav. */
+export function isGuruNanakJayantiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:guru[\s-]?nanak|gurpurab|gurupurab|prakash[\s-]?purab|prakash[\s-]?parv|prakash[\s-]?utsav)\b/i.test(hay) ||
+    /गुरु\s?नानक|गुरुपर्व|गुरपुरब|प्रकाश\s?पर्व/.test(hay)
+  );
+}
+
+/** Akshaya Navami, Amla Navami, or Gopashtami. */
+export function isAkshayaNavamiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:akshaya[\s-]?navami|akshay[\s-]?navami|amla[\s-]?navami|aonla[\s-]?navami|gopashtami|gopasthami)\b/i.test(
+      hay
+    ) || /अक्षय\s?नवमी|आंवला\s?नवमी|आँवला\s?नवमी|गोपाष्टमी/.test(hay)
+  );
+}
+
+/** Griha Pravesh or a housewarming muhurat. A bare housewarming does not match. */
+export function isGrihaPraveshStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:griha[\s-]?pravesh(?:[\s-]?muhurat)?|grih[\s-]?pravesh|gruh[\s-]?pravesh|housewarming[\s-]?muhurat)\b/i.test(
+      hay
+    ) || /गृह\s?प्रवेश/.test(hay)
   );
 }
 
