@@ -261,10 +261,10 @@ describe("Guru Nanak Jayanti links-only CTA", () => {
     assert.equal(GURU_NANAK_PARTNER_CTA_UNTIL_IST, "2026-11-24");
   });
 
-  it("story is not hard news and stays NOT partner-eligible (general rules unchanged)", () => {
+  it("story is not hard news and is partner-eligible for the rotation", () => {
     assert.equal(isHardNewsStory(GN), false);
-    assert.equal(isPartnerEligibleStory(GN), false);
-    assert.equal(partnerRashifalFor(GN).show, false);
+    assert.equal(isPartnerEligibleStory(GN), true);
+    assert.equal(partnerRashifalFor(GN).show, true);
   });
 
   it("exact slug gets the links-only CTA through 24 Nov IST, off from 00:00 IST 25 Nov", () => {
