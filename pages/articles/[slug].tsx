@@ -96,6 +96,15 @@ interface Props {
   sponsoredEndMode?: SponsoredEndMode | null;
   /** Varanasi Dev Deepawali Partner line, fixed at build/revalidate time. */
   devDeepawaliVaranasi?: boolean | null;
+  /**
+   * Published rows used to pair this story with its English or Hindi version.
+   * Null when the lookup did not run.
+   */
+  translationArticles?: {
+    slug: string;
+    language?: string | null;
+    published?: boolean;
+  }[] | null;
 }
 
 import Head from "next/head";
@@ -175,7 +184,7 @@ import {
   type AuthorPublicationStats,
 } from "@/lib/authorStats";
 import { decodeEntities } from "@/lib/decodeEntities";
-import { hreflangLinks } from "@/lib/hreflang";
+import { hreflangLinks, translationCandidateSlugs } from "@/lib/hreflang";
 import Image from "next/image";
 import ArticleLeadImage from "@/components/ArticleLeadImage";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
@@ -191,6 +200,7 @@ const ArticlePage: React.FC<Props> = ({
   upcomingVratId = null,
   sponsoredEndMode = null,
   devDeepawaliVaranasi = null,
+  translationArticles = null,
 }) => {
   const { data: session } = useSession();
   
@@ -356,6 +366,7 @@ const ArticlePage: React.FC<Props> = ({
   const alternates = hreflangLinks({
     path: articlePath(article.slug),
     language: isHindi ? "hi" : "en",
+    articles: translationArticles ?? undefined,
   });
   const cap = normalizeImageCaption(decodeEntities(article.imageCaption), {
     slug: article.slug,
@@ -1072,6 +1083,25 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     };
   }
 
+  let translationArticles: {
+    slug: string;
+    language: string | null;
+    published: boolean;
+  }[] | null = null;
+  try {
+    const rows = await prisma.article.findMany({
+      where: { slug: { in: translationCandidateSlugs(article.slug) } },
+      select: { slug: true, language: true },
+    });
+    translationArticles = rows.map((row) => ({
+      slug: row.slug,
+      language: row.language,
+      published: true,
+    }));
+  } catch (err) {
+    console.error("Translation pair lookup failed:", err);
+  }
+
   let bodyContent: string | null = null;
   if (article.content) {
     try {
@@ -1132,6 +1162,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       upcomingVratId: upcomingVrat?.id ?? null,
       sponsoredEndMode: sponsoredEndModeForStory(article, partnerNow),
       devDeepawaliVaranasi: showDevDeepawaliVaranasiPartner(article, partnerNow),
+      translationArticles,
     },
     // Regenerate at 00:00 IST when a partner window expires or a guide starts, else hourly.
     revalidate: partnerPageRevalidateSeconds(
