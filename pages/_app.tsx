@@ -9,6 +9,11 @@ import { NextPage } from "next";
 import { ReactElement, ReactNode, useEffect } from "react";
 import { useRouter } from "next/router";
 import { fontRootStyle } from "@/lib/fonts";
+import {
+  CLARITY_SCRIPT_ID,
+  clarityInlineScript,
+  clarityRenderDecision,
+} from "@/lib/clarity";
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
@@ -88,6 +93,17 @@ export default function App({
 
   const isStory = router.pathname.startsWith('/stories/') && !router.pathname.includes('/edit') && !router.pathname.includes('/new');
 
+  // NEXT_PUBLIC_VERCEL_ENV is inlined at build (see next.config.mjs). Do not
+  // read VERCEL_ENV here: it is set on the server only and would disagree
+  // with the client bundle.
+  const clarity = clarityRenderDecision({
+    NEXT_PUBLIC_CLARITY_ID: process.env.NEXT_PUBLIC_CLARITY_ID,
+    NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+  });
+  const clarityScript = clarity.render
+    ? clarityInlineScript(clarity.projectId, clarity.gateOnProductionHost)
+    : null;
+
   return (
     <SessionProvider session={session}>
       <Head>
@@ -107,6 +123,11 @@ export default function App({
             gtag('config', 'G-2N4BWSS6GL');
           `}
         </Script>
+        {clarityScript && (
+          <Script id={CLARITY_SCRIPT_ID} strategy="lazyOnload">
+            {clarityScript}
+          </Script>
+        )}
         {getLayout(<Component {...pageProps} />)}
         {!isStory && <Analytics />}
       </div>
