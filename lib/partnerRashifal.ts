@@ -394,7 +394,10 @@ export function festivalPartnerHref(
 // is open. Later story-predicate guides then beat the general rotation when
 // the story matches. Otherwise the soonest open general guide is used.
 // Predicate guides stay in untilIst order, so the earlier last day wins when
-// two match: Vivah Panchami before Kharmas, Mokshada Ekadashi before Saphala.
+// two match: Vivah Panchami before Kharmas, Mokshada Ekadashi before Saphala,
+// Kharmas before Griha Pravesh. Kaal Bhairav, Guru Nanak Jayanti, Akshaya
+// Navami and Griha Pravesh match only their own phrases. A bare Bhairav is
+// not a Kaal Bhairav match.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -412,6 +415,7 @@ export const SAPHALA_EKADASHI_UNTIL_IST = "2027-01-03";
 export const KHARMAS_UNTIL_IST = "2027-01-14";
 export const LOHRI_SANKRANTI_UNTIL_IST = "2027-01-15";
 export const RASHIFAL_2027_UNTIL_IST = "2027-01-31";
+export const GRIHA_PRAVESH_UNTIL_IST = "2027-12-31";
 export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
 export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
 /** Rotation window. The exact-slug links-only CTA stays on its own later date. */
@@ -448,6 +452,7 @@ export type UpcomingVratId =
   | "chhath_2026"
   | "vrishchika_sankranti_2026"
   | "jagaddhatri_2026"
+  | "akshaya_navami_2026"
   | "kaal_bhairav_2026"
   | "utpanna_ekadashi_2026"
   | "tulsi_vivah_2026"
@@ -456,6 +461,7 @@ export type UpcomingVratId =
   | "vaikuntha_2026"
   | "karthigai_deepam_2026"
   | "dev_deepawali_2026"
+  | "guru_nanak_jayanti_2026"
   | "guruvar_vrat_nov_2026"
   | "sankashti_2026"
   | "mgpurnima_2026"
@@ -464,7 +470,8 @@ export type UpcomingVratId =
   | "saphala_ekadashi_2027"
   | "kharmas_2026"
   | "lohri_sankranti_2027"
-  | "rashifal_2027";
+  | "rashifal_2027"
+  | "griha_pravesh_2027";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
@@ -542,6 +549,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "जगद्धात्री पूजा 2026",
         sidebarBody: "जगद्धात्री पूजा 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "जगद्धात्री पूजा 2026 गाइड",
+      },
+    },
+  },
+  {
+    id: "akshaya_navami_2026",
+    path: "/akshaya-navami-2026/",
+    campaign: PARTNER_CAMPAIGN_AKSHAYA_NAVAMI,
+    untilIst: AKSHAYA_NAVAMI_PARTNER_CTA_UNTIL_IST,
+    appliesTo: isAkshayaNavamiStory,
+    text: {
+      en: {
+        endCard: "Akshaya Navami 2026 guide",
+        sidebarTitle: "Akshaya Navami and Gopashtami",
+        sidebarBody: "See Gopashtami and Akshaya Navami timings on our partner site.",
+        sidebarLink: "Akshaya Navami 2026 guide",
+      },
+      hi: {
+        endCard: "अक्षय नवमी 2026 गाइड",
+        sidebarTitle: "अक्षय नवमी और गोपाष्टमी",
+        sidebarBody: "गोपाष्टमी और अक्षय नवमी का समय हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "अक्षय नवमी 2026 गाइड",
       },
     },
   },
@@ -668,6 +696,28 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // The exact-slug links-only CTA stays on FESTIVAL_PARTNER_CTAS and wins.
+    id: "guru_nanak_jayanti_2026",
+    path: "/guru-nanak-jayanti-2026/",
+    campaign: PARTNER_CAMPAIGN_GURU_NANAK,
+    untilIst: GURU_NANAK_PARTNER_CTA_UNTIL_IST,
+    appliesTo: isGuruNanakJayantiStory,
+    text: {
+      en: {
+        endCard: "Guru Nanak Jayanti 2026 guide",
+        sidebarTitle: "Guru Nanak Jayanti 2026",
+        sidebarBody: "See the Guru Nanak Jayanti 2026 guide on our partner site.",
+        sidebarLink: "Guru Nanak Jayanti 2026 guide",
+      },
+      hi: {
+        endCard: "गुरु नानक जयंती 2026 गाइड",
+        sidebarTitle: "गुरु नानक जयंती 2026",
+        sidebarBody: "गुरु नानक जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गुरु नानक जयंती 2026 गाइड",
+      },
+    },
+  },
+  {
     id: "guruvar_vrat_nov_2026",
     path: "/guruvar-vrat/",
     campaign: "guruvar_vrat_nov_2026",
@@ -709,22 +759,24 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // Story match only. A bare Bhairav is a personal name and does not qualify.
     id: "kaal_bhairav_2026",
     path: "/kaal-bhairav-jayanti-2026/",
     campaign: "kaal_bhairav_2026",
     untilIst: KAAL_BHAIRAV_UNTIL_IST,
+    appliesTo: isKaalBhairavStory,
     text: {
       en: {
-        endCard: "Kaal Bhairav Jayanti 2026 guide",
-        sidebarTitle: "Kaal Bhairav Jayanti 2026",
-        sidebarBody: "See the Kaal Bhairav Jayanti 2026 guide on our partner site.",
-        sidebarLink: "Kaal Bhairav Jayanti 2026 guide",
+        endCard: "Kaal Bhairav Ashtami 2026 guide",
+        sidebarTitle: "Kaal Bhairav Ashtami 2026",
+        sidebarBody: "See the Kaal Bhairav Ashtami 2026 guide on our partner site.",
+        sidebarLink: "Kaal Bhairav Ashtami 2026 guide",
       },
       hi: {
-        endCard: "काल भैरव जयंती 2026 गाइड",
-        sidebarTitle: "काल भैरव जयंती 2026",
-        sidebarBody: "काल भैरव जयंती 2026 गाइड हमारी पार्टनर साइट पर देखें.",
-        sidebarLink: "काल भैरव जयंती 2026 गाइड",
+        endCard: "काल भैरव अष्टमी 2026 गाइड",
+        sidebarTitle: "काल भैरव अष्टमी 2026",
+        sidebarBody: "काल भैरव अष्टमी 2026 गाइड हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "काल भैरव अष्टमी 2026 गाइड",
       },
     },
   },
@@ -898,6 +950,27 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "राशिफल 2027",
         sidebarBody: "राशिफल 2027 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "राशिफल 2027: सभी 12 राशियों के लिए",
+      },
+    },
+  },
+  {
+    id: "griha_pravesh_2027",
+    path: "/griha-pravesh-muhurat-2027/",
+    campaign: "griha_pravesh_2027",
+    untilIst: GRIHA_PRAVESH_UNTIL_IST,
+    appliesTo: isGrihaPraveshStory,
+    text: {
+      en: {
+        endCard: "Griha Pravesh Muhurat 2027 guide",
+        sidebarTitle: "Griha Pravesh Muhurat 2027",
+        sidebarBody: "See Griha Pravesh muhurat dates for 2027 on our partner site.",
+        sidebarLink: "Griha Pravesh Muhurat 2027 guide",
+      },
+      hi: {
+        endCard: "गृह प्रवेश मुहूर्त 2027 गाइड",
+        sidebarTitle: "गृह प्रवेश मुहूर्त 2027",
+        sidebarBody: "2027 के गृह प्रवेश मुहूर्त की तिथियां हमारी पार्टनर साइट पर देखें.",
+        sidebarLink: "गृह प्रवेश मुहूर्त 2027 गाइड",
       },
     },
   },
@@ -1091,7 +1164,8 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * puja-guide stories, plus Varanasi festival / ghat service guides.
  * Named guides add only their exact phrases: Jagaddhatri, Karthigai,
  * Tiruvannamalai Deepam, Monday fast, Thursday fast, Vivah Panchami,
- * Ram-Sita vivah, Janakpur, Mokshada, and Gita Jayanti.
+ * Ram-Sita vivah, Janakpur, Mokshada, Gita Jayanti, Kaal Bhairav,
+ * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, and Griha Pravesh.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1100,6 +1174,14 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
   if (cat && RELIGION_CATEGORY.test(cat)) return true;
   const hay = partnerHay(a);
   if (EN_KEYWORDS.test(hay) || HI_KEYWORDS.test(hay)) return true;
+  if (
+    isKaalBhairavStory(a) ||
+    isGuruNanakJayantiStory(a) ||
+    isAkshayaNavamiStory(a) ||
+    isGrihaPraveshStory(a)
+  ) {
+    return true;
+  }
   return isVaranasiSpiritualGuide(a);
 }
 
@@ -1315,6 +1397,48 @@ export function isVivahPanchamiStory(a: StoryFields): boolean {
     /\bsita[\s-]vivah\b/i.test(hay) ||
     /\bjanakpur\b/i.test(hay) ||
     /विवाह\s?पंचमी|राम\s?सीता\s?विवाह|सीता\s?विवाह|(?<![\u0900-\u097F])जनकपुर(?![\u0900-\u097F])/.test(hay)
+  );
+}
+
+/**
+ * Kaal Bhairav, Kal Bhairav, Kala Bhairav, Bhairav Ashtami, Bhairav Jayanti,
+ * or Bheru Ashtami. A bare Bhairav is a personal name and does not match.
+ */
+export function isKaalBhairavStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:kaal[\s-]?bhairav|kal[\s-]?bhairav|kala[\s-]?bhairav|kalbhairav|kaalbhairav|bhairav[\s-]?ashtami|bhairav[\s-]?jayanti|bhairavashtami|bheru[\s-]?ashtami)\b/i.test(
+      hay
+    ) || /काल\s?भैरव|भैरव\s?अष्टमी|भैरव\s?जयंती/.test(hay)
+  );
+}
+
+/** Guru Nanak, Gurpurab, or Prakash Purab / Parv / Utsav. */
+export function isGuruNanakJayantiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:guru[\s-]?nanak|gurpurab|gurupurab|prakash[\s-]?purab|prakash[\s-]?parv|prakash[\s-]?utsav)\b/i.test(hay) ||
+    /गुरु\s?नानक|गुरुपर्व|गुरपुरब|प्रकाश\s?पर्व/.test(hay)
+  );
+}
+
+/** Akshaya Navami, Amla Navami, or Gopashtami. */
+export function isAkshayaNavamiStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:akshaya[\s-]?navami|akshay[\s-]?navami|amla[\s-]?navami|aonla[\s-]?navami|gopashtami|gopasthami)\b/i.test(
+      hay
+    ) || /अक्षय\s?नवमी|आंवला\s?नवमी|आँवला\s?नवमी|गोपाष्टमी/.test(hay)
+  );
+}
+
+/** Griha Pravesh or a housewarming muhurat. A bare housewarming does not match. */
+export function isGrihaPraveshStory(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\b(?:griha[\s-]?pravesh(?:[\s-]?muhurat)?|grih[\s-]?pravesh|gruh[\s-]?pravesh|housewarming[\s-]?muhurat)\b/i.test(
+      hay
+    ) || /गृह\s?प्रवेश/.test(hay)
   );
 }
 
