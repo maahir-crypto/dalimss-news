@@ -15,8 +15,10 @@ import {
   canShowSponsoredEndUnit,
   festivalPartnerCtaFor,
   isHardNewsStory,
+  isKaalBhairavStory,
   isPartnerEligibleStory,
   isSensitiveStory,
+  showDevDeepawaliVaranasiPartner,
   devDeepawaliOverridesPradosh,
   isVaranasiOrFestivalStory,
   nextUpcomingVrat,
@@ -1309,6 +1311,37 @@ describe("story-matched Kaal Bhairav, Guru Nanak, Akshaya Navami and Griha Prave
       upcomingVratForStory({ slug: "kala-bhairav-darshan", title: "Temple notes", tags: "Kala Bhairav" }, NOV18)?.id,
       "kaal_bhairav_2026"
     );
+  });
+
+  it("keeps a theft story in the Kal Bhairav area off every partner unit", () => {
+    const theft = {
+      slug: "attempted-theft-foiled-in-kal-bhairav-area-of-vara-v3vopw",
+      title: "Attempted Theft Foiled in Kal Bhairav Area of Varanasi, One Accused Caught",
+      category: "Varanasi",
+    };
+    const nov20 = new Date("2026-11-20T06:30:00Z");
+    assert.equal(isSensitiveStory(theft), true);
+    assert.equal(isHardNewsStory(theft), true);
+    assert.equal(isPartnerEligibleStory(theft), false);
+    assert.equal(upcomingVratForStory(theft, NOV18), null);
+    assert.equal(upcomingVratForStory(theft, DEC1_LAST), null);
+    assert.equal(canShowSponsoredEndUnit(theft, { now: nov20 }), false);
+    assert.equal(sponsoredEndModeForStory(theft, nov20), null);
+    assert.equal(showDevDeepawaliVaranasiPartner(theft, nov20), false);
+  });
+
+  it("still gives a Kaal Bhairav temple prayer story the guide", () => {
+    const prayers = { title: "Anant Ambani offers prayers at Kaal Bhairav temple", category: "Varanasi" };
+    assert.equal(isKaalBhairavStory(prayers), true);
+    assert.equal(isPartnerEligibleStory(prayers), true);
+    assert.equal(upcomingVratForStory(prayers, NOV18)?.id, "kaal_bhairav_2026");
+  });
+
+  it("does not treat Kaal Bhairava in a drone name as Kaal Bhairav", () => {
+    const drone = { title: "FWDA Kaal Bhairava Lite drone", slug: "fwda-kaal-bhairava-lite-drone", category: "Technology" };
+    assert.equal(isKaalBhairavStory(drone), false);
+    assert.equal(isPartnerEligibleStory(drone), false);
+    assert.equal(upcomingVratForStory(drone, NOV18), null);
   });
 
   it("does not treat a bare Bhairav name as Kaal Bhairav", () => {
