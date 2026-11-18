@@ -945,6 +945,7 @@ describe("story-matched Jagaddhatri, Karthigai, vrat and December guides", () =>
         "karthigai_deepam_2026",
         "dev_deepawali_2026",
         "guru_nanak_jayanti_2026",
+        "bhishma_panchak_2026",
         "guruvar_vrat_nov_2026",
         "sankashti_2026",
         "kaal_bhairav_2026",
@@ -952,6 +953,7 @@ describe("story-matched Jagaddhatri, Karthigai, vrat and December guides", () =>
         "vivah_panchami_2026",
         "mokshada_ekadashi_2026",
         "mgpurnima_2026",
+        "margashirsha_month_2026",
         "saphala_ekadashi_2027",
         "kharmas_2026",
         "lohri_sankranti_2027",
@@ -1489,3 +1491,242 @@ describe("story-matched Kaal Bhairav, Guru Nanak, Akshaya Navami and Griha Prave
     assert.equal(griha.text.hi.sidebarLink, "गृह प्रवेश मुहूर्त 2027 गाइड");
   });
 });
+
+describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
+  const NOV19_LAST = new Date("2026-11-19T18:29:59.999Z");
+  const NOV20 = new Date("2026-11-19T18:30:00Z");
+  const NOV20_NOON = new Date("2026-11-20T06:30:00Z");
+  const NOV21_LAST = new Date("2026-11-21T18:29:59.999Z");
+  const NOV22 = new Date("2026-11-22T06:30:00Z");
+  const NOV23_LAST = new Date("2026-11-23T18:29:59.999Z");
+  const NOV24 = new Date("2026-11-24T06:30:00Z");
+  const NOV24_LAST = new Date("2026-11-24T18:29:59.999Z");
+  const NOV25 = new Date("2026-11-24T18:30:00Z");
+  const NOV27_LAST = new Date("2026-11-27T18:29:59.999Z");
+  const DEC2 = new Date("2026-12-02T06:30:00Z");
+  const DEC4_LAST = new Date("2026-12-04T18:29:59.999Z");
+  const DEC5 = new Date("2026-12-05T06:30:00Z");
+  const DEC10 = new Date("2026-12-10T06:30:00Z");
+  const DEC24_LAST = new Date("2026-12-24T18:29:59.999Z");
+  const DEC25 = new Date("2026-12-24T18:30:00Z");
+
+  const BHISHMA = { slug: "bhishma-panchak-2026-dates", title: "Bhishma Panchak 2026 dates", category: "Lifestyle" };
+  const TULSI = { slug: "tulsi-vivah-2026-muhurat", title: "Tulsi Vivah 2026 muhurat", category: "Lifestyle" };
+  const DEV = {
+    slug: "dev-deepawali-2026-kashi-ghat-guide",
+    title: "Dev Deepawali 2026 ghat guide for Varanasi",
+    category: "Lifestyle",
+    tags: "Dev Deepawali, Varanasi",
+  };
+  const MONTH = { slug: "margashirsha-month-2026", title: "Margashirsha month 2026", category: "Lifestyle" };
+  const SANKASHTI = { slug: "sankashti-chaturthi-2026", title: "Sankashti Chaturthi vrat 2026", category: "Festivals" };
+  const UTPANNA = { slug: "utpanna-ekadashi-2026", title: "Utpanna Ekadashi 2026", category: "Lifestyle" };
+  const PURNIMA = { slug: "margashirsha-purnima-2026", title: "Margashirsha Purnima 2026", category: "Lifestyle" };
+
+  const utm = (campaign: string, slug: string) => ({
+    utm_source: "dalimss_news",
+    utm_medium: "ad",
+    utm_campaign: campaign,
+    utm_content: slug,
+  });
+
+  it("gives a Bhishma Panchak story that guide on 20 and 24 Nov IST, not 19 or 25 Nov", () => {
+    const bhishma = UPCOMING_VRAT_CTAS.find((c) => c.id === "bhishma_panchak_2026")!;
+    assert.equal(bhishma.path, "/bhishma-panchak-2026/");
+    assert.equal(bhishma.campaign, "bhishma_panchak_2026");
+    assert.equal(bhishma.fromIst, "2026-11-20");
+    assert.equal(bhishma.untilIst, "2026-11-24");
+    assert.equal(bhishma.fallback, true);
+    assert.notEqual(bhishma.alsoGeneral, true);
+    assert.equal(isPartnerEligibleStory(BHISHMA), true);
+    assert.equal(upcomingVratForStory(BHISHMA, NOV19_LAST)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV20)?.id, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV20)?.path, "/bhishma-panchak-2026/");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV24_LAST)?.id, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV24_LAST)?.campaign, "bhishma_panchak_2026");
+    assert.notEqual(upcomingVratForStory(BHISHMA, NOV25)?.id, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV25)?.id, "sankashti_2026");
+    for (const title of [
+      "Bhishma Panchaka 2026",
+      "Dev Uthani Ekadashi",
+      "Devutthana 2026",
+      "Devuthani",
+      "Prabodhini Ekadashi 2026",
+      "Kartik snan vidhi",
+      "Kartik month bathing",
+      "भीष्म पंचक",
+      "देवउठनी एकादशी",
+      "देवोत्थान",
+      "प्रबोधिनी एकादशी",
+      "कार्तिक स्नान",
+    ]) {
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV20)?.id, "bhishma_panchak_2026", title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV24_LAST)?.id, "bhishma_panchak_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV19_LAST)?.id, "bhishma_panchak_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV25)?.id, "bhishma_panchak_2026", title);
+    }
+    assert.equal(nextUpcomingVrat(NOV20_NOON)?.id, "tulsi_vivah_2026");
+    assert.equal(nextUpcomingVrat(NOV24)?.id, "dev_deepawali_2026");
+  });
+
+  it("keeps Tulsi Vivah and Dev Deepawali on their own guides inside 20 to 24 Nov", () => {
+    assert.equal(upcomingVratForStory(TULSI, NOV20)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(TULSI, NOV20_NOON)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(TULSI, NOV21_LAST)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory({ title: "तुलसी विवाह 2026", category: "Lifestyle" }, NOV20)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV20)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV22)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV22)?.path, "/dev-deepawali-2026/");
+    assert.equal(upcomingVratForStory(DEV, NOV22)?.campaign, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV23_LAST)?.id, "vaikuntha_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV24)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(DEV, NOV24_LAST)?.id, "dev_deepawali_2026");
+    assert.notEqual(upcomingVratForStory(TULSI, NOV20)?.id, "bhishma_panchak_2026");
+    assert.notEqual(upcomingVratForStory(DEV, NOV24_LAST)?.id, "bhishma_panchak_2026");
+    const both = { title: "Tulsi Vivah and Bhishma Panchak 2026", category: "Lifestyle" };
+    assert.equal(upcomingVratForStory(both, NOV20)?.id, "tulsi_vivah_2026");
+    const devBoth = { title: "Dev Deepawali and Dev Uthani", category: "Lifestyle" };
+    assert.equal(upcomingVratForStory(devBoth, NOV22)?.id, "dev_deepawali_2026");
+    assert.equal(upcomingVratForStory(devBoth, NOV24_LAST)?.id, "dev_deepawali_2026");
+  });
+
+  it("keeps named festival guides ahead of the Bhishma fallback", () => {
+    assert.equal(
+      upcomingVratForStory({ title: "Karthigai Deepam and Bhishma Panchak", category: "Lifestyle" }, NOV24)?.id,
+      "karthigai_deepam_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Guru Nanak Gurpurab and Dev Uthani", category: "Lifestyle" }, NOV24_LAST)?.id,
+      "guru_nanak_jayanti_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Kaal Bhairav Jayanti and Bhishma Panchak", category: "Lifestyle" }, NOV20)?.id,
+      "kaal_bhairav_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Pradosh Vrat and Kartik snan", category: "Lifestyle" }, NOV22)?.id,
+      "dev_deepawali_2026"
+    );
+    assert.equal(upcomingVratForStory(KUNDLI, NOV22)?.id, "pradosh_2026");
+    assert.equal(upcomingVratForStory({ title: "Kartik Purnima 2026 snan muhurat", category: "Lifestyle" }, NOV24)?.id, "dev_deepawali_2026");
+  });
+
+  it("gives a Margashirsha month story that guide from 25 Nov through 24 Dec IST, not on 25 Dec", () => {
+    const month = UPCOMING_VRAT_CTAS.find((c) => c.id === "margashirsha_month_2026")!;
+    assert.equal(month.path, "/margashirsha-month-2026/");
+    assert.equal(month.campaign, "margashirsha_month_2026");
+    assert.equal(month.fromIst, "2026-11-25");
+    assert.equal(month.untilIst, "2026-12-24");
+    assert.equal(month.fallback, true);
+    assert.notEqual(month.alsoGeneral, true);
+    assert.equal(isPartnerEligibleStory(MONTH), true);
+    assert.notEqual(upcomingVratForStory(MONTH, NOV24_LAST)?.id, "margashirsha_month_2026");
+    assert.equal(upcomingVratForStory(MONTH, NOV25)?.id, "margashirsha_month_2026");
+    assert.equal(upcomingVratForStory(MONTH, NOV25)?.path, "/margashirsha-month-2026/");
+    assert.equal(upcomingVratForStory(MONTH, DEC24_LAST)?.id, "margashirsha_month_2026");
+    assert.equal(upcomingVratForStory(MONTH, DEC24_LAST)?.campaign, "margashirsha_month_2026");
+    assert.notEqual(upcomingVratForStory(MONTH, DEC25)?.id, "margashirsha_month_2026");
+    assert.equal(upcomingVratForStory(MONTH, DEC25), null);
+    for (const title of ["Margshirsh month", "Aghan month", "Agahan month 2026", "मार्गशीर्ष माह", "अगहन मास"]) {
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV25)?.id, "margashirsha_month_2026", title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, DEC24_LAST)?.id, "margashirsha_month_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, DEC25)?.id, "margashirsha_month_2026", title);
+    }
+    assert.equal(nextUpcomingVrat(NOV25)?.id, "sankashti_2026");
+    assert.equal(nextUpcomingVrat(DEC5)?.id, "mgpurnima_2026");
+    assert.equal(nextUpcomingVrat(DEC24_LAST)?.id, "mgpurnima_2026");
+  });
+
+  it("keeps Sankashti, Utpanna, Purnima, Saphala and Vivah Panchami on their own guides", () => {
+    assert.equal(upcomingVratForStory(SANKASHTI, NOV25)?.id, "sankashti_2026");
+    assert.equal(upcomingVratForStory(SANKASHTI, NOV27_LAST)?.id, "sankashti_2026");
+    assert.equal(
+      upcomingVratForStory({ title: "Sankashti in the Margashirsha month", category: "Lifestyle" }, NOV25)?.id,
+      "sankashti_2026"
+    );
+    assert.equal(upcomingVratForStory(UTPANNA, DEC2)?.id, "utpanna_ekadashi_2026");
+    assert.equal(upcomingVratForStory(UTPANNA, DEC4_LAST)?.id, "utpanna_ekadashi_2026");
+    assert.equal(
+      upcomingVratForStory({ title: "Utpanna Ekadashi in Aghan", category: "Lifestyle" }, DEC2)?.id,
+      "utpanna_ekadashi_2026"
+    );
+    assert.equal(upcomingVratForStory(PURNIMA, DEC10)?.id, "mgpurnima_2026");
+    assert.equal(upcomingVratForStory(PURNIMA, DEC24_LAST)?.id, "mgpurnima_2026");
+    assert.equal(upcomingVratForStory({ title: "मार्गशीर्ष पूर्णिमा", category: "Lifestyle" }, DEC10)?.id, "mgpurnima_2026");
+    assert.equal(
+      upcomingVratForStory({ title: "Margashirsha Ekadashi vrat", category: "Lifestyle" }, DEC5)?.id,
+      "saphala_ekadashi_2027"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Vivah Panchami in Margashirsha", category: "Lifestyle" }, DEC10)?.id,
+      "vivah_panchami_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Mokshada Ekadashi and Agahan month", category: "Lifestyle" }, DEC10)?.id,
+      "mokshada_ekadashi_2026"
+    );
+  });
+
+  it("gives a theft story that mentions Dev Uthani no Pocket Jyotish unit", () => {
+    const theft = {
+      slug: "dev-uthani-theft",
+      title: "Theft at the Dev Uthani gathering, one accused held",
+      category: "Lifestyle",
+    };
+    const hindi = { slug: "devuthani-chori", title: "देवउठनी पर चोरी, आरोपी फरार", category: "Lifestyle" };
+    for (const story of [theft, hindi]) {
+      assert.equal(isSensitiveStory(story), true, story.slug);
+      assert.equal(isHardNewsStory(story), true, story.slug);
+      assert.equal(isPartnerEligibleStory(story), false, story.slug);
+      assert.equal(upcomingVratForStory(story, NOV20), null, story.slug);
+      assert.equal(upcomingVratForStory(story, NOV24_LAST), null, story.slug);
+      assert.equal(upcomingVratForStory(story, NOV25), null, story.slug);
+      assert.equal(canShowSponsoredEndUnit(story, { now: NOV20_NOON }), false, story.slug);
+      assert.equal(sponsoredEndModeForStory(story, NOV20_NOON), null, story.slug);
+      assert.equal(showDevDeepawaliVaranasiPartner(story, NOV20_NOON), false, story.slug);
+      assert.equal(festivalPartnerCtaFor(story, NOV20_NOON), null, story.slug);
+    }
+  });
+
+  it("puts neutral copy and guide UTMs on the fallbacks and leaves the sponsored A/B alone", () => {
+    for (const [id, slug] of [
+      ["bhishma_panchak_2026", BHISHMA.slug],
+      ["margashirsha_month_2026", MONTH.slug],
+    ] as const) {
+      const cta = UPCOMING_VRAT_CTAS.find((c) => c.id === id)!;
+      const end = html(React.createElement(PartnerEndCard, { lang: "en", slug, upcomingVratId: id }));
+      const hi = html(React.createElement(PartnerEndCard, { lang: "hi", slug, upcomingVratId: id }));
+      assert.equal(hrefs(end).length, 1);
+      assert.equal(new URL(hrefs(end)[0]).pathname, cta.path);
+      assert.deepEqual(params(hrefs(end)[0]), utm(cta.campaign, slug));
+      assert.match(end, /height:148px/);
+      assert.match(end, /min-height:148px/);
+      assert.match(end, /max-height:148px/);
+      assert.ok(end.includes("Sponsored"));
+      assert.ok(end.includes(cta.text.en.endCard));
+      assert.ok(hi.includes(cta.text.hi.endCard));
+      for (const anchor of Array.from(end.matchAll(/<a [^>]*>/g))) {
+        assert.match(anchor[0], /rel="sponsored noopener"/);
+      }
+      for (const lang of ["en", "hi"] as const) {
+        const blob = Object.values(cta.text[lang]).join("\n");
+        assert.equal(/\bfree\b|मुफ्त|मुफ़्त/i.test(blob), false, id);
+      }
+    }
+    assert.equal(ctaText("bhishma_panchak_2026", "en"), "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish");
+    assert.equal(ctaText("bhishma_panchak_2026", "hi"), "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर");
+    assert.equal(ctaText("margashirsha_month_2026", "en"), "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish");
+    const metro = { slug: "gurugram-metro-extension", title: "Gurugram metro extension gets approval", category: "Gurugram" };
+    assert.equal(sponsoredEndModeForStory(metro, NOV20_NOON), slugHash(metro.slug) % 2 === 1 ? "b" : "a");
+    assert.equal(showDevDeepawaliVaranasiPartner(
+      { slug: "varanasi-ghats-cleaned", title: "Varanasi ghats cleaned before the weekend", category: "Varanasi" },
+      NOV20_NOON
+    ), true);
+    assert.equal(upcomingVratForStory(DD, NOV20_NOON), null);
+    assert.equal(festivalPartnerCtaFor(DD, NOV24_LAST)?.id, "vaikuntha_2026");
+  });
+});
+
+function ctaText(id: string, lang: "en" | "hi"): string {
+  return UPCOMING_VRAT_CTAS.find((c) => c.id === id)!.text[lang].endCard;
+}

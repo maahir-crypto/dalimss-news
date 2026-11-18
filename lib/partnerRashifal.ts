@@ -398,6 +398,10 @@ export function festivalPartnerHref(
 // Kharmas before Griha Pravesh. Guru Nanak Jayanti, Akshaya Navami and Griha
 // Pravesh match only their own phrases. Kaal Bhairav does too, and alsoGeneral
 // keeps it in the general queue. A bare Bhairav is not a Kaal Bhairav match.
+// Bhishma Panchak and Margashirsha month are story fallbacks. They are not
+// general-queue guides. A matching story takes one only when no named
+// predicate guide matches. Tulsi, Dev Deepawali, Pradosh, Vaikuntha, Sankashti,
+// Utpanna, Margashirsha Purnima and the other named guides keep their own CTAs.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -439,6 +443,12 @@ export const MOKSHADA_EKADASHI_UNTIL_IST = "2026-12-20";
  */
 export const DEV_DEEPAWALI_PRIORITY_FROM_IST = "2026-11-17";
 export const DEV_DEEPAWALI_PRIORITY_UNTIL_IST = "2026-11-24";
+/** Inclusive IST days. Off at 00:00 IST on 25 Nov. Not a general-queue guide. */
+export const BHISHMA_PANCHAK_FROM_IST = "2026-11-20";
+export const BHISHMA_PANCHAK_UNTIL_IST = "2026-11-24";
+/** Inclusive IST days. Off at 00:00 IST on 25 Dec. Not a general-queue guide. */
+export const MARGASHIRSHA_MONTH_FROM_IST = "2026-11-25";
+export const MARGASHIRSHA_MONTH_UNTIL_IST = "2026-12-24";
 
 export const PARTNER_CAMPAIGN_TULSI_VIVAH = "tulsi_vivah_2026";
 export const PARTNER_CAMPAIGN_PRADOSH = "pradosh_2026";
@@ -462,11 +472,13 @@ export type UpcomingVratId =
   | "karthigai_deepam_2026"
   | "dev_deepawali_2026"
   | "guru_nanak_jayanti_2026"
+  | "bhishma_panchak_2026"
   | "guruvar_vrat_nov_2026"
   | "sankashti_2026"
   | "mgpurnima_2026"
   | "vivah_panchami_2026"
   | "mokshada_ekadashi_2026"
+  | "margashirsha_month_2026"
   | "saphala_ekadashi_2027"
   | "kharmas_2026"
   | "lohri_sankranti_2027"
@@ -487,6 +499,11 @@ export type UpcomingVratCta = {
    * general guide.
    */
   alsoGeneral?: boolean;
+  /**
+   * Story fallback, not a general-queue guide. Checked after every named
+   * predicate guide and before the general queue.
+   */
+  fallback?: boolean;
   text: {
     en: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
     hi: { endCard: string; sidebarTitle: string; sidebarBody: string; sidebarLink: string };
@@ -724,6 +741,30 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // Fallback after named guides. Not a general-queue guide. Off at 00:00 IST 25 Nov.
+    id: "bhishma_panchak_2026",
+    path: "/bhishma-panchak-2026/",
+    campaign: "bhishma_panchak_2026",
+    fromIst: BHISHMA_PANCHAK_FROM_IST,
+    untilIst: BHISHMA_PANCHAK_UNTIL_IST,
+    appliesTo: isBhishmaPanchakStory,
+    fallback: true,
+    text: {
+      en: {
+        endCard: "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish",
+        sidebarTitle: "Bhishma Panchak 2026",
+        sidebarBody: "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish",
+        sidebarLink: "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish",
+      },
+      hi: {
+        endCard: "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर",
+        sidebarTitle: "भीष्म पंचक 2026",
+        sidebarBody: "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर",
+        sidebarLink: "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर",
+      },
+    },
+  },
+  {
     id: "guruvar_vrat_nov_2026",
     path: "/guruvar-vrat/",
     campaign: "guruvar_vrat_nov_2026",
@@ -877,6 +918,30 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // Fallback after named guides, including Margashirsha Purnima. Not a general-queue guide.
+    id: "margashirsha_month_2026",
+    path: "/margashirsha-month-2026/",
+    campaign: "margashirsha_month_2026",
+    fromIst: MARGASHIRSHA_MONTH_FROM_IST,
+    untilIst: MARGASHIRSHA_MONTH_UNTIL_IST,
+    appliesTo: isMargashirshaMonthStory,
+    fallback: true,
+    text: {
+      en: {
+        endCard: "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish",
+        sidebarTitle: "Margashirsha month 2026",
+        sidebarBody: "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish",
+        sidebarLink: "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish",
+      },
+      hi: {
+        endCard: "मार्गशीर्ष माह 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+        sidebarTitle: "मार्गशीर्ष माह 2026",
+        sidebarBody: "मार्गशीर्ष माह 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+        sidebarLink: "मार्गशीर्ष माह 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+      },
+    },
+  },
+  {
     id: "saphala_ekadashi_2027",
     path: "/saphala-ekadashi-2027/",
     campaign: "saphala_2027",
@@ -1003,17 +1068,23 @@ export function nextUpcomingVrat(now: Date = new Date(), a?: StoryFields): Upcom
   const today = istCalendarDate(now);
   // Legacy prefix ends at the first guide that is only general. alsoGeneral
   // guides stay in the later predicate pass and the general fallback.
+  // Story fallbacks are not in this prefix and are not general-queue guides.
   const firstGeneral = UPCOMING_VRAT_CTAS.findIndex((c) => c.appliesTo === undefined);
   const legacyEnd = firstGeneral === -1 ? UPCOMING_VRAT_CTAS.length : firstGeneral;
   for (let i = 0; i < legacyEnd; i++) {
     const c = UPCOMING_VRAT_CTAS[i];
+    if (c.fallback) continue;
     if (vratIsOpen(c, today) && (!c.appliesTo || (a !== undefined && c.appliesTo(a)))) return c;
   }
   if (a) {
     const specific = UPCOMING_VRAT_CTAS.find(
-      (c) => c.appliesTo !== undefined && vratIsOpen(c, today) && c.appliesTo(a)
+      (c) => c.appliesTo !== undefined && c.fallback !== true && vratIsOpen(c, today) && c.appliesTo(a)
     );
     if (specific) return specific;
+    const seasonal = UPCOMING_VRAT_CTAS.find(
+      (c) => c.fallback === true && c.appliesTo !== undefined && vratIsOpen(c, today) && c.appliesTo(a)
+    );
+    if (seasonal) return seasonal;
   }
   return UPCOMING_VRAT_CTAS.find((c) => isGeneralVrat(c) && vratIsOpen(c, today)) ?? null;
 }
@@ -1180,7 +1251,9 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * Named guides add only their exact phrases: Jagaddhatri, Karthigai,
  * Tiruvannamalai Deepam, Monday fast, Thursday fast, Vivah Panchami,
  * Ram-Sita vivah, Janakpur, Mokshada, Gita Jayanti, Kaal Bhairav,
- * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, and Griha Pravesh.
+ * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, Griha Pravesh,
+ * Bhishma Panchak, Dev Uthani, Prabodhini Ekadashi, Kartik snan,
+ * and Margashirsha month.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1193,7 +1266,9 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
     isKaalBhairavStory(a) ||
     isGuruNanakJayantiStory(a) ||
     isAkshayaNavamiStory(a) ||
-    isGrihaPraveshStory(a)
+    isGrihaPraveshStory(a) ||
+    mentionsBhishmaPanchak(a) ||
+    mentionsMargashirshaMonth(a)
   ) {
     return true;
   }
@@ -1467,6 +1542,82 @@ export function isMokshadaEkadashiStory(a: StoryFields): boolean {
     /\bkurukshetra[\s-]gita\b/i.test(hay) ||
     /मोक्षदा|गीता\s?जयंती/.test(hay)
   );
+}
+
+/**
+ * Named festival themes that keep their own guide. A seasonal fallback does
+ * not replace them. Generic Ekadashi stays out so Prabodhini Ekadashi can
+ * match Bhishma Panchak while Saphala is closed; Saphala still wins once open.
+ */
+function hasPriorityVratTheme(a: StoryFields): boolean {
+  if (
+    isJagaddhatriStory(a) ||
+    isAkshayaNavamiStory(a) ||
+    isSomvarVratStory(a) ||
+    isKarthigaiDeepamStory(a) ||
+    isGuruNanakJayantiStory(a) ||
+    isGuruvarVratStory(a) ||
+    isKaalBhairavStory(a) ||
+    isVivahPanchamiStory(a) ||
+    isMokshadaEkadashiStory(a)
+  ) {
+    return true;
+  }
+  const hay = partnerHay(a);
+  return (
+    /\btulsi[\s-]?vivah\b/i.test(hay) ||
+    /तुलसी\s?विवाह/.test(hay) ||
+    /\bdev[\s-]?(?:deepawali|diwali)\b/i.test(hay) ||
+    /देव\s?(?:दीपावली|दिवाली)/.test(hay) ||
+    /\bpradosh\b/i.test(hay) ||
+    /प्रदोष/.test(hay) ||
+    /\bvaikuntha\b/i.test(hay) ||
+    /वैकुंठ/.test(hay) ||
+    /\bsankashti\b/i.test(hay) ||
+    /संकष्टी/.test(hay) ||
+    /\butpanna\b/i.test(hay) ||
+    /उत्पन्ना/.test(hay) ||
+    /\bpurnima\b/i.test(hay) ||
+    /पूर्णिमा/.test(hay)
+  );
+}
+
+/**
+ * Bhishma Panchak, Dev Uthani / Devutthana / Devuthani, Prabodhini Ekadashi,
+ * or Kartik snan / Kartik month bathing. A bare Kartik or a bare snan does not match.
+ */
+function mentionsBhishmaPanchak(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\bbhishma[\s-]?panchaka?\b/i.test(hay) ||
+    /भीष्म\s?पंचक/.test(hay) ||
+    /\bdev[\s-]?ut+h(?:ani|ana)\b/i.test(hay) ||
+    /देवउठनी|देव\s?उठनी|देवोत्थान|देव\s?उत्थान|प्रबोधिनी/.test(hay) ||
+    /\bprabodhini[\s-]?ekadashi\b/i.test(hay) ||
+    /\bkartik[\s-]?snan\b/i.test(hay) ||
+    /\bkartik[\s-]+month[\s-]+bath(?:ing)?\b/i.test(hay) ||
+    /कार्तिक\s?(?:(?:मास|माह|महीने)(?:\s?का)?\s?)?स्नान/.test(hay)
+  );
+}
+
+/** Story fallback for Bhishma Panchak. Named festival themes keep their own guides. */
+export function isBhishmaPanchakStory(a: StoryFields): boolean {
+  return mentionsBhishmaPanchak(a) && !hasPriorityVratTheme(a);
+}
+
+/** Margashirsha, Margshirsh, Aghan or Agahan month. A bare purnima is not a month match. */
+function mentionsMargashirshaMonth(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\bmarg(?:a)?shirsh(?:a)?\b/i.test(hay) ||
+    /\b(?:aghan|agahan)\b/i.test(hay) ||
+    /(?<![\u0900-\u097F])(?:मार्गशीर्ष|अगहन)(?![\u0900-\u097F])/.test(hay)
+  );
+}
+
+/** Story fallback for the Margashirsha month. Named festival themes keep their own guides. */
+export function isMargashirshaMonthStory(a: StoryFields): boolean {
+  return mentionsMargashirshaMonth(a) && !hasPriorityVratTheme(a);
 }
 
 /** Inclusive last IST day of the Sponsored end unit A/B test. */
