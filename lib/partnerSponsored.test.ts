@@ -939,6 +939,7 @@ describe("story-matched Jagaddhatri, Karthigai, vrat and December guides", () =>
         "jagaddhatri_2026",
         "akshaya_navami_2026",
         "tulsi_vivah_2026",
+        "dev_uthani_ekadashi_2026",
         "pradosh_2026",
         "somvar_vrat_nov_2026",
         "vaikuntha_2026",
@@ -1548,25 +1549,112 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
     assert.equal(upcomingVratForStory(BHISHMA, NOV25)?.id, "sankashti_2026");
     for (const title of [
       "Bhishma Panchaka 2026",
-      "Dev Uthani Ekadashi",
-      "Devutthana 2026",
-      "Devuthani",
-      "Prabodhini Ekadashi 2026",
       "Kartik snan vidhi",
       "Kartik month bathing",
       "भीष्म पंचक",
-      "देवउठनी एकादशी",
-      "देवोत्थान",
-      "प्रबोधिनी एकादशी",
       "कार्तिक स्नान",
     ]) {
       assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV20)?.id, "bhishma_panchak_2026", title);
       assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV24_LAST)?.id, "bhishma_panchak_2026", title);
       assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV19_LAST)?.id, "bhishma_panchak_2026", title);
       assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV25)?.id, "bhishma_panchak_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV20)?.id, "dev_uthani_ekadashi_2026", title);
     }
     assert.equal(nextUpcomingVrat(NOV20_NOON)?.id, "tulsi_vivah_2026");
     assert.equal(nextUpcomingVrat(NOV24)?.id, "dev_deepawali_2026");
+  });
+
+  it("gives a Dev Uthani story that guide through 21 Nov IST, then Bhishma from 22 Nov", () => {
+    const NOV21_END = new Date("2026-11-21T18:29:59.999Z");
+    const NOV22_0000 = new Date("2026-11-21T18:30:00Z");
+    const DEV_UTHANI = {
+      slug: "dev-uthani-ekadashi-2026",
+      title: "Dev Uthani Ekadashi 2026",
+      category: "Lifestyle",
+    };
+    const guide = UPCOMING_VRAT_CTAS.find((c) => c.id === "dev_uthani_ekadashi_2026")!;
+    assert.equal(guide.path, "/dev-uthani-ekadashi-2026/");
+    assert.equal(guide.campaign, "dev_uthani_ekadashi_2026");
+    assert.equal(guide.untilIst, "2026-11-21");
+    assert.equal(guide.fromIst, undefined);
+    assert.equal(guide.fallback, true);
+    assert.notEqual(guide.alsoGeneral, true);
+    assert.equal(isPartnerEligibleStory(DEV_UTHANI), true);
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV20_NOON)?.id, "dev_uthani_ekadashi_2026");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV20_NOON)?.path, "/dev-uthani-ekadashi-2026/");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV20_NOON)?.campaign, "dev_uthani_ekadashi_2026");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV21_END)?.id, "dev_uthani_ekadashi_2026");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV22_0000)?.id, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV22_0000)?.path, "/bhishma-panchak-2026/");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV22_0000)?.campaign, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(DEV_UTHANI, NOV24_LAST)?.id, "bhishma_panchak_2026");
+    assert.notEqual(upcomingVratForStory(DEV_UTHANI, NOV25)?.id, "bhishma_panchak_2026");
+    for (const title of [
+      "Dev Uthani",
+      "Dev Uthani Ekadashi",
+      "Devutthana 2026",
+      "Devuthani",
+      "Prabodhini Ekadashi 2026",
+      "देवउठनी एकादशी",
+      "देव उठनी",
+      "देवोत्थान",
+      "देव उत्थान",
+      "प्रबोधिनी एकादशी",
+    ]) {
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV20_NOON)?.id, "dev_uthani_ekadashi_2026", title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV21_END)?.id, "dev_uthani_ekadashi_2026", title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV22_0000)?.id, "bhishma_panchak_2026", title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, NOV24_LAST)?.id, "bhishma_panchak_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV25)?.id, "dev_uthani_ekadashi_2026", title);
+    }
+    assert.equal(upcomingVratForStory(BHISHMA, NOV20_NOON)?.id, "bhishma_panchak_2026");
+    assert.equal(upcomingVratForStory(BHISHMA, NOV20_NOON)?.path, "/bhishma-panchak-2026/");
+    assert.equal(
+      upcomingVratForStory({ title: "Kartik snan vidhi", category: "Lifestyle" }, NOV20_NOON)?.id,
+      "bhishma_panchak_2026"
+    );
+    assert.equal(upcomingVratForStory(TULSI, NOV20_NOON)?.id, "tulsi_vivah_2026");
+    assert.equal(upcomingVratForStory(TULSI, NOV20_NOON)?.path, "/tulsi-vivah-2026/");
+    assert.equal(
+      upcomingVratForStory({ title: "Tulsi Vivah and Dev Uthani Ekadashi", category: "Lifestyle" }, NOV20_NOON)?.id,
+      "tulsi_vivah_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Dev Deepawali and Dev Uthani", category: "Lifestyle" }, NOV20_NOON)?.id,
+      "tulsi_vivah_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "Guru Nanak Gurpurab and Dev Uthani", category: "Lifestyle" }, NOV20_NOON)?.id,
+      "guru_nanak_jayanti_2026"
+    );
+    const theft = {
+      slug: "dev-uthani-theft",
+      title: "Theft at the Dev Uthani gathering, one accused held",
+      category: "Lifestyle",
+    };
+    assert.equal(isSensitiveStory(theft), true);
+    assert.equal(isPartnerEligibleStory(theft), false);
+    assert.equal(upcomingVratForStory(theft, NOV20_NOON), null);
+    assert.equal(canShowSponsoredEndUnit(theft, { now: NOV20_NOON }), false);
+    assert.equal(sponsoredEndModeForStory(theft, NOV20_NOON), null);
+    const end = hrefs(html(React.createElement(PartnerEndCard, { lang: "en", slug: DEV_UTHANI.slug, upcomingVratId: guide.id })));
+    const side = hrefs(html(React.createElement(PartnerSidebar, { lang: "en", slug: DEV_UTHANI.slug, upcomingVratId: guide.id })));
+    const widget = hrefs(
+      html(React.createElement(PartnerRashifal, { sign: "mesh", lang: "en", slug: DEV_UTHANI.slug, upcomingVratId: guide.id }))
+    );
+    const guideHref = (links: string[]) => links.find((href) => href.includes("/dev-uthani-ekadashi-2026/"))!;
+    assert.equal(params(guideHref(end)).utm_medium, "ad");
+    assert.equal(params(guideHref(side)).utm_medium, "sidebar");
+    assert.equal(params(guideHref(widget)).utm_medium, "widget");
+    for (const href of [guideHref(end), guideHref(side), guideHref(widget)]) {
+      const got = params(href);
+      assert.equal(got.utm_source, "dalimss_news");
+      assert.equal(got.utm_campaign, "dev_uthani_ekadashi_2026");
+      assert.equal(got.utm_content, DEV_UTHANI.slug);
+      assert.equal(got.utm_term, undefined);
+      assert.equal(new URL(href).pathname, "/dev-uthani-ekadashi-2026/");
+    }
+    assert.equal(nextUpcomingVrat(NOV20_NOON)?.id, "tulsi_vivah_2026");
   });
 
   it("keeps Tulsi Vivah and Dev Deepawali on their own guides inside 20 to 24 Nov", () => {
@@ -1690,6 +1778,7 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
 
   it("puts neutral copy and guide UTMs on the fallbacks and leaves the sponsored A/B alone", () => {
     for (const [id, slug] of [
+      ["dev_uthani_ekadashi_2026", "dev-uthani-ekadashi-2026"],
       ["bhishma_panchak_2026", BHISHMA.slug],
       ["margashirsha_month_2026", MONTH.slug],
     ] as const) {
@@ -1713,6 +1802,14 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
         assert.equal(/\bfree\b|मुफ्त|मुफ़्त/i.test(blob), false, id);
       }
     }
+    assert.equal(
+      ctaText("dev_uthani_ekadashi_2026", "en"),
+      "Dev Uthani Ekadashi 2026 (20 to 21 Nov): date and parana time on Pocket Jyotish"
+    );
+    assert.equal(
+      ctaText("dev_uthani_ekadashi_2026", "hi"),
+      "देवउठनी एकादशी 2026 (20 से 21 नवंबर): तिथि और पारण समय, Pocket Jyotish पर"
+    );
     assert.equal(ctaText("bhishma_panchak_2026", "en"), "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish");
     assert.equal(ctaText("bhishma_panchak_2026", "hi"), "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर");
     assert.equal(ctaText("margashirsha_month_2026", "en"), "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish");
