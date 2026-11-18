@@ -1,9 +1,12 @@
 import { dangerouslyDeleteByTag } from "@vercel/functions";
 import type { NextApiResponse } from "next";
 import { getCategoriesByDbValue } from "@/lib/categories";
-import { CRAWLER_FILES_CACHE_TAG } from "@/lib/publicCache";
+import {
+  CRAWLER_FILES_CACHE_TAG,
+  listingHtmlCacheTag,
+} from "@/lib/publicCache";
 import { canonicalArticleSlug } from "@/lib/seo";
-import { TOPIC_HUBS, topicHubPathsForArticle } from "@/lib/topicHubs";
+import { topicHubPathsForArticle } from "@/lib/topicHubs";
 
 /**
  * Article fields used to choose which pages to refresh.
@@ -35,18 +38,24 @@ export type ArticleRevalidateInput = {
 /**
  * Pages regenerated with res.revalidate.
  *
- * ISR: the article itself, the homepage, category pages, and topic hubs.
- * Homepage and hubs use a 600s revalidate as a backstop; this refresh makes
- * a publish show up without waiting for that window.
+ * ISR: the article itself and the homepage. The homepage uses a 600s
+ * revalidate as a backstop; this refresh makes a publish show up without
+ * waiting for that window.
  *
- * getServerSideProps listings (/articles, /hindi, /author/[slug], /authors)
- * are not included. res.revalidate throws for those. They use the listing
- * s-maxage window (ten minutes) instead.
+ * Category archives and topic hubs are getServerSideProps so ?page=N can
+ * render on the server. res.revalidate throws for those. Publish drops their
+ * listing HTML cache tag instead. /articles, /hindi, /author/[slug], and
+ * /authors stay on the ten-minute s-maxage window and are not tagged here.
  *
  * /llms.txt, /llms-full.txt, and /news-sitemap.xml are getServerSideProps too,
  * so they are not listed here. Publish drops their CDN tag instead.
  */
-function listingPaths(article: {
+function homepagePath(article: { language?: string | null }): string[] {
+  if (article.language === "hi") return [];
+  return ["/"];
+}
+
+function paginatedListingPaths(article: {
   language?: string | null;
   category?: string | null;
   title?: string | null;
@@ -55,12 +64,19 @@ function listingPaths(article: {
   focusKeyword?: string | null;
 }): string[] {
   if (article.language === "hi") return [];
-  const paths = ["/"];
+  const paths: string[] = [];
   getCategoriesByDbValue(article.category).forEach((category) => {
     paths.push(`/category/${category.slug}`);
   });
   paths.push(...topicHubPathsForArticle(article));
   return paths;
+}
+
+/** Cache tags for the category archives and topic hubs this article appears on. */
+export function listingHtmlCacheTags(article: ArticleRevalidateInput): string[] {
+  const paths = paginatedListingPaths(article);
+  if (article.previous) paths.push(...paginatedListingPaths(article.previous));
+  return Array.from(new Set(paths.map((path) => listingHtmlCacheTag(path))));
 }
 
 function candidatePaths(article: ArticleRevalidateInput): string[] {
@@ -71,29 +87,38 @@ function candidatePaths(article: ArticleRevalidateInput): string[] {
     if (previous !== paths[0]) paths.push(previous);
   }
 
-  paths.push(...listingPaths(article));
+  paths.push(...homepagePath(article));
   if (article.previous) {
-    paths.push(...listingPaths(article.previous));
+    paths.push(...homepagePath(article.previous));
   }
 
   return paths;
 }
 
-const TOPIC_HUB_PATHS = new Set(
-  Object.values(TOPIC_HUBS).map((hub) => hub.canonicalPath)
-);
-
-/** Article pages, the homepage, category pages, and topic hubs are ISR. */
+/** Article pages and the homepage are ISR. Paginated listings are not. */
 function isIsrPath(path: string): boolean {
   if (path === "/") return true;
-  if (TOPIC_HUB_PATHS.has(path)) return true;
   if (/^\/articles\/[^/]+$/.test(path)) return true;
-  if (/^\/category\/[^/]+$/.test(path)) return true;
   return false;
 }
 
 export function articleRevalidatePaths(article: ArticleRevalidateInput): string[] {
   return Array.from(new Set(candidatePaths(article).filter(isIsrPath)));
+}
+
+/** Drop cached category and topic-hub HTML, including every ?page=N. */
+async function revalidateListingHtml(
+  article: ArticleRevalidateInput
+): Promise<void> {
+  await Promise.all(
+    listingHtmlCacheTags(article).map(async (tag) => {
+      try {
+        await dangerouslyDeleteByTag(tag);
+      } catch (error) {
+        console.error(`On-demand revalidate failed for ${tag}:`, error);
+      }
+    })
+  );
 }
 
 /**
@@ -115,7 +140,8 @@ async function revalidateCrawlerFiles(): Promise<void> {
 }
 
 /**
- * Regenerate ISR pages for this article and drop the cached crawler files.
+ * Regenerate ISR pages for this article, drop cached listing HTML, and drop
+ * the cached crawler files.
  * A failed path is logged and ignored so the API response still succeeds.
  * Must be awaited inside the request: res.revalidate cannot run after the
  * function returns.
@@ -133,5 +159,6 @@ export async function revalidateArticlePaths(
       }
     }),
     revalidateCrawlerFiles(),
+    revalidateListingHtml(article),
   ]);
 }

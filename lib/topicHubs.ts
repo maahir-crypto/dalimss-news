@@ -1,10 +1,17 @@
 import { DUPLICATE_ARTICLE_CANONICALS } from "@/lib/duplicateArticles";
 import { latestStories, type LatestStory } from "@/lib/latestStories";
-import { GetStaticProps } from "next";
+import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { Article } from "@/types";
 import { canonicalAuthorName } from "@/lib/seo";
-import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
+import { listingHtmlCacheTag, setPublicPageCache } from "@/lib/publicCache";
+import {
+  TOPIC_HUB_PAGE_SIZE,
+  isListingPageInRange,
+  listingTotalPages,
+  listingWindow,
+  parsePageParam,
+} from "@/lib/pagination";
 
 export type TopicHubConfig = {
   slug: string;
@@ -27,6 +34,8 @@ export type TopicHubProps = {
   articles: Article[];
   latestUpdate: string | null;
   latestArticles: LatestStory[];
+  page: number;
+  totalPages: number;
 };
 
 export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
@@ -260,14 +269,18 @@ export function topicHubPathsForArticle(article: {
     .map((hub) => hub.canonicalPath);
 }
 
-export function makeTopicHubStaticProps(
+export function makeTopicHubServerSideProps(
   slug: string
-): GetStaticProps<TopicHubProps> {
-  return async () => {
+): GetServerSideProps<TopicHubProps> {
+  return async (context) => {
     const hub = getTopicHubBySlug(slug);
 
-    if (!hub) {
-      return { notFound: true, revalidate: LISTING_REVALIDATE_SECONDS };
+    if (!hub) return { notFound: true };
+
+    const page = parsePageParam(context.query.page);
+    if (page === null) return { notFound: true };
+    if (page === 1 && context.query.page !== undefined) {
+      return { redirect: { destination: hub.canonicalPath, permanent: true } };
     }
 
     const articleWhere = {
@@ -286,45 +299,59 @@ export function makeTopicHubStaticProps(
     };
 
     try {
-      const articles = await prisma.article.findMany({
-        where: articleWhere,
-        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-        take: 30,
-        select: {
-          id: true,
-          slug: true,
-          title: true,
-          content: true,
-          mediaUrl: true,
-          mediaType: true,
-          readTimeInMinutes: true,
-          category: true,
-          customAuthor: true,
-          createdAt: true,
-          updatedAt: true,
-          metaTitle: true,
-          metaDescription: true,
-          focusKeyword: true,
-        },
-      });
+      const totalCount = await prisma.article.count({ where: articleWhere });
+      const totalPages = listingTotalPages(totalCount, TOPIC_HUB_PAGE_SIZE);
+      if (!isListingPageInRange(page, totalCount, TOPIC_HUB_PAGE_SIZE)) {
+        return { notFound: true };
+      }
 
-      const latestRows = await prisma.article.findMany({
-        where: {
-          AND: [
-            { NOT: { language: "hi" } },
-            {
-              OR: hub.keywords.flatMap((keyword) => [
-                { category: { contains: keyword, mode: "insensitive" as const } },
-                { slug: { contains: keyword.replace(/\s+/g, "-"), mode: "insensitive" as const } },
-              ]),
-            },
-          ],
-          slug: { notIn: Object.keys(DUPLICATE_ARTICLE_CANONICALS) },
-        },
-        select: { slug: true, title: true, createdAt: true },
-        orderBy: [{ createdAt: "desc" }, { slug: "asc" }],
-        take: 5,
-      });
+      const { skip, take } = listingWindow(page, TOPIC_HUB_PAGE_SIZE);
+      const [articles, latestRows, newest] = await Promise.all([
+        prisma.article.findMany({
+          where: articleWhere,
+          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+          skip,
+          take,
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            content: true,
+            mediaUrl: true,
+            mediaType: true,
+            readTimeInMinutes: true,
+            category: true,
+            customAuthor: true,
+            createdAt: true,
+            updatedAt: true,
+            metaTitle: true,
+            metaDescription: true,
+            focusKeyword: true,
+          },
+        }),
+        prisma.article.findMany({
+          where: {
+            AND: [
+              { NOT: { language: "hi" } },
+              {
+                OR: hub.keywords.flatMap((keyword) => [
+                  { category: { contains: keyword, mode: "insensitive" as const } },
+                  { slug: { contains: keyword.replace(/\s+/g, "-"), mode: "insensitive" as const } },
+                ]),
+              },
+            ],
+            slug: { notIn: Object.keys(DUPLICATE_ARTICLE_CANONICALS) },
+          },
+          select: { slug: true, title: true, createdAt: true },
+          orderBy: [{ createdAt: "desc" }, { slug: "asc" }],
+          take: 5,
+        }),
+        prisma.article.findFirst({
+          where: articleWhere,
+          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+          select: { updatedAt: true },
+        }),
+      ]);
 
       const serializedArticles: Article[] = articles.map((article) => ({
         id: article.id,
@@ -347,21 +374,37 @@ export function makeTopicHubStaticProps(
         focusKeyword: article.focusKeyword,
       }));
 
+      setPublicPageCache(
+        context.req,
+        context.res,
+        listingHtmlCacheTag(hub.canonicalPath)
+      );
       return {
         props: {
           hub,
           articles: serializedArticles,
-          latestUpdate: articles[0]?.updatedAt.toISOString() || null,
-          latestArticles: latestStories(latestRows).map(({ slug, title }) => ({ slug, title })),
+          latestUpdate: newest?.updatedAt.toISOString() || null,
+          latestArticles: latestStories(latestRows).map(({ slug, title }) => ({
+            slug,
+            title,
+          })),
+          page,
+          totalPages,
         },
-        revalidate: LISTING_REVALIDATE_SECONDS,
       };
     } catch (error) {
       console.error(`Error fetching topic hub ${slug}:`, error);
       if (process.env.DATABASE_URL) throw error;
+      if (page > 1) return { notFound: true };
       return {
-        props: { hub, articles: [], latestUpdate: null, latestArticles: [] },
-        revalidate: LISTING_REVALIDATE_SECONDS,
+        props: {
+          hub,
+          articles: [],
+          latestUpdate: null,
+          latestArticles: [],
+          page: 1,
+          totalPages: 0,
+        },
       };
     }
   };

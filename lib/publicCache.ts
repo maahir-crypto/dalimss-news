@@ -78,11 +78,22 @@ function setSharedCacheControl(
  * Newsroom controls on these pages render in the browser from the session,
  * so the HTML itself does not vary by user.
  */
+/** CDN tag for one paginated listing path, including every ?page=N of it. */
+export function listingHtmlCacheTag(pathname: string): string {
+  const slug = pathname
+    .replace(/^\/+/, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-|-$/g, "");
+  return `listing-${slug || "home"}`;
+}
+
 export function setPublicPageCache(
   req: IncomingMessage,
-  res: ServerResponse
+  res: ServerResponse,
+  cacheTag?: string
 ): void {
-  setSharedCacheControl(req, res, PUBLIC_PAGE_CACHE_CONTROL);
+  if (!setSharedCacheControl(req, res, PUBLIC_PAGE_CACHE_CONTROL)) return;
+  if (cacheTag) res.setHeader("Vercel-Cache-Tag", cacheTag);
 }
 
 /**
