@@ -398,10 +398,14 @@ export function festivalPartnerHref(
 // Kharmas before Griha Pravesh. Guru Nanak Jayanti, Akshaya Navami and Griha
 // Pravesh match only their own phrases. Kaal Bhairav does too, and alsoGeneral
 // keeps it in the general queue. A bare Bhairav is not a Kaal Bhairav match.
-// Bhishma Panchak and Margashirsha month are story fallbacks. They are not
-// general-queue guides. A matching story takes one only when no named
-// predicate guide matches. Tulsi, Dev Deepawali, Pradosh, Vaikuntha, Sankashti,
-// Utpanna, Margashirsha Purnima and the other named guides keep their own CTAs.
+// Bhishma Panchak, Dev Uthani Ekadashi and Margashirsha month are story
+// fallbacks. They are not general-queue guides. A matching story takes one
+// only when no named predicate guide matches. Dev Uthani Ekadashi is listed
+// before Bhishma Panchak, so Dev Uthani and Prabodhini stories take it through
+// 21 Nov IST. From 00:00 IST 22 Nov those terms use Bhishma until 00:00 IST
+// 25 Nov. Bhishma Panchak and Kartik snan stay on the Bhishma guide. Tulsi,
+// Dev Deepawali, Pradosh, Vaikuntha, Sankashti, Utpanna, Margashirsha Purnima
+// and the other named guides keep their own CTAs.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -421,6 +425,8 @@ export const LOHRI_SANKRANTI_UNTIL_IST = "2027-01-15";
 export const RASHIFAL_2027_UNTIL_IST = "2027-01-31";
 export const GRIHA_PRAVESH_UNTIL_IST = "2027-12-31";
 export const TULSI_VIVAH_UNTIL_IST = "2026-11-21";
+/** Inclusive last IST day. Off at 00:00 IST 22 Nov. Not a general-queue guide. */
+export const DEV_UTHANI_EKADASHI_UNTIL_IST = "2026-11-21";
 export const PRADOSH_VRAT_UNTIL_IST = "2026-11-22";
 /** Rotation window. The exact-slug links-only CTA stays on its own later date. */
 export const VAIKUNTHA_VRAT_UNTIL_IST = "2026-11-23";
@@ -472,6 +478,7 @@ export type UpcomingVratId =
   | "karthigai_deepam_2026"
   | "dev_deepawali_2026"
   | "guru_nanak_jayanti_2026"
+  | "dev_uthani_ekadashi_2026"
   | "bhishma_panchak_2026"
   | "guruvar_vrat_nov_2026"
   | "sankashti_2026"
@@ -613,6 +620,30 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
         sidebarTitle: "तुलसी विवाह 2026",
         sidebarBody: "तुलसी विवाह 2026 गाइड हमारी पार्टनर साइट पर देखें.",
         sidebarLink: "तुलसी विवाह 2026 गाइड",
+      },
+    },
+  },
+  {
+    // Story fallback. Not a general-queue guide. Off at 00:00 IST 22 Nov.
+    // Listed before Bhishma so Dev Uthani terms take this guide while it is open.
+    id: "dev_uthani_ekadashi_2026",
+    path: "/dev-uthani-ekadashi-2026/",
+    campaign: "dev_uthani_ekadashi_2026",
+    untilIst: DEV_UTHANI_EKADASHI_UNTIL_IST,
+    appliesTo: isDevUthaniEkadashiStory,
+    fallback: true,
+    text: {
+      en: {
+        endCard: "Dev Uthani Ekadashi 2026 (20 to 21 Nov): date and parana time on Pocket Jyotish",
+        sidebarTitle: "Dev Uthani Ekadashi 2026",
+        sidebarBody: "Dev Uthani Ekadashi 2026 (20 to 21 Nov): date and parana time on Pocket Jyotish",
+        sidebarLink: "Dev Uthani Ekadashi 2026 (20 to 21 Nov): date and parana time on Pocket Jyotish",
+      },
+      hi: {
+        endCard: "देवउठनी एकादशी 2026 (20 से 21 नवंबर): तिथि और पारण समय, Pocket Jyotish पर",
+        sidebarTitle: "देवउठनी एकादशी 2026",
+        sidebarBody: "देवउठनी एकादशी 2026 (20 से 21 नवंबर): तिथि और पारण समय, Pocket Jyotish पर",
+        sidebarLink: "देवउठनी एकादशी 2026 (20 से 21 नवंबर): तिथि और पारण समय, Pocket Jyotish पर",
       },
     },
   },
@@ -1547,7 +1578,8 @@ export function isMokshadaEkadashiStory(a: StoryFields): boolean {
 /**
  * Named festival themes that keep their own guide. A seasonal fallback does
  * not replace them. Generic Ekadashi stays out so Prabodhini Ekadashi can
- * match Bhishma Panchak while Saphala is closed; Saphala still wins once open.
+ * match the Dev Uthani guide through 21 Nov IST, then Bhishma Panchak through
+ * 24 Nov, while Saphala is closed. Saphala still wins once open.
  */
 function hasPriorityVratTheme(a: StoryFields): boolean {
   if (
@@ -1583,17 +1615,35 @@ function hasPriorityVratTheme(a: StoryFields): boolean {
 }
 
 /**
+ * Dev Uthani, Devutthana, Devuthani, or Prabodhini Ekadashi.
+ * A bare Ekadashi does not match.
+ */
+function mentionsDevUthani(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  return (
+    /\bdev[\s-]?ut+h(?:ani|ana)\b/i.test(hay) ||
+    /देवउठनी|देव\s?उठनी|देवोत्थान|देव\s?उत्थान|प्रबोधिनी/.test(hay) ||
+    /\bprabodhini[\s-]?ekadashi\b/i.test(hay)
+  );
+}
+
+/** Story fallback for Dev Uthani Ekadashi. Named festival themes keep their own guides. */
+export function isDevUthaniEkadashiStory(a: StoryFields): boolean {
+  return mentionsDevUthani(a) && !hasPriorityVratTheme(a);
+}
+
+/**
  * Bhishma Panchak, Dev Uthani / Devutthana / Devuthani, Prabodhini Ekadashi,
  * or Kartik snan / Kartik month bathing. A bare Kartik or a bare snan does not match.
+ * Dev Uthani terms stay included so they return here after 00:00 IST 22 Nov,
+ * until this guide switches off at 00:00 IST 25 Nov.
  */
 function mentionsBhishmaPanchak(a: StoryFields): boolean {
   const hay = partnerHay(a);
   return (
     /\bbhishma[\s-]?panchaka?\b/i.test(hay) ||
     /भीष्म\s?पंचक/.test(hay) ||
-    /\bdev[\s-]?ut+h(?:ani|ana)\b/i.test(hay) ||
-    /देवउठनी|देव\s?उठनी|देवोत्थान|देव\s?उत्थान|प्रबोधिनी/.test(hay) ||
-    /\bprabodhini[\s-]?ekadashi\b/i.test(hay) ||
+    mentionsDevUthani(a) ||
     /\bkartik[\s-]?snan\b/i.test(hay) ||
     /\bkartik[\s-]+month[\s-]+bath(?:ing)?\b/i.test(hay) ||
     /कार्तिक\s?(?:(?:मास|माह|महीने)(?:\s?का)?\s?)?स्नान/.test(hay)
