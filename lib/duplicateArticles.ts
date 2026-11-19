@@ -30,14 +30,44 @@ export const DUPLICATE_ARTICLE_CANONICALS: Record<string, string> = {
     "varanasi-delhi-sleeper-timetable-oct27-2026",
 };
 
+/**
+ * Articles merged on 19 Nov 2026 after the thin-content audit. The key is the
+ * retired URL, the value is the surviving guide. The retired articles are not
+ * deleted; next.config.mjs issues a permanent 301 to the surviving URL, and
+ * these keys stay out of every sitemap.
+ */
+export const MERGED_ARTICLE_REDIRECTS: Record<string, string> = {
+  "varanasi-census-self-enumeration-launch-id-nov16-2026":
+    "varanasi-census-self-enumeration-launch-nov16-2026",
+  "gurugram-mcg-9am-cleaning-january-road-target-november-16":
+    "gurugram-road-cleaning-january-15-weekly-inspections-nov16",
+  "xiaomi-18-pro-oppo-reno17-specs-india-launch-status":
+    "xiaomi-18-pro-global-launch-uk-prices-specs",
+  "backpack-clearing-cftc-registration-exchange-pending":
+    "backpack-cftc-exchange-designation-november-2026",
+  "ipad-a16-price-list-49900-to-103900": "ipad-a16-49900-103900",
+  "redmi-a7-pro-64gb-2tb": "redmi-a7-pro-5g-4-6",
+  "nokia-210-4g-24": "nokia-210-4g-ai-180-days-2999",
+  "nokia-110-4g-177": "nokia-110-4g-2599",
+  "nokia-106-4g-contacts-mobile-home-number-field":
+    "nokia-106-4g-hmd-101-4g-2599-2199",
+  "ipad-pro-m5-139900-163900": "ipad-pro-m5-2500-8900",
+  "skoda-octavia-rs-park-assist": "skoda-octavia-rs-price-5669000",
+};
+
 /** Slug whose URL should be the canonical for this article. */
 export function duplicateCanonicalSlug(slug: string): string {
-  return DUPLICATE_ARTICLE_CANONICALS[slug] || slug;
+  return (
+    MERGED_ARTICLE_REDIRECTS[slug] || DUPLICATE_ARTICLE_CANONICALS[slug] || slug
+  );
 }
 
-/** True when this slug is the non-main copy of a duplicate pair. */
+/** True when this slug is the non-main copy of a duplicate or merged pair. */
 export function isDuplicateArticleCopy(slug: string): boolean {
-  return Object.prototype.hasOwnProperty.call(DUPLICATE_ARTICLE_CANONICALS, slug);
+  return (
+    Object.prototype.hasOwnProperty.call(DUPLICATE_ARTICLE_CANONICALS, slug) ||
+    Object.prototype.hasOwnProperty.call(MERGED_ARTICLE_REDIRECTS, slug)
+  );
 }
 
 function normalizeForCompare(value: string | null | undefined): string {
