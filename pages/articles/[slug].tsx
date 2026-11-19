@@ -109,6 +109,7 @@ interface Props {
 
 import Head from "next/head";
 import ShareButton from "@/components/ShareButton";
+import PreferredSourceButton from "@/components/PreferredSourceButton";
 import { ArticleJsonLd } from "@/components/ArticleJsonLd";
 import { readTimeMinutes } from "@/lib/readTime";
 import { CorrectionNotice } from "@/components/CorrectionNotice";
@@ -569,6 +570,9 @@ const ArticlePage: React.FC<Props> = ({
               variant="full"
             />
           </div>
+        </div>
+        <div className="mt-2 flex justify-end">
+          <PreferredSourceButton theme="light" lang={isHindi ? "hi" : "en"} />
         </div>
       </header>
 

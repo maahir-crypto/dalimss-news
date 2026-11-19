@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
+import PreferredSourceButton from "@/components/PreferredSourceButton";
 import { NAV_CATEGORIES } from "@/lib/categories";
 import { PRICE_HUBS, PRICE_INDEX_PATH } from "@/lib/priceHubs";
 import { sectionPath } from "@/lib/publicPaths";
@@ -10,6 +12,9 @@ const footerAccentLinkClass =
   "inline-flex min-h-11 items-center font-semibold text-red-300 transition-colors hover:text-white";
 
 const Footer = () => {
+  const { pathname } = useRouter();
+  const lang = pathname === "/hindi" || pathname.startsWith("/hindi/") ? "hi" : "en";
+
   return (
     <footer className="mt-16 border-t border-gray-800 bg-gray-950 py-12 font-sans text-gray-200">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -126,14 +131,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li className="pt-2">
-                <a
-                  href="https://google.com/preferences/source?q=dalimss.news"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center rounded-md bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800"
-                >
-                  Make us a preferred source on Google
-                </a>
+                <PreferredSourceButton theme="dark" lang={lang} />
               </li>
             </ul>
           </div>
