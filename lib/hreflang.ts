@@ -61,6 +61,14 @@ export const TRANSLATION_PAIRS: TranslationPair[] = [
     en: "/articles/karwa-chauth-delhi-gurugram-noida-lucknow-moonrise-2026",
     hi: "/articles/karwa-chauth-2026-delhi-gurugram-noida-lucknow-hindi",
   },
+  {
+    en: "/articles/ipl-2027-retentions-team-purses-key-releases-auction",
+    hi: "/articles/ipl-2027-retention-purse-released-players-auction-hindi",
+  },
+  {
+    en: "/articles/varanasi-mangari-road-land-notice-nov18-2026",
+    hi: "/articles/varanasi-mangari-karmi-bhumi-adhisuchna-upload-nov18-2026",
+  },
 ];
 
 function pathnameOf(path: string): string {

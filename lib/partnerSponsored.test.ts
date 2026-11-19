@@ -955,6 +955,7 @@ describe("story-matched Jagaddhatri, Karthigai, vrat and December guides", () =>
         "mokshada_ekadashi_2026",
         "mgpurnima_2026",
         "margashirsha_month_2026",
+        "december_vrat_2026",
         "saphala_ekadashi_2027",
         "kharmas_2026",
         "lohri_sankranti_2027",
@@ -1493,7 +1494,7 @@ describe("story-matched Kaal Bhairav, Guru Nanak, Akshaya Navami and Griha Prave
   });
 });
 
-describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
+describe("story fallback Bhishma Panchak, Margashirsha month and December vrat guides", () => {
   const NOV19_LAST = new Date("2026-11-19T18:29:59.999Z");
   const NOV20 = new Date("2026-11-19T18:30:00Z");
   const NOV20_NOON = new Date("2026-11-20T06:30:00Z");
@@ -1725,6 +1726,104 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
     assert.equal(nextUpcomingVrat(DEC24_LAST)?.id, "mgpurnima_2026");
   });
 
+  it("gives a December 2026 vrat calendar that guide from 25 Nov through 31 Dec IST", () => {
+    const DEC15 = new Date("2026-12-15T06:30:00Z");
+    const DEC31_LAST = new Date("2026-12-31T18:29:59.999Z");
+    const JAN1 = new Date("2026-12-31T18:30:00Z");
+    const CAL = {
+      slug: "december-2026-vrat-tyohar-calendar",
+      title: "December 2026 vrat and tyohar calendar",
+      category: "Lifestyle",
+    };
+    const guide = UPCOMING_VRAT_CTAS.find((c) => c.id === "december_vrat_2026")!;
+    assert.equal(guide.path, "/december-2026-vrat-tyohar/");
+    assert.equal(guide.campaign, "december_vrat_2026");
+    assert.equal(guide.fromIst, "2026-11-25");
+    assert.equal(guide.untilIst, "2026-12-31");
+    assert.equal(guide.fallback, true);
+    assert.notEqual(guide.alsoGeneral, true);
+    assert.equal(isPartnerEligibleStory(CAL), true);
+    assert.equal(upcomingVratForStory(CAL, NOV24_LAST)?.id, "dev_deepawali_2026");
+    assert.notEqual(upcomingVratForStory(CAL, NOV24_LAST)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(CAL, NOV25)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(CAL, NOV25)?.path, "/december-2026-vrat-tyohar/");
+    assert.equal(upcomingVratForStory(CAL, DEC15)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(CAL, DEC15)?.campaign, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(CAL, DEC31_LAST)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(CAL, JAN1), null);
+    for (const title of [
+      "December 2026 vrat list",
+      "December tyohar calendar",
+      "December 2026 festival list",
+      "December 2026 festival calendar",
+      "दिसंबर 2026 व्रत सूची",
+      "दिसंबर त्योहार कैलेंडर",
+    ]) {
+      assert.equal(isPartnerEligibleStory({ title, category: "Lifestyle" }), true, title);
+      assert.equal(upcomingVratForStory({ title, category: "Lifestyle" }, DEC15)?.id, "december_vrat_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, NOV24_LAST)?.id, "december_vrat_2026", title);
+      assert.notEqual(upcomingVratForStory({ title, category: "Lifestyle" }, JAN1)?.id, "december_vrat_2026", title);
+    }
+    const genericHindi = {
+      slug: "hanuman-chalisa-hindi",
+      title: "हनुमान चालीसा और धर्म कथा",
+      category: "Religion",
+    };
+    const varanasi = { slug: "varanasi-december-darshan", title: "December darshan in Varanasi", category: "Varanasi" };
+    const lifestyle = { slug: "december-fashion-edit", title: "December fashion edit", category: "Lifestyle" };
+    const hindiMonth = { slug: "december-kashi-aarti", title: "दिसंबर में वाराणसी की आरती", category: "Religion" };
+    const vratOnly = { slug: "vrat-tyohar-calendar", title: "Vrat and tyohar calendar", category: "Lifestyle" };
+    assert.notEqual(upcomingVratForStory(genericHindi, DEC15)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(genericHindi, DEC15)?.id, "mgpurnima_2026");
+    assert.notEqual(upcomingVratForStory(varanasi, DEC15)?.id, "december_vrat_2026");
+    assert.equal(upcomingVratForStory(lifestyle, DEC15), null);
+    assert.notEqual(upcomingVratForStory(hindiMonth, DEC15)?.id, "december_vrat_2026");
+    assert.notEqual(upcomingVratForStory(vratOnly, DEC15)?.id, "december_vrat_2026");
+    assert.equal(
+      upcomingVratForStory({ title: "December 2026 vrat calendar and Sankashti", category: "Lifestyle" }, NOV25)?.id,
+      "sankashti_2026"
+    );
+    assert.equal(
+      upcomingVratForStory({ title: "December 2026 ekadashi vrat list", category: "Lifestyle" }, DEC15)?.id,
+      "saphala_ekadashi_2027"
+    );
+    assert.notEqual(nextUpcomingVrat(DEC15)?.id, "december_vrat_2026");
+    const theft = {
+      slug: "december-vrat-theft",
+      title: "Theft at the December vrat gathering",
+      category: "Lifestyle",
+    };
+    assert.equal(isSensitiveStory(theft), true);
+    assert.equal(isHardNewsStory(theft), true);
+    assert.equal(isPartnerEligibleStory(theft), false);
+    assert.equal(upcomingVratForStory(theft, NOV25), null);
+    assert.equal(upcomingVratForStory(theft, DEC15), null);
+    assert.equal(upcomingVratForStory(theft, DEC31_LAST), null);
+    assert.equal(canShowSponsoredEndUnit(theft, { now: DEC15 }), false);
+    const end = hrefs(html(React.createElement(PartnerEndCard, { lang: "en", slug: CAL.slug, upcomingVratId: guide.id })));
+    const side = hrefs(html(React.createElement(PartnerSidebar, { lang: "en", slug: CAL.slug, upcomingVratId: guide.id })));
+    const widget = hrefs(
+      html(React.createElement(PartnerRashifal, { sign: "mesh", lang: "en", slug: CAL.slug, upcomingVratId: guide.id }))
+    );
+    const guideHref = (links: string[]) => links.find((href) => href.includes("/december-2026-vrat-tyohar/"))!;
+    assert.equal(params(guideHref(end)).utm_medium, "ad");
+    assert.equal(params(guideHref(side)).utm_medium, "sidebar");
+    assert.equal(params(guideHref(widget)).utm_medium, "widget");
+    for (const href of [guideHref(end), guideHref(side), guideHref(widget)]) {
+      const got = params(href);
+      assert.equal(got.utm_source, "dalimss_news");
+      assert.equal(got.utm_campaign, "december_vrat_2026");
+      assert.equal(got.utm_content, CAL.slug);
+      assert.equal(got.utm_term, undefined);
+      assert.equal(new URL(href).pathname, "/december-2026-vrat-tyohar/");
+    }
+    for (const lang of ["en", "hi"] as const) {
+      const blob = Object.values(guide.text[lang]).join("\n");
+      assert.equal(blob.includes("\u2014"), false);
+      assert.equal(blob.includes("\u2013"), false);
+    }
+  });
+
   it("keeps Sankashti, Utpanna, Purnima, Saphala and Vivah Panchami on their own guides", () => {
     assert.equal(upcomingVratForStory(SANKASHTI, NOV25)?.id, "sankashti_2026");
     assert.equal(upcomingVratForStory(SANKASHTI, NOV27_LAST)?.id, "sankashti_2026");
@@ -1781,6 +1880,7 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
       ["dev_uthani_ekadashi_2026", "dev-uthani-ekadashi-2026"],
       ["bhishma_panchak_2026", BHISHMA.slug],
       ["margashirsha_month_2026", MONTH.slug],
+      ["december_vrat_2026", "december-2026-vrat-tyohar-calendar"],
     ] as const) {
       const cta = UPCOMING_VRAT_CTAS.find((c) => c.id === id)!;
       const end = html(React.createElement(PartnerEndCard, { lang: "en", slug, upcomingVratId: id }));
@@ -1813,6 +1913,8 @@ describe("story fallback Bhishma Panchak and Margashirsha month guides", () => {
     assert.equal(ctaText("bhishma_panchak_2026", "en"), "Bhishma Panchak 2026 (20 to 24 Nov): dates and puja vidhi on Pocket Jyotish");
     assert.equal(ctaText("bhishma_panchak_2026", "hi"), "भीष्म पंचक 2026 (20 से 24 नवंबर): तिथि और पूजा विधि, Pocket Jyotish पर");
     assert.equal(ctaText("margashirsha_month_2026", "en"), "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish");
+    assert.equal(ctaText("december_vrat_2026", "en"), "December 2026: vrat and tyohar dates on Pocket Jyotish");
+    assert.equal(ctaText("december_vrat_2026", "hi"), "दिसंबर 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर");
     const metro = { slug: "gurugram-metro-extension", title: "Gurugram metro extension gets approval", category: "Gurugram" };
     assert.equal(sponsoredEndModeForStory(metro, NOV20_NOON), slugHash(metro.slug) % 2 === 1 ? "b" : "a");
     assert.equal(showDevDeepawaliVaranasiPartner(

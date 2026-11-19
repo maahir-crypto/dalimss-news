@@ -398,14 +398,16 @@ export function festivalPartnerHref(
 // Kharmas before Griha Pravesh. Guru Nanak Jayanti, Akshaya Navami and Griha
 // Pravesh match only their own phrases. Kaal Bhairav does too, and alsoGeneral
 // keeps it in the general queue. A bare Bhairav is not a Kaal Bhairav match.
-// Bhishma Panchak, Dev Uthani Ekadashi and Margashirsha month are story
-// fallbacks. They are not general-queue guides. A matching story takes one
-// only when no named predicate guide matches. Dev Uthani Ekadashi is listed
-// before Bhishma Panchak, so Dev Uthani and Prabodhini stories take it through
-// 21 Nov IST. From 00:00 IST 22 Nov those terms use Bhishma until 00:00 IST
-// 25 Nov. Bhishma Panchak and Kartik snan stay on the Bhishma guide. Tulsi,
-// Dev Deepawali, Pradosh, Vaikuntha, Sankashti, Utpanna, Margashirsha Purnima
-// and the other named guides keep their own CTAs.
+// Bhishma Panchak, Dev Uthani Ekadashi, Margashirsha month and the December
+// 2026 vrat and tyohar list are story fallbacks. They are not general-queue
+// guides. A matching story takes one only when no named predicate guide
+// matches. Dev Uthani Ekadashi is listed before Bhishma Panchak, so Dev Uthani
+// and Prabodhini stories take it through 21 Nov IST. From 00:00 IST 22 Nov
+// those terms use Bhishma until 00:00 IST 25 Nov. Bhishma Panchak and Kartik
+// snan stay on the Bhishma guide. The December list is on from 00:00 IST
+// 25 Nov through 31 Dec and off at 00:00 IST 1 Jan 2027. Tulsi, Dev Deepawali,
+// Pradosh, Vaikuntha, Sankashti, Utpanna, Margashirsha Purnima and the other
+// named guides keep their own CTAs.
 // After 00:00 IST the day after a guide's last day, the next guide takes over.
 // When none remain, callers fall back to the evergreen kundli / rashifal links.
 // Exact-slug festival CTAs and the Diwali CTA win over this rotation.
@@ -455,6 +457,9 @@ export const BHISHMA_PANCHAK_UNTIL_IST = "2026-11-24";
 /** Inclusive IST days. Off at 00:00 IST on 25 Dec. Not a general-queue guide. */
 export const MARGASHIRSHA_MONTH_FROM_IST = "2026-11-25";
 export const MARGASHIRSHA_MONTH_UNTIL_IST = "2026-12-24";
+/** Inclusive IST days. Off at 00:00 IST on 1 Jan 2027. Not a general-queue guide. */
+export const DECEMBER_VRAT_FROM_IST = "2026-11-25";
+export const DECEMBER_VRAT_UNTIL_IST = "2026-12-31";
 
 export const PARTNER_CAMPAIGN_TULSI_VIVAH = "tulsi_vivah_2026";
 export const PARTNER_CAMPAIGN_PRADOSH = "pradosh_2026";
@@ -486,6 +491,7 @@ export type UpcomingVratId =
   | "vivah_panchami_2026"
   | "mokshada_ekadashi_2026"
   | "margashirsha_month_2026"
+  | "december_vrat_2026"
   | "saphala_ekadashi_2027"
   | "kharmas_2026"
   | "lohri_sankranti_2027"
@@ -973,6 +979,31 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
     },
   },
   {
+    // Fallback after named guides, including the Margashirsha month guide.
+    // Not a general-queue guide. Off at 00:00 IST 1 Jan 2027.
+    id: "december_vrat_2026",
+    path: "/december-2026-vrat-tyohar/",
+    campaign: "december_vrat_2026",
+    fromIst: DECEMBER_VRAT_FROM_IST,
+    untilIst: DECEMBER_VRAT_UNTIL_IST,
+    appliesTo: isDecemberVratTyoharStory,
+    fallback: true,
+    text: {
+      en: {
+        endCard: "December 2026: vrat and tyohar dates on Pocket Jyotish",
+        sidebarTitle: "December 2026 vrat and tyohar",
+        sidebarBody: "December 2026: vrat and tyohar dates on Pocket Jyotish",
+        sidebarLink: "December 2026: vrat and tyohar dates on Pocket Jyotish",
+      },
+      hi: {
+        endCard: "दिसंबर 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+        sidebarTitle: "दिसंबर 2026 व्रत और त्योहार",
+        sidebarBody: "दिसंबर 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+        sidebarLink: "दिसंबर 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर",
+      },
+    },
+  },
+  {
     id: "saphala_ekadashi_2027",
     path: "/saphala-ekadashi-2027/",
     campaign: "saphala_2027",
@@ -1284,7 +1315,7 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * Ram-Sita vivah, Janakpur, Mokshada, Gita Jayanti, Kaal Bhairav,
  * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, Griha Pravesh,
  * Bhishma Panchak, Dev Uthani, Prabodhini Ekadashi, Kartik snan,
- * and Margashirsha month.
+ * Margashirsha month, and a December 2026 vrat or tyohar list.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1299,7 +1330,8 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
     isAkshayaNavamiStory(a) ||
     isGrihaPraveshStory(a) ||
     mentionsBhishmaPanchak(a) ||
-    mentionsMargashirshaMonth(a)
+    mentionsMargashirshaMonth(a) ||
+    mentionsDecemberVratTyohar(a)
   ) {
     return true;
   }
@@ -1668,6 +1700,29 @@ function mentionsMargashirshaMonth(a: StoryFields): boolean {
 /** Story fallback for the Margashirsha month. Named festival themes keep their own guides. */
 export function isMargashirshaMonthStory(a: StoryFields): boolean {
   return mentionsMargashirshaMonth(a) && !hasPriorityVratTheme(a);
+}
+
+/**
+ * December 2026 vrat or tyohar list or calendar.
+ * Needs December, दिसंबर, or दिसम्बर together with vrat, tyohar, a festival list,
+ * a festival calendar, व्रत, or त्योहार. A bare December story does not match.
+ */
+function mentionsDecemberVratTyohar(a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  const december = /\bdecember\b/i.test(hay) || /दिसंबर|दिसम्बर/.test(hay);
+  if (!december) return false;
+  return (
+    /\bvrats?\b/i.test(hay) ||
+    /\btyohars?\b/i.test(hay) ||
+    /\bfestivals?[\s-]+lists?\b/i.test(hay) ||
+    /\bfestivals?[\s-]+calendars?\b/i.test(hay) ||
+    /व्रत|त्योहार/.test(hay)
+  );
+}
+
+/** Story fallback for the December 2026 list. Named festival themes keep their own guides. */
+export function isDecemberVratTyoharStory(a: StoryFields): boolean {
+  return mentionsDecemberVratTyohar(a) && !hasPriorityVratTheme(a);
 }
 
 /** Inclusive last IST day of the Sponsored end unit A/B test. */

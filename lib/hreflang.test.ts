@@ -83,6 +83,62 @@ const cityBudget: PublishedArticle[] = [
 }
 
 {
+  const english = "ipl-2027-retentions-team-purses-key-releases-auction";
+  const hindi = "ipl-2027-retention-purse-released-players-auction-hindi";
+  const articles: PublishedArticle[] = [
+    { slug: english, published: true, language: "en" },
+    { slug: hindi, published: true, language: "hi" },
+    { slug: `${english}-hindi`, published: true, language: "hi" },
+  ];
+  const pair = translationPairForSlug(english, articles);
+  assert.deepEqual(pair, {
+    en: `/articles/${english}`,
+    hi: `/articles/${hindi}`,
+  });
+  assert.notEqual(pair?.hi, `/articles/${english}-hindi`);
+  const links = hreflangLinks({
+    path: `/articles/${hindi}`,
+    language: "hi",
+    articles,
+  });
+  assert.deepEqual(
+    links.map((link) => link.hrefLang),
+    ["en", "hi", "x-default"]
+  );
+  assert.equal(links[0].href, canonicalHref(english));
+  assert.equal(links[1].href, canonicalHref(hindi));
+  assert.equal(links[2].href, links[0].href);
+}
+
+{
+  const english = "varanasi-mangari-road-land-notice-nov18-2026";
+  const hindi = "varanasi-mangari-karmi-bhumi-adhisuchna-upload-nov18-2026";
+  const articles: PublishedArticle[] = [
+    { slug: english, published: true, language: "en" },
+    { slug: hindi, published: true, language: "hi" },
+    { slug: `${english}-hindi`, published: true, language: "hi" },
+  ];
+  const pair = translationPairForSlug(english, articles);
+  assert.deepEqual(pair, {
+    en: `/articles/${english}`,
+    hi: `/articles/${hindi}`,
+  });
+  assert.notEqual(pair?.hi, `/articles/${english}-hindi`);
+  const links = hreflangLinks({
+    path: `/articles/${hindi}`,
+    language: "hi",
+    articles,
+  });
+  assert.deepEqual(
+    links.map((link) => link.hrefLang),
+    ["en", "hi", "x-default"]
+  );
+  assert.equal(links[0].href, canonicalHref(english));
+  assert.equal(links[1].href, canonicalHref(hindi));
+  assert.equal(links[2].href, links[0].href);
+}
+
+{
   const articles: PublishedArticle[] = [
     { slug: "city-budget", published: true, language: "en" },
     { slug: "city-budget-hindi", published: false, language: "hi" },
@@ -155,6 +211,14 @@ const cityBudget: PublishedArticle[] = [
       [
         "/articles/karwa-chauth-delhi-gurugram-noida-lucknow-moonrise-2026",
         "/articles/karwa-chauth-2026-delhi-gurugram-noida-lucknow-hindi",
+      ],
+      [
+        "/articles/ipl-2027-retentions-team-purses-key-releases-auction",
+        "/articles/ipl-2027-retention-purse-released-players-auction-hindi",
+      ],
+      [
+        "/articles/varanasi-mangari-road-land-notice-nov18-2026",
+        "/articles/varanasi-mangari-karmi-bhumi-adhisuchna-upload-nov18-2026",
       ],
     ]
   );
