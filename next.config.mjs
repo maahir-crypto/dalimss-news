@@ -125,6 +125,63 @@ const nextConfig = {
           "/articles/vda-cracks-down-on-illegal-constructions-in-zone-4-multiple-buildings-sealed",
         permanent: true,
       },
+      // Thin-audit merges, 19 Nov 2026. Duplicate English or one-spec URLs
+      // 301 to the surviving guide. Articles are not deleted.
+      {
+        source: "/articles/varanasi-census-self-enumeration-launch-id-nov16-2026",
+        destination: "/articles/varanasi-census-self-enumeration-launch-nov16-2026",
+        permanent: true,
+      },
+      {
+        source: "/articles/gurugram-mcg-9am-cleaning-january-road-target-november-16",
+        destination: "/articles/gurugram-road-cleaning-january-15-weekly-inspections-nov16",
+        permanent: true,
+      },
+      {
+        source: "/articles/xiaomi-18-pro-oppo-reno17-specs-india-launch-status",
+        destination: "/articles/xiaomi-18-pro-global-launch-uk-prices-specs",
+        permanent: true,
+      },
+      {
+        source: "/articles/backpack-clearing-cftc-registration-exchange-pending",
+        destination: "/articles/backpack-cftc-exchange-designation-november-2026",
+        permanent: true,
+      },
+      {
+        source: "/articles/ipad-a16-price-list-49900-to-103900",
+        destination: "/articles/ipad-a16-49900-103900",
+        permanent: true,
+      },
+      {
+        source: "/articles/redmi-a7-pro-64gb-2tb",
+        destination: "/articles/redmi-a7-pro-5g-4-6",
+        permanent: true,
+      },
+      {
+        source: "/articles/nokia-210-4g-24",
+        destination: "/articles/nokia-210-4g-ai-180-days-2999",
+        permanent: true,
+      },
+      {
+        source: "/articles/nokia-110-4g-177",
+        destination: "/articles/nokia-110-4g-2599",
+        permanent: true,
+      },
+      {
+        source: "/articles/nokia-106-4g-contacts-mobile-home-number-field",
+        destination: "/articles/nokia-106-4g-hmd-101-4g-2599-2199",
+        permanent: true,
+      },
+      {
+        source: "/articles/ipad-pro-m5-139900-163900",
+        destination: "/articles/ipad-pro-m5-2500-8900",
+        permanent: true,
+      },
+      {
+        source: "/articles/skoda-octavia-rs-park-assist",
+        destination: "/articles/skoda-octavia-rs-price-5669000",
+        permanent: true,
+      },
     ];
   },
 
