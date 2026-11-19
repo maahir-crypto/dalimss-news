@@ -22,7 +22,7 @@ describe("official preferred source badge", () => {
         assert.ok(markup.includes(`src="/preferred-source/${base}.png"`));
         assert.ok(markup.includes(`srcSet="/preferred-source/${base}@2x.png 2x"`));
         assert.ok(markup.includes(`alt="${lang === "hi" ? "पसंदीदा स्रोत के रूप में जोड़ें" : "Add as Preferred Source"}"`));
-        assert.match(markup, /<a[^>]*style="[^"]*width:338px;height:107px;flex-shrink:0;align-items:center;justify-content:center/);
+        assert.match(markup, /<a[^>]*style="[^"]*width:100%;max-width:338px;height:auto;aspect-ratio:338 \/ 107;flex-shrink:0;align-items:center;justify-content:center/);
         assert.ok(markup.includes(`width="338" height="${height}"`));
         assert.ok(markup.includes('loading="lazy" decoding="async"'));
         assert.ok(markup.includes("object-fit:contain"));

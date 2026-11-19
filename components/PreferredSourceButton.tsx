@@ -20,8 +20,10 @@ export default function PreferredSourceButton({
       rel="noopener"
       style={{
         display: "inline-flex",
-        width: 338,
-        height: 107,
+        width: "100%",
+        maxWidth: 338,
+        height: "auto",
+        aspectRatio: "338 / 107",
         flexShrink: 0,
         alignItems: "center",
         justifyContent: "center",
@@ -35,7 +37,7 @@ export default function PreferredSourceButton({
         height={imageHeight}
         loading="lazy"
         decoding="async"
-        style={{ width: 338, height: imageHeight, objectFit: "contain" }}
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
       />
     </a>
   );
