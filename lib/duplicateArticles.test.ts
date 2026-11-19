@@ -26,6 +26,23 @@ import {
 }
 
 {
+  const { MERGED_ARTICLE_REDIRECTS } = require("./duplicateArticles");
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 11);
+  for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
+    assert.notEqual(copy, main);
+    assert.equal(isDuplicateArticleCopy(copy), true);
+    assert.equal(isDuplicateArticleCopy(main), false);
+    assert.equal(duplicateCanonicalSlug(copy), main);
+    assert.equal(duplicateCanonicalSlug(main), main);
+    assert.equal(MERGED_ARTICLE_REDIRECTS[main], undefined);
+  }
+  assert.equal(
+    duplicateCanonicalSlug("ipad-a16-price-list-49900-to-103900"),
+    "ipad-a16-49900-103900"
+  );
+}
+
+{
   const body = "<p>" + "JioFiber prepaid plans now bundle OTT apps. ".repeat(10) + "</p>";
   assert.equal(
     isRepeatPost({ title: "JioFiber prepaid OTT plans" }, { title: "  jiofiber prepaid OTT plans " }),
