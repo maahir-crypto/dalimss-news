@@ -86,6 +86,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/how-we-use-ai" className={footerLinkClass}>
+                  How we use AI
+                </Link>
+              </li>
+              <li>
                 <Link href="/corrections-policy" className={footerLinkClass}>
                   Corrections Policy
                 </Link>

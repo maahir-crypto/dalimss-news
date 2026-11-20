@@ -7,9 +7,13 @@ import {
   PaperAirplaneIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
+  MapPinIcon,
   NewspaperIcon,
 } from "@heroicons/react/24/outline";
 import {
+  OFFICE_ADDRESS_DISPLAY,
+  OFFICE_PHONE_DISPLAY,
+  OFFICE_PHONE_TEL,
   ORGANIZATION_ADDRESS,
   ORGANIZATION_ID,
   ORGANIZATION_LANGUAGES,
@@ -38,8 +42,8 @@ const contactCards = [
     icon: PhoneIcon,
     title: "Call Us",
     description: "Mon–Sat, 9:00 AM – 6:00 PM IST",
-    value: "+91 9309123123",
-    href: "tel:+919309123123",
+    value: OFFICE_PHONE_DISPLAY,
+    href: `tel:${OFFICE_PHONE_TEL}`,
     action: "Call Now",
   },
 ];
@@ -159,7 +163,7 @@ const ContactPage: React.FC = () => {
               Contact <span className="text-red-500">Dalimss News</span>
             </h1>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-              Have a story tip, feedback, or question? We'd love to hear from
+              Have a story tip, feedback, or question? We would love to hear from
               you. We aim to review newsroom messages within 48 hours.
             </p>
           </div>
@@ -204,6 +208,16 @@ const ContactPage: React.FC = () => {
           <p className="max-w-5xl mx-auto mt-8 text-center text-gray-700">
             Headquarters: Gurugram, Haryana and Varanasi, Uttar Pradesh.
           </p>
+          <p className="max-w-5xl mx-auto mt-3 flex items-start justify-center gap-2 text-center text-gray-700">
+            <MapPinIcon className="mt-0.5 h-5 w-5 shrink-0 text-red-600" aria-hidden="true" />
+            <span>{OFFICE_ADDRESS_DISPLAY}</span>
+          </p>
+          <p className="max-w-5xl mx-auto mt-2 text-center text-gray-700">
+            Phone:{" "}
+            <a className="font-medium text-red-700 hover:underline" href={`tel:${OFFICE_PHONE_TEL}`}>
+              {OFFICE_PHONE_DISPLAY}
+            </a>
+          </p>
         </div>
       </section>
 
@@ -216,7 +230,7 @@ const ContactPage: React.FC = () => {
                 Send Us a Message
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                Fill out the form below and we'll get back to you as soon as
+                Fill out the form below and we will get back to you as soon as
                 possible.
               </p>
             </div>

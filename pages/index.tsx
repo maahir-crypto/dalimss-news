@@ -1,7 +1,6 @@
 import { GetStaticProps } from "next";
 import { useState, useEffect } from "react";
 import Head from "next/head";
-import Layout from "@/components/Layout";
 import ArticleCard from "@/components/ArticleCard";
 import ArticleMediaPreview from "@/components/ArticleMediaPreview";
 import NewsShortsSidebar from "@/components/NewsShortsSidebar";
@@ -11,13 +10,22 @@ import Link from "next/link";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import { decodeEntities } from "@/lib/decodeEntities";
-import { ORGANIZATION_ADDRESS, ORGANIZATION_ID, ORGANIZATION_LANGUAGES, WEBSITE_ID, formatDateIST } from "@/lib/seo";
+import {
+  ORGANIZATION_ADDRESS,
+  ORGANIZATION_ID,
+  ORGANIZATION_LANGUAGES,
+  WEBSITE_ID,
+  formatDateIST,
+} from "@/lib/seo";
 import { LISTING_REVALIDATE_SECONDS } from "@/lib/publicCache";
-import { loadHomePage } from "@/lib/homeListing";
+import { loadHomePage, type HomeSection } from "@/lib/homeListing";
 import { articlePath } from "@/lib/publicPaths";
+import { useRouter } from "next/router";
 
 interface Props {
   articles: Article[];
+  localArticles: Article[];
+  sections: HomeSection[];
   stories: any[];
   searchQuery: string;
 }
@@ -33,27 +41,35 @@ const SectionHeader = ({ title, href }: { title: string; href?: string }) => (
       {title}
     </h2>
     {href && (
-      <Link href={href} className="mb-2 flex items-center text-xs font-bold uppercase tracking-wide text-red-700 hover:text-red-800">
+      <Link
+        href={href}
+        className="mb-2 flex items-center text-xs font-bold uppercase tracking-wide text-red-700 hover:text-red-800"
+      >
         View All <ChevronRightIcon className="ml-1 h-3 w-3" />
       </Link>
     )}
   </div>
 );
 
-// ... imports
-import { useRouter } from "next/router";
-
-export default function HomePage({ articles, stories, searchQuery }: Props) {
+export default function HomePage({
+  articles,
+  localArticles,
+  sections,
+  stories,
+  searchQuery,
+}: Props) {
   const { data: session } = useSession();
-  const router = useRouter(); // <--- Added router
-  
-  // Pagination State
-  const [newsList, setNewsList] = useState<Article[]>(Array.isArray(articles) ? articles : []);
+  const router = useRouter();
+
+  const [newsList, setNewsList] = useState<Article[]>(
+    Array.isArray(articles) ? articles : []
+  );
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(Array.isArray(articles) && articles.length >= 15);
+  const [hasMore, setHasMore] = useState(
+    Array.isArray(articles) && articles.length >= 15
+  );
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Sync newsList when initial articles change (e.g. navigation)
   useEffect(() => {
     setNewsList(Array.isArray(articles) ? articles : []);
     setPage(1);
@@ -63,24 +79,21 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
   const loadMore = async () => {
     if (loadingMore) return;
     setLoadingMore(true);
-    
+
     try {
       const nextPage = page + 1;
-      
-      // Construct query params
       const params = new URLSearchParams();
       params.append("page", String(nextPage));
       params.append("limit", "15");
-      
+
       const { category, search } = router.query;
       if (category) params.append("category", String(category));
       if (search) params.append("search", String(search));
 
       const res = await fetch(`/api/articles?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to load more");
-      
+
       const newArticles = await res.json();
-      
       if (!Array.isArray(newArticles)) {
         throw new Error("Invalid response format");
       }
@@ -88,11 +101,13 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
       setNewsList((prev) => {
         if (!Array.isArray(prev)) return newArticles;
         const existingIds = new Set(prev.map((a) => a.id));
-        const uniqueNew = newArticles.filter((a: Article) => !existingIds.has(a.id));
+        const uniqueNew = newArticles.filter(
+          (a: Article) => !existingIds.has(a.id)
+        );
         return [...prev, ...uniqueNew];
       });
       setPage(nextPage);
-      
+
       if (newArticles.length < 15) {
         setHasMore(false);
       }
@@ -103,53 +118,60 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
     }
   };
 
-  // Fallback if no articles
-  if (!articles || !Array.isArray(articles) || articles.length === 0) {
+  const leadPool =
+    !searchQuery && Array.isArray(localArticles) && localArticles.length > 0
+      ? localArticles
+      : articles;
+
+  if (!leadPool || !Array.isArray(leadPool) || leadPool.length === 0) {
     return (
       <>
-      <Head>
-        <title>{HOME_TITLE}</title>
-        <link rel="canonical" href={SITE_URL} />
-        {searchQuery ? (
-          <meta name="robots" key="robots" content="noindex, follow" />
-        ) : null}
-      </Head>
-      <div className="container mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold text-gray-400">No articles found.</h1>
-        {session && session.user && (session.user.role === "admin" || session.user.email === "admin@dalimss.com" || session.user.email === "sushantgaurav@dalimss.com" || session.user.email === "dalimsssushant@gmail.com") && (
-          <Link
-            href="/articles/new"
-            className="mt-6 inline-block bg-blue-600 px-5 py-2.5 rounded-full text-white hover:bg-blue-700"
-          >
-            Start Writing
-          </Link>
-        )}
-      </div>
+        <Head>
+          <title>{HOME_TITLE}</title>
+          <link rel="canonical" href={SITE_URL} />
+          {searchQuery ? (
+            <meta name="robots" key="robots" content="noindex, follow" />
+          ) : null}
+        </Head>
+        <div className="container mx-auto px-4 py-20 text-center">
+          <h1 className="text-2xl font-bold text-gray-400">No articles found.</h1>
+          {session &&
+            session.user &&
+            (session.user.role === "admin" ||
+              session.user.email === "admin@dalimss.com" ||
+              session.user.email === "sushantgaurav@dalimss.com" ||
+              session.user.email === "dalimsssushant@gmail.com") && (
+              <Link
+                href="/articles/new"
+                className="mt-6 inline-block bg-blue-600 px-5 py-2.5 rounded-full text-white hover:bg-blue-700"
+              >
+                Start Writing
+              </Link>
+            )}
+        </div>
       </>
     );
   }
 
-
-  const heroArticle = articles[0];
+  const heroArticle = leadPool[0];
   const heroTitle = decodeEntities(heroArticle.title);
   const heroExcerpt =
     typeof heroArticle.content === "string"
       ? `${decodeEntities(heroArticle.content.replace(/<[^>]+>/g, "")).slice(0, 200)}...`
       : "";
-  const topStories = articles.slice(1, 5);
-  // Keep the full list for pagination. Skip only the first row when it repeats the hero.
-  const latestNews =
-    newsList[0] && heroArticle && newsList[0].id === heroArticle.id
-      ? newsList.slice(1)
-      : newsList; 
-  const sidebarNews = articles.slice(2, 8); // Just reusing for demo
+  const topStories = leadPool.slice(1, 5);
+  const latestNews = newsList;
+  const sidebarArticles =
+    localArticles.length > 0
+      ? [...localArticles, ...articles].slice(0, 8)
+      : articles;
 
   const siteUrl = "https://dalimss.news";
-  const heroOgImage = heroArticle?.mediaUrl?.startsWith('http')
+  const heroOgImage = heroArticle?.mediaUrl?.startsWith("http")
     ? heroArticle.mediaUrl
     : heroArticle?.mediaUrl
-    ? `${siteUrl}${heroArticle.mediaUrl}`
-    : `${siteUrl}/logo.png`;
+      ? `${siteUrl}${heroArticle.mediaUrl}`
+      : `${siteUrl}/logo.png`;
 
   const websiteSchema = {
     "@context": "https://schema.org",
@@ -223,74 +245,77 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
 
   return (
     <>
-    <Head>
-      <title>{HOME_TITLE}</title>
-      <meta name="description" content={HOME_DESCRIPTION} />
-      <meta name="keywords" content="Varanasi news, वाराणसी समाचार, Purvanchal news, Banaras news, Varanasi civic news, BHU news, Dalimss News" />
-      <link rel="canonical" href={siteUrl} />
-      {searchQuery ? (
-        <meta name="robots" key="robots" content="noindex, follow" />
-      ) : null}
+      <Head>
+        <title>{HOME_TITLE}</title>
+        <meta name="description" content={HOME_DESCRIPTION} />
+        <meta
+          name="keywords"
+          content="Varanasi news, वाराणसी समाचार, Purvanchal news, Banaras news, Varanasi civic news, BHU news, Dalimss News"
+        />
+        <link rel="canonical" href={siteUrl} />
+        {searchQuery ? (
+          <meta name="robots" key="robots" content="noindex, follow" />
+        ) : null}
 
-      {/* Geo Targeting */}
-      <meta name="geo.region" content="IN-UP" />
-      <meta name="geo.placename" content="India, Uttar Pradesh, Varanasi" />
-      <meta name="geo.position" content="25.3176;82.9739" />
-      <meta name="ICBM" content="25.3176, 82.9739" />
-      <meta name="language" content="English, Hindi" />
-      <meta name="content-language" content="en-IN, hi-IN" />
+        <meta name="geo.region" content="IN-UP" />
+        <meta name="geo.placename" content="India, Uttar Pradesh, Varanasi" />
+        <meta name="geo.position" content="25.3176;82.9739" />
+        <meta name="ICBM" content="25.3176, 82.9739" />
+        <meta name="language" content="English, Hindi" />
+        <meta name="content-language" content="en-IN, hi-IN" />
 
-      {/* Open Graph */}
-      <meta property="og:type" content="website" />
-      <meta property="og:site_name" content="Dalimss News" />
-      <meta property="og:title" content={HOME_TITLE} />
-      <meta property="og:description" content={HOME_DESCRIPTION} />
-      <meta property="og:url" content={siteUrl} />
-      <meta property="og:image" content={heroOgImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:locale" content="en_IN" />
-      <meta property="og:locale:alternate" content="hi_IN" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Dalimss News" />
+        <meta property="og:title" content={HOME_TITLE} />
+        <meta property="og:description" content={HOME_DESCRIPTION} />
+        <meta property="og:url" content={siteUrl} />
+        <meta property="og:image" content={heroOgImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_IN" />
+        <meta property="og:locale:alternate" content="hi_IN" />
 
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@dalimss_news" />
-      <meta name="twitter:title" content={HOME_TITLE} />
-      <meta name="twitter:description" content={HOME_DESCRIPTION} />
-      <meta name="twitter:image" content={heroOgImage} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@dalimss_news" />
+        <meta name="twitter:title" content={HOME_TITLE} />
+        <meta name="twitter:description" content={HOME_DESCRIPTION} />
+        <meta name="twitter:image" content={heroOgImage} />
 
-      {/* JSON-LD Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
-      />
-    </Head>
-    <div className="container mx-auto space-y-10 px-4 py-6 sm:px-6 md:space-y-12 md:py-8 lg:px-8">
-        
-        {/* WEB STORIES CAROUSEL */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        />
+      </Head>
+      <div className="container mx-auto space-y-10 px-4 py-6 sm:px-6 md:space-y-12 md:py-8 lg:px-8">
         {stories && stories.length > 0 && (
           <section>
             <WebStoriesCarousel stories={stories} />
           </section>
         )}
 
-        {/* HERO SECTION */}
+        {/* Local front-page lead: newest Varanasi and Gurugram stories */}
         <section>
+          {!searchQuery && localArticles.length > 0 && (
+            <SectionHeader
+              title="Varanasi & Gurugram"
+              href="/varanasi-news"
+            />
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* Main Hero Story */}
             <div className="lg:col-span-7">
-              <div className="h-full border border-gray-100 rounded-lg overflow-hidden group bg-white hover:shadow-md transition-shadow">
+              <div className="h-full overflow-hidden rounded-lg border border-gray-100 bg-white group hover:shadow-md transition-shadow">
                 {heroArticle.mediaUrl && (
                   <div className="relative h-64 w-full overflow-hidden bg-black md:h-[500px]">
                     {heroArticle.mediaType !== "video" && (
                       <div
                         className="absolute inset-0 hidden scale-110 bg-cover bg-center opacity-50 blur-xl md:block"
-                        style={{ backgroundImage: `url(${heroArticle.mediaUrl})` }}
+                        style={{
+                          backgroundImage: `url(${heroArticle.mediaUrl})`,
+                        }}
                         aria-hidden="true"
                       />
                     )}
@@ -305,63 +330,89 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
                     />
                   </div>
                 )}
-                <div className="p-6 flex flex-col">
+                <div className="flex flex-col p-6">
                   <Link href={articlePath(heroArticle.slug)}>
-                    <h1 className="text-3xl md:text-4xl font-serif font-bold leading-tight mb-3 text-gray-900 hover:text-red-600 transition-colors">
+                    <h1 className="mb-3 font-serif text-3xl font-bold leading-tight text-gray-900 transition-colors hover:text-red-600 md:text-4xl">
                       {heroTitle}
                     </h1>
                   </Link>
-                  <p className="hidden md:block text-gray-600 text-base line-clamp-3 max-w-full">
+                  <p className="hidden max-w-full text-base text-gray-600 line-clamp-3 md:block">
                     {heroExcerpt}
                   </p>
-                  
-                  <div className="mt-4 flex items-center text-xs text-gray-500 font-semibold uppercase tracking-wider">
-                     <span className="text-red-600 mr-2">Latest Story</span>
-                     <time dateTime={heroArticle.createdAt}>
-                       • {formatDateIST(heroArticle.createdAt, {
-                         day: "numeric",
-                         month: "short",
-                         year: "numeric",
-                       })}
-                     </time>
+                  <div className="mt-4 flex items-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <span className="mr-2 text-red-600">
+                      {searchQuery ? "Search result" : "Local lead"}
+                    </span>
+                    <time dateTime={heroArticle.createdAt}>
+                      •{" "}
+                      {formatDateIST(heroArticle.createdAt, {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </time>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Top Stories Grid */}
             <div className="lg:col-span-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+              <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
                 {topStories.map((article) => (
-                  <ArticleCard key={article.id} article={article} variant="vertical" />
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    variant="vertical"
+                  />
                 ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* MAIN CONTENT GRID */}
+        {!searchQuery &&
+          Array.isArray(sections) &&
+          sections.map((section) => (
+            <section key={section.key}>
+              <SectionHeader title={section.title} href={section.href} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {section.articles.map((article) => (
+                  <ArticleCard
+                    key={`${section.key}-${article.id}`}
+                    article={article}
+                    variant="vertical"
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+
         <section>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* Left Column: Latest News */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             <div className="lg:col-span-8">
-              <SectionHeader 
-                title={searchQuery ? `Search Results: ${searchQuery} (${articles.length})` : "Latest News"} 
+              <SectionHeader
+                title={
+                  searchQuery
+                    ? `Search Results: ${searchQuery} (${articles.length})`
+                    : "Latest News"
+                }
               />
               <div className="flex flex-col">
                 {latestNews.map((article) => (
-                  <ArticleCard key={article.id} article={article} variant="horizontal" />
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    variant="horizontal"
+                  />
                 ))}
               </div>
 
-              {/* Load More Button */}
               {hasMore && (
-                <div className="mt-8 text-center bg-gray-50 p-4 rounded-lg">
+                <div className="mt-8 rounded-lg bg-gray-50 p-4 text-center">
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    className="rounded-full bg-red-600 px-8 py-3 font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                   >
                     {loadingMore ? "Loading..." : "Read More News"}
                   </button>
@@ -369,20 +420,14 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
               )}
             </div>
 
-            {/* Right Sidebar */}
-            <div className="lg:col-span-4 space-y-8">
-              
-              {/* Most Read / Trending */}
-              {/* Most Read / Trending */}
+            <div className="space-y-8 lg:col-span-4">
               <div className="sticky top-4">
                 <SectionHeader title="News Shorts" />
-                <NewsShortsSidebar articles={articles} />
+                <NewsShortsSidebar articles={sidebarArticles} />
               </div>
-
             </div>
           </div>
         </section>
-
       </div>
     </>
   );
@@ -396,7 +441,13 @@ export const getStaticProps: GetStaticProps = async () => {
     console.error("Error fetching articles:", error);
     if (process.env.DATABASE_URL) throw error;
     return {
-      props: { articles: [], stories: [], searchQuery: "" },
+      props: {
+        articles: [],
+        localArticles: [],
+        sections: [],
+        stories: [],
+        searchQuery: "",
+      },
       revalidate: LISTING_REVALIDATE_SECONDS,
     };
   }

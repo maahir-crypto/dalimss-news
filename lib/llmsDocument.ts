@@ -33,6 +33,7 @@ Dalimss News is published by PAMF Digimedia Private Limited, Gurugram, Haryana, 
 - About: https://dalimss.news/about
 - Masthead: https://dalimss.news/masthead
 - Fact-checking: https://dalimss.news/fact-checking
+- How we use AI: https://dalimss.news/how-we-use-ai. Stories are reported, written and checked by named journalists. AI may help with research, transcription, translation, drafting and some labelled illustrations. An editor reviews every story before publishing. Corrections: editor@dalimss.news via /contact.
 - Ownership: https://dalimss.news/ownership
 - Authors: https://dalimss.news/authors
 - Editorial Policy: https://dalimss.news/editorial-policy

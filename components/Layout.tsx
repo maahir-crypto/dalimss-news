@@ -29,6 +29,7 @@ const NO_ADS_PREFIXES = [
   "/authors",
   "/editorial-policy",
   "/corrections-policy",
+  "/how-we-use-ai",
   "/mobile-post",
   "/admin",
   "/auth",

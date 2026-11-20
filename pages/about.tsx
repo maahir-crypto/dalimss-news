@@ -11,6 +11,9 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import {
+  OFFICE_ADDRESS_DISPLAY,
+  OFFICE_PHONE_DISPLAY,
+  OFFICE_PHONE_TEL,
   SITE_NAME,
   SITE_URL,
   authorSlug,
@@ -31,6 +34,11 @@ const facts = [
     label: "Publishing since",
     value: "February 2024",
     icon: CalendarDaysIcon,
+  },
+  {
+    label: "Headquarters",
+    value: "Gurugram and Varanasi",
+    icon: MapPinIcon,
   },
   {
     label: "Reports from",
@@ -140,9 +148,10 @@ export default function AboutPage() {
           </h1>
           <div className="space-y-4 text-lg md:text-xl text-gray-300 leading-relaxed max-w-3xl">
             <p>
-              Dalimss News has been publishing since February 2024 and is a
-              digital news publication reporting from Varanasi and Gurugram,
-              with technology and automotive news and price guides.
+              Dalimss News is headquartered in Gurugram and Varanasi and has
+              been publishing since February 2024. It is a digital news
+              publication reporting from both cities, with technology and
+              automotive news and price guides.
             </p>
             <p>
               We publish original reporting from Varanasi, Eastern Uttar Pradesh,
@@ -200,6 +209,9 @@ export default function AboutPage() {
               <div className="flex flex-wrap gap-4">
                 <Link className="text-red-700 font-semibold hover:underline" href="/editorial-policy">
                   Editorial policy
+                </Link>
+                <Link className="text-red-700 font-semibold hover:underline" href="/how-we-use-ai">
+                  How we use AI
                 </Link>
                 <Link className="text-red-700 font-semibold hover:underline" href="/ownership">
                   Ownership
@@ -389,23 +401,23 @@ export default function AboutPage() {
               <div>
                 <PhoneIcon className="h-6 w-6 text-red-500 mb-3" />
                 <h3 className="text-white font-semibold mb-1">Phone</h3>
-                <a className="hover:text-white" href="tel:+916392752976">
-                  +91 63927 52976
+                <a className="hover:text-white" href={`tel:${OFFICE_PHONE_TEL}`}>
+                  {OFFICE_PHONE_DISPLAY}
                 </a>
               </div>
               <div>
                 <MapPinIcon className="h-6 w-6 text-red-500 mb-3" />
                 <h3 className="text-white font-semibold mb-1">
-                  Varanasi
+                  Office address
                 </h3>
-                <p>Varanasi, Uttar Pradesh, India</p>
+                <p>{OFFICE_ADDRESS_DISPLAY}</p>
               </div>
               <div>
                 <MapPinIcon className="h-6 w-6 text-red-500 mb-3" />
                 <h3 className="text-white font-semibold mb-1">
-                  Gurugram
+                  Headquarters
                 </h3>
-                <p>Gurugram, Haryana, India</p>
+                <p>Gurugram, Haryana and Varanasi, Uttar Pradesh</p>
               </div>
             </div>
           </div>

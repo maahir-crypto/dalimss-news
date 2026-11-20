@@ -1,5 +1,6 @@
 import { Category } from "@/lib/categories";
 import { englishArticleWhere } from "@/lib/articleLanguage";
+import { listingSlugNotIn } from "@/lib/listingExclusions";
 import {
   CATEGORY_ARCHIVE_PAGE_SIZE,
   isListingPageInRange,
@@ -17,6 +18,7 @@ export function categoryArticleWhere(
   return {
     AND: [
       englishArticleWhere,
+      { slug: listingSlugNotIn() },
       {
         OR: category.dbValues.map((val) => ({
           category: {

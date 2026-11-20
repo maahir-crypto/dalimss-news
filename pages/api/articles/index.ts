@@ -20,6 +20,7 @@ import {
   articleCreateFailureResponse,
   logArticleCreateError,
 } from "@/lib/createArticleError";
+import { listingSlugNotIn } from "@/lib/listingExclusions";
 import { canonicalAuthorName, stripForMeta } from "@/lib/seo";
 import { Prisma } from "@prisma/client";
 
@@ -167,7 +168,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // ----------- GET ALL ARTICLES -----------
   const { category, search, page, limit } = req.query;
-  const where: any = { ...englishArticleWhere };
+  const where: any = {
+    ...englishArticleWhere,
+    slug: listingSlugNotIn(),
+  };
 
   if (category) {
     const matchedCategory = getCategoryBySlug(String(category)) || getCategoryByDbValue(String(category));

@@ -445,6 +445,14 @@ export const ORGANIZATION_ADDRESS = {
   addressCountry: "IN",
 };
 
+/** Visible newsroom office address (Sigra, Varanasi). Never the PAMF registered office. */
+export const OFFICE_ADDRESS_DISPLAY =
+  "D.58, 520B, Sigra - Mahmoorganj Rd, Sigra, Varanasi, Uttar Pradesh 221002";
+
+/** Public newsroom phone shown on About and Contact. */
+export const OFFICE_PHONE_DISPLAY = "+91 95194 51993";
+export const OFFICE_PHONE_TEL = "+919519451993";
+
 export const ORGANIZATION_LANGUAGES = ["English", "Hindi"];
 
 export const ORGANIZATION_LOGO = {
