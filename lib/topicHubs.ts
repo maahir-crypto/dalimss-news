@@ -1,5 +1,7 @@
-import { DUPLICATE_ARTICLE_CANONICALS } from "@/lib/duplicateArticles";
 import { latestStories, type LatestStory } from "@/lib/latestStories";
+import { listingSlugNotIn } from "@/lib/listingExclusions";
+import { applyListingPins } from "@/lib/listingPins";
+import { cleanHubListingTitle } from "@/lib/listingTitle";
 import { GetServerSideProps } from "next";
 import prisma from "@/lib/prisma";
 import { Article } from "@/types";
@@ -286,6 +288,7 @@ export function makeTopicHubServerSideProps(
     const articleWhere = {
       AND: [
         { NOT: { language: "hi" } },
+        { slug: listingSlugNotIn() },
         {
           OR: hub.keywords.flatMap((keyword) => [
             { title: { contains: keyword, mode: "insensitive" as const } },
@@ -306,12 +309,17 @@ export function makeTopicHubServerSideProps(
       }
 
       const { skip, take } = listingWindow(page, TOPIC_HUB_PAGE_SIZE);
+      // Fetch a small buffer on page 1 so expired soft-pins can be dropped
+      // without leaving holes, then trim back to the page size.
+      const fetchTake = page === 1 ? take + 8 : take;
       const [articles, latestRows, newest] = await Promise.all([
         prisma.article.findMany({
           where: articleWhere,
-          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+          // Publication order: do not let a re-edit of an old festival guide
+          // float above fresh local reporting.
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           skip,
-          take,
+          take: fetchTake,
           select: {
             id: true,
             slug: true,
@@ -333,6 +341,7 @@ export function makeTopicHubServerSideProps(
           where: {
             AND: [
               { NOT: { language: "hi" } },
+              { slug: listingSlugNotIn() },
               {
                 OR: hub.keywords.flatMap((keyword) => [
                   { category: { contains: keyword, mode: "insensitive" as const } },
@@ -340,23 +349,25 @@ export function makeTopicHubServerSideProps(
                 ]),
               },
             ],
-            slug: { notIn: Object.keys(DUPLICATE_ARTICLE_CANONICALS) },
           },
           select: { slug: true, title: true, createdAt: true },
           orderBy: [{ createdAt: "desc" }, { slug: "asc" }],
-          take: 5,
+          take: 12,
         }),
         prisma.article.findFirst({
           where: articleWhere,
-          orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
-          select: { updatedAt: true },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          select: { createdAt: true, updatedAt: true },
         }),
       ]);
 
-      const serializedArticles: Article[] = articles.map((article) => ({
+      const ordered =
+        page === 1 ? applyListingPins(articles).slice(0, take) : articles;
+
+      const serializedArticles: Article[] = ordered.map((article) => ({
         id: article.id,
         slug: article.slug,
-        title: article.title,
+        title: cleanHubListingTitle(article.title),
         content: article.content,
         mediaUrl: article.mediaUrl,
         mediaType: article.mediaType as Article["mediaType"],
@@ -383,10 +394,13 @@ export function makeTopicHubServerSideProps(
         props: {
           hub,
           articles: serializedArticles,
-          latestUpdate: newest?.updatedAt.toISOString() || null,
+          latestUpdate:
+            newest?.updatedAt.toISOString() ||
+            newest?.createdAt.toISOString() ||
+            null,
           latestArticles: latestStories(latestRows).map(({ slug, title }) => ({
             slug,
-            title,
+            title: cleanHubListingTitle(title),
           })),
           page,
           totalPages,

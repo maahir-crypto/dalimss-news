@@ -46,12 +46,18 @@ assert.ok(
 for (const url of [
   "https://dalimss.news/masthead",
   "https://dalimss.news/fact-checking",
+  "https://dalimss.news/how-we-use-ai",
   "https://dalimss.news/ownership",
   "https://dalimss.news/privacy-policy",
   "https://dalimss.news/terms-and-conditions",
 ]) {
   assert.ok(body.includes(url), url);
 }
+assert.ok(
+  body.includes(
+    "How we use AI: https://dalimss.news/how-we-use-ai. Stories are reported, written and checked by named journalists."
+  )
+);
 assert.ok(
   body.includes(
     "Technology: https://dalimss.news/category/technology. Latest technology news from India: phones, gadgets, apps, AI, digital policy, launches and official price lists."
