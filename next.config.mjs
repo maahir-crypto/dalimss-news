@@ -182,6 +182,24 @@ const nextConfig = {
         destination: "/articles/skoda-octavia-rs-price-5669000",
         permanent: true,
       },
+      // 20 Nov 2026 Varanasi desk same-event merges.
+      // The short land-lease slug is not a published article, so it stays
+      // out of MERGED_ARTICLE_REDIRECTS and is config-only.
+      {
+        source: "/articles/varanasi-ganga-mahotsav-artist-programme-nov18-2026",
+        destination: "/articles/varanasi-ganga-mahotsav-artists-namo-ghat-nov18-2026",
+        permanent: true,
+      },
+      {
+        source: "/articles/varanasi-central-forces-land-lease-419-acres-nov19-2026",
+        destination: "/articles/varanasi-dham-security-land-lease-nov18-2026",
+        permanent: true,
+      },
+      {
+        source: "/articles/varanasi-central-forces-land-lease-419-acres-nov19",
+        destination: "/articles/varanasi-dham-security-land-lease-nov18-2026",
+        permanent: true,
+      },
     ];
   },
 

@@ -27,7 +27,7 @@ import {
 }
 
 {
-  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 11);
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 13);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);
     assert.equal(isDuplicateArticleCopy(copy), true);
@@ -39,6 +39,12 @@ import {
   assert.equal(
     duplicateCanonicalSlug("ipad-a16-price-list-49900-to-103900"),
     "ipad-a16-49900-103900"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-ganga-mahotsav-artist-programme-nov18-2026"
+    ),
+    "varanasi-ganga-mahotsav-artists-namo-ghat-nov18-2026"
   );
 }
 

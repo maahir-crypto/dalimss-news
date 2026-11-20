@@ -53,6 +53,11 @@ export const MERGED_ARTICLE_REDIRECTS: Record<string, string> = {
     "nokia-106-4g-hmd-101-4g-2599-2199",
   "ipad-pro-m5-139900-163900": "ipad-pro-m5-2500-8900",
   "skoda-octavia-rs-park-assist": "skoda-octavia-rs-price-5669000",
+  // 20 Nov 2026 Varanasi desk same-event merges
+  "varanasi-ganga-mahotsav-artist-programme-nov18-2026":
+    "varanasi-ganga-mahotsav-artists-namo-ghat-nov18-2026",
+  "varanasi-central-forces-land-lease-419-acres-nov19-2026":
+    "varanasi-dham-security-land-lease-nov18-2026",
 };
 
 /** Slug whose URL should be the canonical for this article. */
