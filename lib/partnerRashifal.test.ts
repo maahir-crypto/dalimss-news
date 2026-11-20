@@ -9,7 +9,13 @@ import {
   partnerRashifalFor,
   useDiwaliPartnerCta,
   isHardNewsStory,
+  isKashiVishwanathStory,
   isPartnerEligibleStory,
+  isSensitiveStory,
+  KASHI_VISHWANATH_DARSHAN,
+  UPCOMING_VRAT_CTAS,
+  getUpcomingVrat,
+  upcomingVratForStory,
   isPartnerInlineTestActive,
   isPartnerTechAutoTestActive,
   isTechAutoTestStory,
@@ -235,5 +241,132 @@ describe("tech/auto end-line test", () => {
     for (const slug of PARTNER_TECH_AUTO_TEST_SLUGS) {
       assert.equal(isPartnerEligibleStory({ slug }), false, slug);
     }
+  });
+});
+
+describe("Kashi Vishwanath darshan guide", () => {
+  const NOV20 = new Date("2026-11-20T06:30:00Z");
+  const NOV22 = new Date("2026-11-22T06:30:00Z");
+  const NOV24 = new Date("2026-11-24T06:30:00Z");
+  const NOV24_LAST = new Date("2026-11-24T18:29:59.999Z");
+  const NOV25 = new Date("2026-11-24T18:30:00Z");
+  const JUN2027 = new Date("2027-06-15T06:30:00Z");
+  const TEMPLE = {
+    slug: "kashi-vishwanath-temple-darshan",
+    title: "Kashi Vishwanath temple reopens for evening darshan",
+    category: "Varanasi",
+  };
+
+  it("is an evergreen story guide outside the dated rotation", () => {
+    assert.equal(KASHI_VISHWANATH_DARSHAN.id, "kashi_vishwanath_darshan");
+    assert.equal(KASHI_VISHWANATH_DARSHAN.path, "/kashi-vishwanath-live-darshan/");
+    assert.equal(KASHI_VISHWANATH_DARSHAN.campaign, "kashi_vishwanath_darshan");
+    assert.equal(getUpcomingVrat("kashi_vishwanath_darshan")?.path, "/kashi-vishwanath-live-darshan/");
+    assert.equal(UPCOMING_VRAT_CTAS.some((c) => c.id === "kashi_vishwanath_darshan"), false);
+    assert.equal(KASHI_VISHWANATH_DARSHAN.text.en.endCard, "Kashi Vishwanath live darshan on Pocket Jyotish");
+    assert.equal(KASHI_VISHWANATH_DARSHAN.text.en.sidebarTitle, "Kashi Vishwanath darshan");
+    assert.equal(KASHI_VISHWANATH_DARSHAN.text.en.sidebarBody, "Watch Kashi Vishwanath live darshan on our partner site.");
+    assert.equal(KASHI_VISHWANATH_DARSHAN.text.en.sidebarLink, "Kashi Vishwanath live darshan");
+    for (const lang of ["en", "hi"] as const) {
+      const blob = Object.values(KASHI_VISHWANATH_DARSHAN.text[lang]).join("\n");
+      assert.equal(/\bfree\b|मुफ्त|मुफ़्त|click here/i.test(blob), false, lang);
+    }
+    for (const medium of ["ad", "sidebar", "widget"] as const) {
+      const href = partnerHref({
+        path: KASHI_VISHWANATH_DARSHAN.path,
+        medium,
+        campaign: KASHI_VISHWANATH_DARSHAN.campaign,
+        slug: TEMPLE.slug,
+      });
+      const url = new URL(href);
+      assert.equal(url.origin + url.pathname, "https://pocketjyotish.in/kashi-vishwanath-live-darshan/");
+      assert.equal(url.searchParams.get("utm_source"), "dalimss_news");
+      assert.equal(url.searchParams.get("utm_medium"), medium);
+      assert.equal(url.searchParams.get("utm_campaign"), "kashi_vishwanath_darshan");
+      assert.equal(url.searchParams.get("utm_content"), TEMPLE.slug);
+    }
+  });
+
+  it("gives a Kashi Vishwanath temple story the darshan guide", () => {
+    for (const story of [
+      TEMPLE,
+      { title: "Vishwanath temple queue on Monday", category: "India" },
+      { title: "Vishwanath dham evening aarti", slug: "city-notes" },
+      { title: "Kashi Vishwanath corridor opens", category: "Varanasi" },
+      { title: "काशी विश्वनाथ दर्शन", category: "Varanasi" },
+      { title: "विश्वनाथ मंदिर में आरती", slug: "evening-aarti" },
+      { title: "विश्वनाथ धाम", category: "Religion" },
+      { slug: "kashi-vishwanath-corridor-update", title: "Corridor update", category: "Varanasi" },
+      { slug: "vishwanath-temple-timings", title: "Morning timings", category: "India" },
+    ]) {
+      assert.equal(isKashiVishwanathStory(story), true, JSON.stringify(story));
+      assert.equal(isPartnerEligibleStory(story), true, JSON.stringify(story));
+      for (const now of [NOV20, NOV25, JUN2027]) {
+        const guide = upcomingVratForStory(story, now);
+        assert.equal(guide?.id, "kashi_vishwanath_darshan", `${JSON.stringify(story)} ${now.toISOString()}`);
+        assert.equal(guide?.path, "/kashi-vishwanath-live-darshan/");
+        assert.equal(guide?.campaign, "kashi_vishwanath_darshan");
+      }
+    }
+  });
+
+  it("keeps Dev Deepawali when a Kashi Vishwanath story also matches it", () => {
+    const both = {
+      slug: "kashi-vishwanath-dev-deepawali-2026",
+      title: "Kashi Vishwanath Dev Deepawali 2026",
+      category: "Varanasi",
+    };
+    for (const now of [NOV20, NOV22, NOV24, NOV24_LAST]) {
+      assert.equal(upcomingVratForStory(both, now)?.id, "dev_deepawali_2026", now.toISOString());
+      assert.equal(upcomingVratForStory(both, now)?.path, "/dev-deepawali-2026/");
+    }
+    assert.equal(upcomingVratForStory(both, NOV25)?.id, "kashi_vishwanath_darshan");
+    const tulsi = {
+      slug: "kashi-vishwanath-tulsi-vivah",
+      title: "Tulsi Vivah at Kashi Vishwanath",
+      category: "Lifestyle",
+    };
+    assert.equal(upcomingVratForStory(tulsi, NOV20)?.id, "tulsi_vivah_2026");
+    const bhishma = {
+      slug: "kashi-vishwanath-bhishma-panchak",
+      title: "Bhishma Panchak at the Vishwanath temple",
+      category: "Lifestyle",
+    };
+    assert.equal(upcomingVratForStory(bhishma, NOV20)?.id, "bhishma_panchak_2026");
+  });
+
+  it("blocks the darshan guide on sensitive and hard-news stories", () => {
+    for (const story of [
+      { slug: "kashi-vishwanath-stampede", title: "Kashi Vishwanath stampede", category: "Varanasi" },
+      { slug: "kashi-vishwanath-death", title: "Death at Kashi Vishwanath temple", category: "Varanasi" },
+      { title: "काशी विश्वनाथ में भगदड़", category: "Varanasi" },
+      { title: "Police probe at Kashi Vishwanath", category: "Varanasi" },
+    ]) {
+      assert.equal(isSensitiveStory(story) || isHardNewsStory(story), true, JSON.stringify(story));
+      assert.equal(isPartnerEligibleStory(story), false, JSON.stringify(story));
+      assert.equal(upcomingVratForStory(story, NOV20), null, JSON.stringify(story));
+      assert.equal(upcomingVratForStory(story, JUN2027), null, JSON.stringify(story));
+    }
+  });
+
+  it("does not give the darshan guide to a generic Varanasi ghat story", () => {
+    const ghat = {
+      slug: "dashashwamedh-ghat-aarti-timings",
+      title: "Dashashwamedh Ghat aarti timings in Varanasi",
+      category: "Lifestyle",
+    };
+    const kashiGhat = {
+      slug: "kashi-ghat-aarti-guide",
+      title: "Kashi ghat aarti timings",
+      category: "Varanasi",
+    };
+    const bare = { slug: "vishwanath-singh-profile", title: "Vishwanath Singh on the ghat plan", category: "Varanasi" };
+    const taggedOnly = { slug: "city-traffic-plan", title: "Traffic plan for the old city", category: "Varanasi", tags: "Kashi Vishwanath" };
+    for (const story of [ghat, kashiGhat, bare, taggedOnly]) {
+      assert.equal(isKashiVishwanathStory(story), false, JSON.stringify(story));
+      assert.notEqual(upcomingVratForStory(story, NOV20)?.id, "kashi_vishwanath_darshan", JSON.stringify(story));
+      assert.notEqual(upcomingVratForStory(story, JUN2027)?.id, "kashi_vishwanath_darshan", JSON.stringify(story));
+    }
+    assert.equal(upcomingVratForStory(ghat, NOV20)?.id, "tulsi_vivah_2026");
   });
 });

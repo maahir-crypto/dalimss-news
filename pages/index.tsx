@@ -188,6 +188,7 @@ export default function HomePage({ articles, stories, searchQuery }: Props) {
     description: HOME_DESCRIPTION,
     foundingDate: "2024-02",
     email: "editor@dalimss.news",
+    telephone: "+91-9519451993",
     address: ORGANIZATION_ADDRESS,
     areaServed: [
       "Varanasi",

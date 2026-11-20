@@ -438,8 +438,10 @@ export function formatDateIST(
 
 export const ORGANIZATION_ADDRESS = {
   "@type": "PostalAddress",
-  addressLocality: "Gurugram",
-  addressRegion: "Haryana",
+  streetAddress: "D.58, 520B, Sigra - Mahmoorganj Rd, Sigra",
+  addressLocality: "Varanasi",
+  addressRegion: "Uttar Pradesh",
+  postalCode: "221002",
   addressCountry: "IN",
 };
 
@@ -461,6 +463,7 @@ export function newsMediaOrganizationSchema() {
     name: SITE_NAME,
     url: `${SITE_URL}/`,
     email: "editor@dalimss.news",
+    telephone: "+91-9519451993",
     foundingDate: "2024-02",
     logo: ORGANIZATION_LOGO,
     address: ORGANIZATION_ADDRESS,

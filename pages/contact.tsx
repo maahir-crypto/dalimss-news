@@ -75,6 +75,7 @@ const ContactPage: React.FC = () => {
     name: SITE_NAME,
     url: `${SITE_URL}/`,
     email: "editor@dalimss.news",
+    telephone: "+91-9519451993",
     address: ORGANIZATION_ADDRESS,
     contactPoint: {
       "@type": "ContactPoint",

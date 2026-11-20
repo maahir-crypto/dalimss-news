@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   DUPLICATE_ARTICLE_CANONICALS,
+  MERGED_ARTICLE_REDIRECTS,
   duplicateCanonicalSlug,
   isDuplicateArticleCopy,
   isRepeatPost,
@@ -26,7 +27,6 @@ import {
 }
 
 {
-  const { MERGED_ARTICLE_REDIRECTS } = require("./duplicateArticles");
   assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 11);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);

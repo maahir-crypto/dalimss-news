@@ -496,7 +496,8 @@ export type UpcomingVratId =
   | "kharmas_2026"
   | "lohri_sankranti_2027"
   | "rashifal_2027"
-  | "griha_pravesh_2027";
+  | "griha_pravesh_2027"
+  | "kashi_vishwanath_darshan";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
@@ -1111,8 +1112,37 @@ export const UPCOMING_VRAT_CTAS: readonly UpcomingVratCta[] = [
   },
 ];
 
+/**
+ * Evergreen Kashi Vishwanath darshan guide. No end date. It is not part of
+ * UPCOMING_VRAT_CTAS, so it never takes a general-queue slot. A story gets it
+ * only when the title or slug names Kashi Vishwanath and no open named
+ * festival or vrat guide matches that story.
+ * untilIst is a sentinel so ISR expiry math stays hourly; the guide does not expire.
+ */
+export const KASHI_VISHWANATH_DARSHAN: UpcomingVratCta = {
+  id: "kashi_vishwanath_darshan",
+  path: "/kashi-vishwanath-live-darshan/",
+  campaign: "kashi_vishwanath_darshan",
+  untilIst: "9999-12-31",
+  text: {
+    en: {
+      endCard: "Kashi Vishwanath live darshan on Pocket Jyotish",
+      sidebarTitle: "Kashi Vishwanath darshan",
+      sidebarBody: "Watch Kashi Vishwanath live darshan on our partner site.",
+      sidebarLink: "Kashi Vishwanath live darshan",
+    },
+    hi: {
+      endCard: "काशी विश्वनाथ लाइव दर्शन, Pocket Jyotish पर",
+      sidebarTitle: "काशी विश्वनाथ दर्शन",
+      sidebarBody: "काशी विश्वनाथ का लाइव दर्शन हमारी पार्टनर साइट पर देखें.",
+      sidebarLink: "काशी विश्वनाथ लाइव दर्शन",
+    },
+  },
+};
+
 export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta | null {
   if (!id) return null;
+  if (id === KASHI_VISHWANATH_DARSHAN.id) return KASHI_VISHWANATH_DARSHAN;
   return UPCOMING_VRAT_CTAS.find((c) => c.id === id) ?? null;
 }
 
@@ -1316,6 +1346,7 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * Guru Nanak Jayanti, Akshaya Navami, Gopashtami, Griha Pravesh,
  * Bhishma Panchak, Dev Uthani, Prabodhini Ekadashi, Kartik snan,
  * Margashirsha month, and a December 2026 vrat or tyohar list.
+ * Kashi Vishwanath is title or slug only, not a general temple or Varanasi story.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1331,11 +1362,98 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
     isGrihaPraveshStory(a) ||
     mentionsBhishmaPanchak(a) ||
     mentionsMargashirshaMonth(a) ||
-    mentionsDecemberVratTyohar(a)
+    mentionsDecemberVratTyohar(a) ||
+    isKashiVishwanathStory(a)
   ) {
     return true;
   }
   return isVaranasiSpiritualGuide(a);
+}
+
+/**
+ * Kashi Vishwanath, Vishwanath temple, Vishwanath dham, or the Kashi
+ * Vishwanath corridor, in the title or slug only. Tags, category, a bare
+ * Vishwanath, and a general Kashi or Varanasi story do not match.
+ */
+export function isKashiVishwanathStory(a: StoryFields): boolean {
+  const slugText = (a.slug || "").replace(/-/g, " ");
+  const hay = `${a.title || ""} ${slugText}`;
+  return (
+    /\bkashi[\s-]+vishwanath\b/i.test(hay) ||
+    /\bvishwanath[\s-]+temple\b/i.test(hay) ||
+    /\bvishwanath[\s-]+dham\b/i.test(hay) ||
+    /काशी\s*विश्वनाथ|विश्वनाथ\s*मंदिर|विश्वनाथ\s*धाम/.test(hay)
+  );
+}
+
+/** Predicate or fallback guide that names this story. General-queue guides are not included. */
+function specificNamedVrat(a: StoryFields, today: string): UpcomingVratCta | null {
+  const firstGeneral = UPCOMING_VRAT_CTAS.findIndex((c) => c.appliesTo === undefined);
+  const legacyEnd = firstGeneral === -1 ? UPCOMING_VRAT_CTAS.length : firstGeneral;
+  for (let i = 0; i < legacyEnd; i++) {
+    const c = UPCOMING_VRAT_CTAS[i];
+    if (c.fallback) continue;
+    if (vratIsOpen(c, today) && c.appliesTo && c.appliesTo(a)) return c;
+  }
+  const specific = UPCOMING_VRAT_CTAS.find(
+    (c) => c.appliesTo !== undefined && c.fallback !== true && vratIsOpen(c, today) && c.appliesTo(a)
+  );
+  if (specific) return specific;
+  return (
+    UPCOMING_VRAT_CTAS.find(
+      (c) => c.fallback === true && c.appliesTo !== undefined && vratIsOpen(c, today) && c.appliesTo(a)
+    ) ?? null
+  );
+}
+
+/** General-queue guide whose own name is in the story. A bare rotation slot does not match. */
+function generalGuideMentions(id: string, a: StoryFields): boolean {
+  const hay = partnerHay(a);
+  switch (id) {
+    case "tulsi_vivah_2026":
+      return /\btulsi[\s-]?vivah\b/i.test(hay) || /तुलसी\s?विवाह/.test(hay);
+    case "pradosh_2026":
+      return /\bpradosh\b/i.test(hay) || /प्रदोष/.test(hay);
+    case "vaikuntha_2026":
+      return /\bvaikuntha\b/i.test(hay) || /वैकुंठ/.test(hay);
+    case "dev_deepawali_2026":
+      return /\bdev[\s-]?(?:deepawali|diwali)\b/i.test(hay) || /देव\s?(?:दीपावली|दिवाली)/.test(hay);
+    case "sankashti_2026":
+      return /\bsankashti\b/i.test(hay) || /संकष्टी/.test(hay);
+    case "utpanna_ekadashi_2026":
+      return /\butpanna\b/i.test(hay) || /उत्पन्ना/.test(hay);
+    case "mgpurnima_2026":
+      return /\bpurnima\b/i.test(hay) || /पूर्णिमा/.test(hay);
+    default:
+      return false;
+  }
+}
+
+function guideMatchesStory(cta: UpcomingVratCta, a: StoryFields): boolean {
+  if (cta.appliesTo) return cta.appliesTo(a);
+  return generalGuideMentions(cta.id, a);
+}
+
+/**
+ * Named festival or vrat guide that this Kashi Vishwanath story actually
+ * matches. The current general-queue guide does not count unless the story
+ * names it. Dev Deepawali, Tulsi, Bhishma, Dev Uthani, Margashirsha, the
+ * December list, Kaal Bhairav and the other named guides stay ahead.
+ */
+function namedGuideAheadOfKashiDarshan(
+  a: StoryFields,
+  now: Date,
+  chosen: UpcomingVratCta | null
+): UpcomingVratCta | null {
+  if (chosen && guideMatchesStory(chosen, a)) return chosen;
+  const today = istCalendarDate(now);
+  const specific = specificNamedVrat(a, today);
+  if (specific) return specific;
+  return (
+    UPCOMING_VRAT_CTAS.find(
+      (c) => c.appliesTo === undefined && vratIsOpen(c, today) && generalGuideMentions(c.id, a)
+    ) ?? null
+  );
 }
 
 /**
@@ -1345,17 +1463,20 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
  * From 17 to 24 Nov IST, Varanasi and festival stories show Dev Deepawali
  * instead of Pradosh. Tulsi (through 21 Nov) and Vaikuntha (through 23 Nov)
  * still win on those days because they are the sooner guide.
+ * A Kashi Vishwanath story uses the evergreen darshan guide only when no
+ * named festival or vrat guide matches. Named guides keep their own windows.
  */
 export function upcomingVratForStory(a: StoryFields, now: Date = new Date()): UpcomingVratCta | null {
   if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return null;
   if (festivalPartnerCtaFor(a, now)) return null;
   if (isDiwaliPartnerCtaActive(now) && isDiwaliFestivalStory(a)) return null;
   const next = nextUpcomingVrat(now, a);
-  if (!next) return null;
-  if (next.id === "pradosh_2026" && devDeepawaliOverridesPradosh(a, now)) {
-    return getUpcomingVrat("dev_deepawali_2026");
-  }
-  return next;
+  const chosen =
+    next && next.id === "pradosh_2026" && devDeepawaliOverridesPradosh(a, now)
+      ? getUpcomingVrat("dev_deepawali_2026")
+      : next;
+  if (!isKashiVishwanathStory(a)) return chosen;
+  return namedGuideAheadOfKashiDarshan(a, now, chosen) ?? KASHI_VISHWANATH_DARSHAN;
 }
 
 const FESTIVAL_STORY_EN =
