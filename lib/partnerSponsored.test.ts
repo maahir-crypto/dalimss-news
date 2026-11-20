@@ -112,20 +112,48 @@ describe("sensitive stories get no Pocket Jyotish unit", () => {
   });
 });
 
-describe("hard news is end-only and other stories keep one end unit", () => {
-  it("politics is hard news, not sensitive, and gets the end unit only", () => {
+describe("hard news gets no Pocket Jyotish unit; soft stories keep one end unit", () => {
+  it("politics is hard news, not sensitive, and gets no sponsored unit", () => {
     assert.equal(isHardNewsStory(POLITICS), true);
     assert.equal(isSensitiveStory(POLITICS), false);
     assert.equal(isPartnerEligibleStory(POLITICS), false);
-    assert.equal(canShowSponsoredEndUnit(POLITICS), true);
+    assert.equal(canShowSponsoredEndUnit(POLITICS), false);
     assert.equal(upcomingVratForStory(POLITICS, TULSI_LAST), null);
   });
 
-  it("an ordinary story gets the evergreen end unit and no inline partner card", () => {
-    assert.equal(isHardNewsStory(METRO), false);
+  it("transport and civic hard news get no evergreen sponsored unit", () => {
+    assert.equal(isHardNewsStory(METRO), true);
     assert.equal(isSensitiveStory(METRO), false);
     assert.equal(isPartnerEligibleStory(METRO), false);
-    assert.equal(canShowSponsoredEndUnit(METRO), true);
+    assert.equal(canShowSponsoredEndUnit(METRO), false);
+    const udhna = {
+      slug: "varanasi-udhna-special-05115-cantt-nov20-2026",
+      title: "Varanasi to Udhna special: Cantt boarding is November 20 at 1:30 am",
+      category: "Varanasi",
+    };
+    const ardee = {
+      slug: "gurugram-ardee-city-flyover-underpass-plan-november-18",
+      title: "Gurugram Ardee City flyover and underpass plan: Rs 225 crore",
+      category: "Gurugram",
+    };
+    const udyan = {
+      slug: "varanasi-shaheed-udyan-sonia-pond-deadlines-nov16-2026",
+      title: "Varanasi sets December deadlines for Shaheed Udyan and Sonia pond",
+      category: "Varanasi",
+    };
+    for (const story of [udhna, ardee, udyan]) {
+      assert.equal(isHardNewsStory(story), true, JSON.stringify(story));
+      assert.equal(canShowSponsoredEndUnit(story), false, JSON.stringify(story));
+      assert.equal(isPartnerEligibleStory(story), false, JSON.stringify(story));
+    }
+  });
+
+  it("an ordinary soft story gets the evergreen end unit and no inline partner card", () => {
+    const lifestyle = { slug: "city-cafe-guide", title: "Best cafes in Sector 29", category: "Lifestyle" };
+    assert.equal(isHardNewsStory(lifestyle), false);
+    assert.equal(isSensitiveStory(lifestyle), false);
+    assert.equal(isPartnerEligibleStory(lifestyle), false);
+    assert.equal(canShowSponsoredEndUnit(lifestyle), true);
   });
 
   it("does not add a second end unit on astrology, festival, price or tech lines", () => {
@@ -591,23 +619,24 @@ describe("new guide rotation and Sponsored end windows", () => {
     }
   });
 
-  it("keeps sensitive Chhath stories out and gives general Chhath priority over A/B", () => {
+  it("keeps sensitive and hard-news Chhath stories out; soft Chhath keeps the partner guide", () => {
     assert.equal(canShowSponsoredEndUnit(SENSITIVE_CHHATH, { now: NOV14 }), false);
     assert.equal(upcomingVratForStory(SENSITIVE_CHHATH, NOV14), null);
     assert.equal(sponsoredEndModeForStory(SENSITIVE_CHHATH, NOV14), null);
     assert.equal(sponsoredEndModeForStory(CHHATH, NOV14), null);
-    assert.equal(canShowSponsoredEndUnit(GENERAL_CHHATH, { now: NOV14 }), true);
+    assert.equal(isHardNewsStory(GENERAL_CHHATH), true);
+    assert.equal(canShowSponsoredEndUnit(GENERAL_CHHATH, { now: NOV14 }), false);
     assert.equal(upcomingVratForStory(GENERAL_CHHATH, NOV14), null);
-    assert.equal(sponsoredEndModeForStory(GENERAL_CHHATH, NOV16_LAST), "chhath");
-    assert.notEqual(sponsoredEndModeForStory(GENERAL_CHHATH, NOV17), "chhath");
+    assert.equal(sponsoredEndModeForStory(GENERAL_CHHATH, NOV16_LAST), null);
+    assert.equal(upcomingVratForStory(CHHATH, NOV14)?.id, "chhath_2026");
     for (const lang of ["en", "hi"] as const) {
       const markup = html(React.createElement(PartnerSponsoredUnit, {
-        lang, slug: GENERAL_CHHATH.slug, tone: "hard-news", placement: "after-body", mode: "chhath",
+        lang, slug: CHHATH.slug, tone: "general", placement: "after-body", mode: "chhath",
       }));
       assert.ok(markup.includes(lang === "hi" ? "छठ पूजा 2026 तिथि और पूजा समय" : "Chhath Puja 2026 dates and puja timings"));
       assert.equal(new URL(hrefs(markup)[0]).pathname, "/chhath-puja-2026/");
       assert.deepEqual(params(hrefs(markup)[0]), {
-        utm_source: "dalimss_news", utm_medium: "ad", utm_campaign: "chhath2026", utm_content: GENERAL_CHHATH.slug,
+        utm_source: "dalimss_news", utm_medium: "ad", utm_campaign: "chhath2026", utm_content: CHHATH.slug,
       });
       assert.ok(markup.includes("Sponsored"));
       assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
@@ -615,47 +644,53 @@ describe("new guide rotation and Sponsored end windows", () => {
     }
   });
 
-  it("splits general and non-sensitive hard news by slug parity and reverts on 21 Nov", () => {
+  it("splits soft lifestyle stories by slug parity and reverts on 21 Nov; hard news gets no mode", () => {
     const variants = new Set();
-    for (const slug of ["city-brief", "city-brief-2", "assembly-debate", "metro-update"]) {
-      for (const category of ["Gurugram", "Politics"]) {
-        const story = { slug, title: "City update", category };
-        const expected = slugHash(slug) % 2 === 0 ? "a" : "b";
-        variants.add(expected);
-        assert.equal(sponsoredEndModeForStory(story, NOV14), expected);
-        assert.equal(sponsoredEndModeForStory(story, NOV20_LAST), expected);
-        assert.equal(sponsoredEndModeForStory(story, NOV21), "a");
-        for (const lang of ["hi", "en"] as const) {
-          const markup = html(React.createElement(PartnerSponsoredUnit, {
-            lang, slug, tone: category === "Politics" ? "hard-news" : "general", placement: "before-related", mode: expected,
-          }));
-          const links = hrefs(markup);
-          assert.equal(links.length, 3);
-          assert.deepEqual(links.map((h) => new URL(h).pathname), expected === "a"
-            ? ["/chat/", "/kundli/", "/rashifal/"] : ["/choghadiya/", "/rahu-kaal/", "/kundli/"]);
-          for (const [i, href] of Array.from(links.entries())) {
-            assert.deepEqual(params(href), {
-              utm_source: "dalimss_news", utm_medium: "ad", utm_content: slug,
-              utm_campaign: expected === "b" && i < 2 ? ["choghadiya", "rahukaal"][i] : "evergreen",
-            });
-          }
-          assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
-          assert.match(markup, /-webkit-line-clamp:3/);
-          if (expected === "b") {
-            assert.ok(markup.includes(lang === "hi"
-              ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
-              : "See today&#x27;s Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"));
-          }
-          for (const anchor of Array.from(markup.matchAll(/<a [^>]*>([^<]*)<\/a>/g))) {
-            assert.match(anchor[0], /rel="sponsored noopener"/);
-            assert.match(anchor[0], /target="_blank"/);
-            if (anchor[0].includes("/chat/")) assert.ok(!/free|मुफ़्त|मुफ्त/i.test(anchor[1]));
-          }
-          assert.ok(!/free chat|free jyotishi|free human astrologer/i.test(markup));
+    for (const slug of ["city-brief", "city-brief-2", "cafe-notes", "weekend-guide"]) {
+      const story = { slug, title: "City lifestyle update", category: "Lifestyle" };
+      const expected = slugHash(slug) % 2 === 0 ? "a" : "b";
+      variants.add(expected);
+      assert.equal(isHardNewsStory(story), false);
+      assert.equal(sponsoredEndModeForStory(story, NOV14), expected);
+      assert.equal(sponsoredEndModeForStory(story, NOV20_LAST), expected);
+      assert.equal(sponsoredEndModeForStory(story, NOV21), "a");
+      for (const lang of ["hi", "en"] as const) {
+        const markup = html(React.createElement(PartnerSponsoredUnit, {
+          lang, slug, tone: "general", placement: "before-related", mode: expected,
+        }));
+        const links = hrefs(markup);
+        assert.equal(links.length, 3);
+        assert.deepEqual(links.map((h) => new URL(h).pathname), expected === "a"
+          ? ["/chat/", "/kundli/", "/rashifal/"] : ["/choghadiya/", "/rahu-kaal/", "/kundli/"]);
+        for (const [i, href] of Array.from(links.entries())) {
+          assert.deepEqual(params(href), {
+            utm_source: "dalimss_news", utm_medium: "ad", utm_content: slug,
+            utm_campaign: expected === "b" && i < 2 ? ["choghadiya", "rahukaal"][i] : "evergreen",
+          });
         }
+        assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
+        assert.match(markup, /-webkit-line-clamp:3/);
+        if (expected === "b") {
+          assert.ok(markup.includes(lang === "hi"
+            ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+            : "See today&#x27;s Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"));
+        }
+        for (const anchor of Array.from(markup.matchAll(/<a [^>]*>([^<]*)<\/a>/g))) {
+          assert.match(anchor[0], /rel="sponsored noopener"/);
+          assert.match(anchor[0], /target="_blank"/);
+          if (anchor[0].includes("/chat/")) assert.ok(!/free|मुफ़्त|मुफ्त/i.test(anchor[1]));
+        }
+        assert.ok(!/free chat|free jyotishi|free human astrologer/i.test(markup));
       }
     }
     assert.equal(variants.size, 2);
+    for (const story of [
+      { slug: "assembly-debate", title: "Assembly debate", category: "Politics" },
+      { slug: "metro-update", title: "Metro update", category: "Gurugram" },
+    ]) {
+      assert.equal(isHardNewsStory(story), true, JSON.stringify(story));
+      assert.equal(sponsoredEndModeForStory(story, NOV14), null, JSON.stringify(story));
+    }
   });
 
   it("gives every new guide full partner UTMs", () => {
@@ -676,9 +711,16 @@ describe("new guide rotation and Sponsored end windows", () => {
   it("caps ISR at the Chhath and A/B IST midnight boundaries", () => {
     const chhathNow = new Date("2026-11-16T18:00:00Z");
     const testNow = new Date("2026-11-20T18:00:00Z");
-    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(GENERAL_CHHATH, chhathNow), chhathNow), 1800);
+    // Soft Chhath that is not partner-eligible only via hard-news exclusion used to
+    // drive the Sponsored Chhath mode; hard news now gets no unit. Soft lifestyle
+    // stories still carry the A/B end-unit window through 20 Nov IST.
+    const softLife = { slug: "city-brief", title: "Weekend city notes", category: "Lifestyle" };
+    assert.equal(canShowSponsoredEndUnit(softLife, { now: chhathNow }), true);
+    assert.equal(sponsoredEndModeForStory(softLife, chhathNow), slugHash(softLife.slug) % 2 === 1 ? "b" : "a");
+    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(softLife, testNow), testNow), 1800);
     for (const story of [METRO, POLITICS, GENERAL_CHHATH]) {
-      assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(story, testNow), testNow), 1800);
+      assert.deepEqual(sponsoredEndWindowsForStory(story, testNow), []);
+      assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(story, testNow), testNow), 3600);
       assert.deepEqual(sponsoredEndWindowsForStory(story, NOV21), []);
     }
     for (const story of [CHHATH, RASHIFAL]) {
@@ -758,8 +800,10 @@ describe("Rashifal 2027, Kharmas, Saphala and Lohri guides", () => {
     assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, NOV14), "kharmas");
     assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, JAN14_LAST), "kharmas");
     assert.equal(sponsoredEndModeForStory(WEDDING_NEWS, JAN15), "a");
-    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV16_LAST), "chhath");
-    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV17), "kharmas");
+    // Politics + Chhath/wedding is hard news: no sponsored end unit.
+    assert.equal(isHardNewsStory(CHHATH_WEDDING), true);
+    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV16_LAST), null);
+    assert.equal(sponsoredEndModeForStory(CHHATH_WEDDING, NOV17), null);
 
     for (const lang of ["en", "hi"] as const) {
       const markup = html(React.createElement(PartnerSponsoredUnit, {
@@ -854,13 +898,17 @@ describe("Rashifal 2027, Kharmas, Saphala and Lohri guides", () => {
     }
     const rashifalSide = html(React.createElement(PartnerSidebar, { lang: "en", slug: RASHIFAL.slug, upcomingVratId: "rashifal_2027" }));
     assert.ok(rashifalSide.includes("See the Rashifal 2027 guide on our partner site."));
+    // Politics + rashifal is hard news: no sponsored end unit. A bare rashifal
+    // story is partner-eligible instead, so the Sponsored rashifal mode is only
+    // exercised here via the component (UTMs unchanged).
+    assert.equal(isHardNewsStory(RASHI_NEWS), true);
+    assert.equal(canShowSponsoredEndUnit(RASHI_NEWS, { now: NOV14 }), false);
+    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, NOV14), null);
+    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, JAN31_LAST), null);
+    assert.equal(sponsoredEndModeForStory(RASHIFAL, NOV17), null);
     const rashifalNews = html(React.createElement(PartnerSponsoredUnit, {
       lang: "en", slug: RASHI_NEWS.slug, tone: "hard-news", placement: "before-related", mode: "rashifal",
     }));
-    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, NOV14), "rashifal");
-    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, JAN31_LAST), "rashifal");
-    assert.equal(sponsoredEndModeForStory(RASHI_NEWS, FEB1), "a");
-    assert.equal(sponsoredEndModeForStory(RASHIFAL, NOV17), null);
     const newsLinks = hrefs(rashifalNews);
     assert.deepEqual(newsLinks.map((h) => new URL(h).pathname), ["/rashifal-2027/", "/kundli/", "/rashifal/"]);
     assert.deepEqual(params(newsLinks[0]), utm("ad", "rashifal_2027", RASHI_NEWS.slug));
@@ -871,10 +919,9 @@ describe("Rashifal 2027, Kharmas, Saphala and Lohri guides", () => {
 
   it("expires ISR at each new untilIst midnight and at the Saphala start", () => {
     const kharmasLate = new Date("2027-01-14T18:00:00Z");
-    const rashifalLate = new Date("2027-01-31T18:00:00Z");
     const saphalaLate = new Date("2027-01-03T18:00:00Z");
     assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(WEDDING_NEWS, kharmasLate), kharmasLate), 1800);
-    assert.equal(partnerPageRevalidateSeconds(sponsoredEndWindowsForStory(RASHI_NEWS, rashifalLate), rashifalLate), 1800);
+    assert.deepEqual(sponsoredEndWindowsForStory(RASHI_NEWS, new Date("2027-01-31T18:00:00Z")), []);
     assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(EKADASHI, saphalaLate)], saphalaLate), 1800);
     assert.equal(partnerPageRevalidateSeconds([upcomingVratForStory(LOHRI, new Date("2027-01-15T18:00:00Z"))], new Date("2027-01-15T18:00:00Z")), 1800);
     assert.equal(upcomingVratForStory(EKADASHI_RASHI, DEC4_LATE)?.id, "rashifal_2027");
@@ -1915,8 +1962,12 @@ describe("story fallback Bhishma Panchak, Margashirsha month and December vrat g
     assert.equal(ctaText("margashirsha_month_2026", "en"), "Margashirsha month 2026: vrat and festival dates on Pocket Jyotish");
     assert.equal(ctaText("december_vrat_2026", "en"), "December 2026: vrat and tyohar dates on Pocket Jyotish");
     assert.equal(ctaText("december_vrat_2026", "hi"), "दिसंबर 2026: व्रत और त्योहार की तिथियां, Pocket Jyotish पर");
+    const soft = { slug: "gurugram-cafe-notes", title: "Gurugram cafe notes for the weekend", category: "Lifestyle" };
+    assert.equal(isHardNewsStory(soft), false);
+    assert.equal(sponsoredEndModeForStory(soft, NOV20_NOON), slugHash(soft.slug) % 2 === 1 ? "b" : "a");
     const metro = { slug: "gurugram-metro-extension", title: "Gurugram metro extension gets approval", category: "Gurugram" };
-    assert.equal(sponsoredEndModeForStory(metro, NOV20_NOON), slugHash(metro.slug) % 2 === 1 ? "b" : "a");
+    assert.equal(isHardNewsStory(metro), true);
+    assert.equal(sponsoredEndModeForStory(metro, NOV20_NOON), null);
     assert.equal(showDevDeepawaliVaranasiPartner(
       { slug: "varanasi-ghats-cleaned", title: "Varanasi ghats cleaned before the weekend", category: "Varanasi" },
       NOV20_NOON

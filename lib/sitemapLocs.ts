@@ -1,8 +1,9 @@
-import { isPriceHubListingPath } from "@/lib/priceHubs";
 import { SITE_URL } from "@/lib/seo";
 
 /**
- * Canonical https URL, or a listing page query of ?page=2 and later.
+ * Canonical https URL with no query string.
+ * Paginated ?page=N listing URLs stay crawlable via rel prev/next and Load More,
+ * but stay out of the main sitemap. Page 1 canonicals (no ?page=) remain.
  * RSS feeds, llms files, search, and author archives stay out.
  */
 export function isAllowedSitemapLoc(loc: string): boolean {
@@ -29,11 +30,7 @@ export function isAllowedSitemapLoc(loc: string): boolean {
     return false;
   }
   if (path === "/search" || path.startsWith("/search/")) return false;
-  if (path.startsWith("/author/") && query) return false;
-  if (!query) return true;
-  if (/(^|&)search=/.test(query)) return false;
-  return (
-    /^page=([2-9]|[1-9]\d+)$/.test(query) &&
-    (path === "/articles" || path === "/hindi" || isPriceHubListingPath(path))
-  );
+  // No query strings in the sitemap (including ?page=N).
+  if (query) return false;
+  return true;
 }

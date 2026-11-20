@@ -161,7 +161,10 @@ function ids(page: number, pageSize: number): number[] {
   assert.equal(isAllowedSitemapLoc(`${SITE_URL}/bhu-news?page=2`), false);
   assert.equal(isAllowedSitemapLoc(`${SITE_URL}/category/technology`), true);
   assert.equal(isAllowedSitemapLoc(`${SITE_URL}/varanasi-news`), true);
-  assert.equal(isAllowedSitemapLoc(`${SITE_URL}/articles?page=2`), true);
+  assert.equal(isAllowedSitemapLoc(`${SITE_URL}/articles?page=2`), false);
+  assert.equal(isAllowedSitemapLoc(`${SITE_URL}/hindi?page=2`), false);
+  assert.equal(isAllowedSitemapLoc(`${SITE_URL}/articles`), true);
+  assert.equal(isAllowedSitemapLoc(`${SITE_URL}/hindi`), true);
 }
 
 function range(start: number, end: number): number[] {
