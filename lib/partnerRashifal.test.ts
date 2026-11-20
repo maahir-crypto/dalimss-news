@@ -8,6 +8,7 @@ import {
   istCalendarDate,
   partnerRashifalFor,
   useDiwaliPartnerCta,
+  canShowSponsoredEndUnit,
   isHardNewsStory,
   isKashiVishwanathStory,
   isPartnerEligibleStory,
@@ -15,6 +16,7 @@ import {
   KASHI_VISHWANATH_DARSHAN,
   UPCOMING_VRAT_CTAS,
   getUpcomingVrat,
+  showDevDeepawaliVaranasiPartner,
   upcomingVratForStory,
   isPartnerInlineTestActive,
   isPartnerTechAutoTestActive,
@@ -136,11 +138,59 @@ describe("partner eligibility", () => {
   it("reports hard news", () => {
     assert.equal(isHardNewsStory({ title: "Ghat drowning: body found" }), true);
     assert.equal(isHardNewsStory({ title: "Ganga Aarti timings" }), false);
+    assert.equal(isHardNewsStory({ title: "Gurugram metro extension gets approval" }), true);
+    assert.equal(isHardNewsStory({ title: "Ardee City flyover and underpass plan" }), true);
+    assert.equal(isHardNewsStory({ title: "Varanasi to Udhna special train timetable" }), true);
+    assert.equal(isHardNewsStory({ title: "Shaheed Udyan park renovation deadline" }), true);
   });
 
   it("partnerRashifalFor uses the same rule", () => {
     assert.equal(partnerRashifalFor({ title: "Two youths drown at Assi Ghat" }).show, false);
     assert.equal(partnerRashifalFor({ title: "Tula rashifal today" }).show, true);
+  });
+
+  it("keeps Pocket Jyotish off the three hard-news leak examples", () => {
+    const leaks = [
+      {
+        slug: "varanasi-udhna-special-05115-cantt-nov20-2026",
+        title: "Varanasi to Udhna special: Cantt boarding is November 20 at 1:30 am",
+        category: "Varanasi",
+      },
+      {
+        slug: "gurugram-ardee-city-flyover-underpass-plan-november-18",
+        title: "Gurugram Ardee City flyover and underpass plan: Rs 225 crore",
+        category: "Gurugram",
+      },
+      {
+        slug: "varanasi-shaheed-udyan-sonia-pond-deadlines-nov16-2026",
+        title: "Varanasi sets December deadlines for Shaheed Udyan and Sonia pond",
+        category: "Varanasi",
+      },
+    ];
+    const nov20 = new Date("2026-11-20T06:30:00Z");
+    for (const story of leaks) {
+      assert.equal(isHardNewsStory(story), true, JSON.stringify(story));
+      assert.equal(isPartnerEligibleStory(story), false, JSON.stringify(story));
+      assert.equal(partnerRashifalFor(story).show, false, JSON.stringify(story));
+      assert.equal(canShowSponsoredEndUnit(story, { now: nov20 }), false, JSON.stringify(story));
+      assert.equal(showDevDeepawaliVaranasiPartner(story, nov20), false, JSON.stringify(story));
+      assert.equal(upcomingVratForStory(story, nov20), null, JSON.stringify(story));
+    }
+  });
+
+  it("still shows partner units on genuine festival and temple stories", () => {
+    const keep = [
+      { title: "Dev Deepawali 2026 Varanasi: ghat guide, boat booking and timings", category: "Varanasi" },
+      { title: "Kartik Purnima 2026 snan muhurat and puja vidhi", category: "Lifestyle" },
+      { title: "Kashi Vishwanath darshan guide: entry gates and timings", category: "Varanasi" },
+      { title: "December 2026 vrat and tyohar list", slug: "december-2026-vrat-tyohar", category: "Astrology" },
+      { title: "Ekadashi vrat November 2026: date and parana time", category: "Religion" },
+    ];
+    for (const story of keep) {
+      assert.equal(isHardNewsStory(story), false, JSON.stringify(story));
+      assert.equal(isPartnerEligibleStory(story), true, JSON.stringify(story));
+      assert.equal(partnerRashifalFor(story).show, true, JSON.stringify(story));
+    }
   });
 });
 

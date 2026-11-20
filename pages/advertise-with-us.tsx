@@ -419,9 +419,9 @@ export default function AdvertiseWithUs() {
                         <MapPinIcon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Headquarters & Bureau</p>
+                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Headquarters</p>
                         <p className="text-sm font-medium text-gray-300">
-                          Varanasi & Gurugram, Uttar Pradesh & Haryana, India
+                          Gurugram, Haryana and Varanasi, Uttar Pradesh, India
                         </p>
                       </div>
                     </div>

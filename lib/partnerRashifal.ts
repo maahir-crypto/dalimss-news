@@ -11,20 +11,25 @@ const RELIGION_CATEGORY = /^(astrology|religion|spirituality|spiritual|dharm|dha
 
 /** Varanasi festival / ghat service guides (timings, darshan, how to visit). */
 const VARANASI_PLACE = /\b(varanasi|kashi|banaras|benaras)\b|वाराणसी|काशी|बनारस/i;
+/** Named spiritual terms only — not bare "festival" or incidental place words. */
 const VARANASI_SPIRITUAL =
-  /\b(ghats?|ganga[\s-]?aarti|aarti|temples?|mandir|darshan|vishwanath|snan|dev[\s-]?deepawali|dev[\s-]?diwali|kartik[\s-]?purnima|festival)\b|घाट|गंगा\s?आरती|आरती|मंदिर|दर्शन|विश्वनाथ|स्नान|देव\s?दीपावली/i;
+  /\b(ghats?|ganga[\s-]?aarti|aarti|temples?|mandir|darshan|vishwanath|snan|dev[\s-]?deepawali|dev[\s-]?diwali|kartik[\s-]?purnima)\b|घाट|गंगा\s?आरती|आरती|मंदिर|दर्शन|विश्वनाथ|स्नान|देव\s?दीपावली/i;
 const SERVICE_GUIDE =
   /\b(guide|timings?|time[\s-]?table|schedule|how[\s-]?to|visit|visiting|darshan|booking|book|tickets?|route|routes|parking|entry|tips|explained|what[\s-]?to[\s-]?know|checklist|dates?|muhurat|places?)\b|गाइड|समय|कैसे|दर्शन|बुकिंग|रूट|पार्किंग|प्रवेश/i;
 
 /**
  * Hard news never gets partner placements, even when it mentions a ghat,
  * a festival or a puja. Exclusion always wins over inclusion.
+ * Includes crime, accidents, deaths, politics, civic/infrastructure,
+ * transport, real estate, courts and weather emergencies — not incidental
+ * place names alone.
  */
 const HARD_NEWS_EN =
-  /\b(crimes?|criminal|accidents?|crash(es|ed)?|collisions?|deaths?|dead|died|dies|dying|killed|kills?|killing|murder(s|ed)?|homicide|drown(s|ed|ing)?|bod(y|ies)[\s-]found|corpse|disasters?|flood(s|ed|ing)?|earthquakes?|cyclone|landslides?|stampedes?|collapse[sd]?|fires?|blaze|burn(t|ed)|explosions?|blasts?|police|cops?|arrest(s|ed)?|fir|custody|probe|raids?|rape[sd]?|assault(s|ed)?|molest(ed|ation)?|suicide|missing|injur(ed|ies|y)|victims?|tragedy|riots?|clash(es)?|violence|protests?|terror(ist|ism)?|shoot(ing|out)|stabb(ed|ing)|politics?|political|elections?|polls?|bjp|congress|samajwadi|aap|bsp|minister|mla|cm|chief[\s-]minister|court|verdict|bail|scam|fraud|recall(s|ed)?|thefts?|thie(f|ves)|stolen|steal(s|ing)?|robber(y|ies|s)?|robbed|loot(s|ed|ing)?|burglar(y|ies|s)?|snatch(es|ed|ing|ers?)?|accused|kidnap(s|ped|ping)?|abduct(ed|ion|s)?|extortion|smuggl(ing|ed|ers?)|dacoity|absconding)\b/i;
+  /\b(crimes?|criminal|accidents?|crash(es|ed)?|collisions?|deaths?|dead|died|dies|dying|killed|kills?|killing|murder(s|ed)?|homicide|drown(s|ed|ing)?|bod(y|ies)[\s-]found|corpse|disasters?|flood(s|ed|ing)?|earthquakes?|cyclones?|landslides?|stampedes?|collapse[sd]?|fires?|blaze|burn(t|ed)|explosions?|blasts?|police|cops?|arrest(s|ed)?|fir|custody|probe|raids?|rape[sd]?|assault(s|ed)?|molest(ed|ation)?|suicide|missing|injur(ed|ies|y)|victims?|tragedy|riots?|clash(es)?|violence|protests?|terror(ist|ism)?|shoot(ing|out)|stabb(ed|ing)|politics?|political|elections?|polls?|bjp|congress|samajwadi|aap|bsp|minister|mla|cm|chief[\s-]minister|court|courts|verdict|bail|tribunals?|judges?|litigation|scam|fraud|recall(s|ed)?|thefts?|thie(f|ves)|stolen|steal(s|ing)?|robber(y|ies|s)?|robbed|loot(s|ed|ing)?|burglar(y|ies|s)?|snatch(es|ed|ing|ers?)?|accused|kidnap(s|ped|ping)?|abduct(ed|ion|s)?|extortion|smuggl(ing|ed|ers?)|dacoity|absconding|civic|infrastructure|flyovers?|underpass(?:es)?|road[\s-]works?|sewer(?:age)?|drainage|municipals?|nagar[\s-]nigam|gmda|mcg|dtcp|rera|beautification|redevelopment|renovation|udyans?|ponds?|real[\s-]estate|propert(?:y|ies)|housing|colon(?:y|ies)|trains?|railways?|rails?|metros?|airports?|transport|highways?|cantt|boarding|junctions?|heatwaves?|cold[\s-]waves?|storms?|cloudbursts?|weather[\s-]emergenc(?:y|ies))\b/i;
 const HARD_NEWS_HI =
-  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|घोटाला|ठगी|चोरी|चोर|लूट|डकैती|छिनैती|अपहरण|तस्कर|आरोपी|फरार|रंगदारी)/;
-const HARD_NEWS_CATEGORY = /^(crime|politics|political|police|accident|disaster|राजनीति|अपराध)$/i;
+  /(अपराध|हादसा|हादसे|दुर्घटना|मौत|मृत्यु|निधन|हत्या|डूब|डूबा|डूबी|डूबे|शव|लाश|आपदा|बाढ़|भूकंप|भगदड़|विस्फोट|धमाका|पुलिस|गिरफ्तार|गिरफ्तारी|दुष्कर्म|बलात्कार|आत्महत्या|लापता|घायल|हिंसा|दंगा|बवाल|प्रदर्शन|राजनीति|राजनीतिक|चुनाव|भाजपा|कांग्रेस|सपा|बसपा|मंत्री|विधायक|मुख्यमंत्री|अदालत|कोर्ट|जमानत|न्यायाधिकरण|घोटाला|ठगी|चोरी|चोर|लूट|डकैती|छिनैती|अपहरण|तस्कर|आरोपी|फरार|रंगदारी|अवसंरचना|नगर\s?निगम|फ्लाईओवर|अंडरपास|सौंदर्यीकरण|उद्यान|तालाब|रेल|ट्रेन|मेट्रो|एयरपोर्ट|परिवहन|रियल\s?एस्टेट|संपत्ति|आवास|लू|शीतलहर|आंधी|मेघविस्फोट)/;
+const HARD_NEWS_CATEGORY =
+  /^(crime|politics|political|police|accident|disaster|civic|infrastructure|transport|real[\s-]?estate|courts?|weather|राजनीति|अपराध|अवसंरचना|परिवहन)$/i;
 
 /** Festival stories that get the time-boxed Diwali Partner CTA (EndCard + Sidebar only). */
 const DIWALI_FESTIVAL_EN =
@@ -1544,13 +1549,14 @@ export function hasDevDeepawaliGuide(a: StoryFields, now: Date = new Date()): bo
 }
 
 /**
- * The Varanasi Partner line. Sensitive stories are excluded. A story that
- * already has a partner widget, a festival line, or the Dev Deepawali guide
- * does not get a second unit.
+ * The Varanasi Partner line. Sensitive and hard-news stories are excluded
+ * (crime, accidents, deaths, politics, civic/infrastructure, transport, real
+ * estate, courts, weather emergencies). A story that already has a partner
+ * widget, a festival line, or the Dev Deepawali guide does not get a second unit.
  */
 export function showDevDeepawaliVaranasiPartner(a: StoryFields, now: Date = new Date()): boolean {
   if (!isDevDeepawaliVaranasiWindow(now)) return false;
-  if (isSensitiveStory(a)) return false;
+  if (isHardNewsStory(a)) return false;
   if (!isVaranasiSectionStory(a)) return false;
   if (hasDevDeepawaliGuide(a, now)) return false;
   if (isPartnerEligibleStory(a)) return false;
@@ -1575,7 +1581,7 @@ export function devDeepawaliVaranasiWindows(
   a: StoryFields,
   now: Date = new Date()
 ): { untilIst: string }[] {
-  if (isSensitiveStory(a) || !isVaranasiSectionStory(a)) return [];
+  if (isHardNewsStory(a) || !isVaranasiSectionStory(a)) return [];
   const today = istCalendarDate(now);
   if (today < DEV_DEEPAWALI_VARANASI_FROM_IST) {
     return [{ untilIst: previousIstDate(DEV_DEEPAWALI_VARANASI_FROM_IST) }];
@@ -1876,16 +1882,17 @@ export function sponsoredEndWindowsForStory(a: StoryFields, now: Date = new Date
 }
 
 /**
- * Evergreen Sponsored end unit. Off when the story is sensitive, and off when
- * an end unit is already reserved (partner end card, festival CTA, price line
- * or tech/auto line). Hard news that is not sensitive still qualifies: the
- * page renders it end-only, with neutral copy, and does not add an inline unit.
+ * Evergreen Sponsored end unit. Off when the story is sensitive or hard news
+ * (crime, accidents, deaths, politics, civic/infrastructure, transport, real
+ * estate, courts, weather emergencies), and off when an end unit is already
+ * reserved (partner end card, festival CTA, price line or tech/auto line).
+ * Soft lifestyle, entertainment and similar non-hard-news stories still qualify.
  */
 export function canShowSponsoredEndUnit(
   a: StoryFields,
   opts: { hasPriceGuide?: boolean; hasTechAutoLine?: boolean; now?: Date } = {}
 ): boolean {
-  if (isSensitiveStory(a)) return false;
+  if (isHardNewsStory(a)) return false;
   if (isPartnerEligibleStory(a)) return false;
   if (festivalPartnerCtaFor(a, opts.now)) return false;
   if (opts.hasPriceGuide) return false;

@@ -167,7 +167,7 @@ describe("Dev Deepawali Varanasi partner audience", () => {
     assert.equal(showDevDeepawaliVaranasiPartner(GUIDE, NOV22_NOON), false);
   });
 
-  it("leaves the Sponsored end unit and the chat versus Choghadiya test alone", () => {
+  it("keeps Sponsored A/B on soft Varanasi stories and blocks hard news entirely", () => {
     assert.equal(isHardNewsStory(VARANASI), false);
     assert.equal(canShowSponsoredEndUnit(VARANASI, { now: NOV20_NOON }), true);
     assert.equal(sponsoredEndModeForStory(VARANASI, NOV20_NOON), slugHash(VARANASI.slug) % 2 === 1 ? "b" : "a");
@@ -176,9 +176,24 @@ describe("Dev Deepawali Varanasi partner audience", () => {
     const politics = { slug: "bjp-rally-varanasi", title: "BJP rally in Varanasi", category: "Varanasi" };
     assert.equal(isSensitiveStory(politics), false);
     assert.equal(isHardNewsStory(politics), true);
-    assert.equal(showDevDeepawaliVaranasiPartner(politics, NOV20_NOON), true);
-    assert.equal(canShowSponsoredEndUnit(politics, { now: NOV20_NOON }), true);
-    assert.equal(sponsoredEndModeForStory(politics, NOV20_NOON), slugHash(politics.slug) % 2 === 1 ? "b" : "a");
+    assert.equal(showDevDeepawaliVaranasiPartner(politics, NOV20_NOON), false);
+    assert.equal(canShowSponsoredEndUnit(politics, { now: NOV20_NOON }), false);
+    assert.equal(sponsoredEndModeForStory(politics, NOV20_NOON), null);
+    const udhna = {
+      slug: "varanasi-udhna-special-05115-cantt-nov20-2026",
+      title: "Varanasi to Udhna special: Cantt boarding is November 20 at 1:30 am",
+      category: "Varanasi",
+    };
+    const udyan = {
+      slug: "varanasi-shaheed-udyan-sonia-pond-deadlines-nov16-2026",
+      title: "Varanasi sets December deadlines for Shaheed Udyan and Sonia pond",
+      category: "Varanasi",
+    };
+    for (const story of [udhna, udyan]) {
+      assert.equal(isHardNewsStory(story), true, JSON.stringify(story));
+      assert.equal(showDevDeepawaliVaranasiPartner(story, NOV20_NOON), false, JSON.stringify(story));
+      assert.equal(canShowSponsoredEndUnit(story, { now: NOV20_NOON }), false, JSON.stringify(story));
+    }
   });
 });
 

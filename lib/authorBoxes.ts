@@ -157,7 +157,7 @@ export const authorBoxes: Record<string, AuthorBoxProfile> = {
     photoAlt: "Portrait of Maahir Madhok",
     jobTitle: "Founder and CEO, Dalimss News",
     organizationName: "Dalimss News",
-    bio: "Maahir Madhok is the Founder and CEO of Dalimss News, a digital newsroom he launched in February 2024, headquartered in Gurugram. He is also Additional Director of Dalimss Sunbeam Group of Schools, a CBSE school group in Varanasi founded in 1972, a role he has held since October 2021. He writes about how Indian schools can prepare children for adult life and an AI-shaped world.",
+    bio: "Maahir Madhok is the Founder and CEO of Dalimss News, a digital newsroom he launched in February 2024, headquartered in Gurugram and Varanasi. He is also Additional Director of Dalimss Sunbeam Group of Schools, a CBSE school group in Varanasi founded in 1972, a role he has held since October 2021. He writes about how Indian schools can prepare children for adult life and an AI-shaped world.",
     sameAs: [
       { label: "Website", url: "https://maahirmadhok.in" },
       {

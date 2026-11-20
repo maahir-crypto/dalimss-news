@@ -9,7 +9,10 @@ import * as RMarkdownModule from "react-markdown";
 import * as rRawModule from "rehype-raw";
 import { rehypeAdSlots } from "@/lib/rehypeAdSlots";
 import { rehypeFigureGallery } from "@/lib/rehypeFigureGallery";
+import { rehypeInstagramEmbed } from "@/lib/rehypeInstagramEmbed";
+import { parseInstagramPermalink } from "@/lib/instagramEmbed";
 import ArticleGallery from "@/components/ArticleGallery";
+import InstagramEmbedFacade from "@/components/InstagramEmbedFacade";
 
 const getDefault = (m: any) =>
   m && typeof m.default === "function" ? m.default : null;
@@ -697,7 +700,15 @@ const ArticlePage: React.FC<Props> = ({
       <div className="article-body prose max-w-none text-gray-800">
         {ReactMarkdown ? (
           <ReactMarkdown
-            rehypePlugins={[rehypeRaw, rehypeDecodeEntities, rehypeFigureGallery, rehypeAdSlots({ after: [3, 7] }), rehypePartnerSlot({ enabled: showPartnerPlacements, after: 2 }), rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 })]}
+            rehypePlugins={[
+              rehypeRaw,
+              rehypeDecodeEntities,
+              rehypeFigureGallery,
+              rehypeAdSlots({ after: [3, 7] }),
+              rehypeInstagramEmbed,
+              rehypePartnerSlot({ enabled: showPartnerPlacements, after: 2 }),
+              rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 }),
+            ]}
             components={{
               p: ({ children }: any) => {
                 let text = "";
@@ -732,25 +743,15 @@ const ArticlePage: React.FC<Props> = ({
                     );
                   }
 
-                  // Instagram Regex
-                  const igMatch = text
-                    .trim()
-                    .match(
-                      /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|reel)\/([\w-]+)(?:\/?\S*)?$/
-                    );
-                  if (igMatch && igMatch[1]) {
+                  // Instagram bare URL fallback if rehype did not rewrite this node.
+                  const ig = parseInstagramPermalink(text.trim());
+                  if (ig) {
                     return (
-                      <div className="my-6 flex justify-center">
-                        <iframe
-                          src={`https://www.instagram.com/p/${igMatch[1]}/embed`}
-                          width="400"
-                          height="550"
-                          frameBorder="0"
-                          scrolling="no"
-                          allowTransparency={true}
-                          className="rounded-lg shadow-md bg-white border border-gray-200"
-                        ></iframe>
-                      </div>
+                      <InstagramEmbedFacade
+                        permalink={ig.url}
+                        kind={ig.kind}
+                        shortcode={ig.shortcode}
+                      />
                     );
                   }
                 }
@@ -762,57 +763,52 @@ const ArticlePage: React.FC<Props> = ({
                   {children}
                 </h2>
               ),
-              // Make sure links also work if they are auto-linked
+              // Auto-linked lone YouTube URLs still become iframes.
+              // Instagram standalone URLs are rewritten to <instagram-embed> by rehype;
+              // inline Instagram links stay as ordinary anchors.
               a: ({ href, children }: any) => {
                 const text = href || "";
-                 // YouTube
-                 const ytMatch = text
-                 .trim()
-                 .match(
-                   /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)(?:&\S*)?$/
-                 );
-               if (ytMatch && ytMatch[1]) {
-                 return (
-                   <div className="my-6 aspect-video w-full">
-                     <iframe
-                       src={`https://www.youtube.com/embed/${ytMatch[1]}`}
-                       title="YouTube video player"
-                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                       allowFullScreen
-                       className="w-full h-full rounded-lg shadow-md"
-                     ></iframe>
-                   </div>
-                 );
-               }
+                const ytMatch = text
+                  .trim()
+                  .match(
+                    /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)(?:&\S*)?$/
+                  );
+                if (ytMatch && ytMatch[1]) {
+                  return (
+                    <div className="my-6 aspect-video w-full">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+                        title="YouTube video player"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full rounded-lg shadow-md"
+                      ></iframe>
+                    </div>
+                  );
+                }
 
-               // Instagram
-               const igMatch = text
-                 .trim()
-                 .match(
-                   /^(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|reel)\/([\w-]+)(?:\/?\S*)?$/
-                 );
-               if (igMatch && igMatch[1]) {
-                 return (
-                   <div className="my-6 flex justify-center">
-                     <iframe
-                       src={`https://www.instagram.com/p/${igMatch[1]}/embed`}
-                       width="400"
-                       height="550"
-                       frameBorder="0"
-                       scrolling="no"
-                       allowTransparency={true}
-                       className="rounded-lg shadow-md bg-white border border-gray-200"
-                     ></iframe>
-                   </div>
-                 );
-               }
-               
-               return <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-700 underline underline-offset-2 decoration-1 hover:decoration-2">{children}</a>
+                return (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 underline underline-offset-2 decoration-1 hover:decoration-2"
+                  >
+                    {children}
+                  </a>
+                );
               },
               "figure-gallery": ({ children, count }: any) => (
                 <ArticleGallery count={count} language={article.language}>
                   {children}
                 </ArticleGallery>
+              ),
+              "instagram-embed": ({ permalink, kind, shortcode }: any) => (
+                <InstagramEmbedFacade
+                  permalink={permalink}
+                  kind={kind}
+                  shortcode={shortcode}
+                />
               ),
               "partner-slot": () => (
                 <PartnerRashifal

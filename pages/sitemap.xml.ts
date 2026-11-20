@@ -98,28 +98,26 @@ function renderUrl(entry: UrlEntry): string {
       </url>`;
 }
 
+/**
+ * Page 1 listing URL only. Later ?page=N URLs stay crawlable via rel prev/next
+ * and Load More, but are omitted from the main sitemap.
+ */
 function listingEntries(
   pathname: string,
   items: ArticleRow[],
-  totalCount: number,
+  _totalCount: number,
   changefreq: string,
   priority: string
 ): UrlEntry[] {
-  const pageCount = Math.max(1, Math.ceil(totalCount / LISTING_PAGE_SIZE));
-  const entries: UrlEntry[] = [];
-  for (let page = 1; page <= pageCount; page += 1) {
-    const slice = items.slice(
-      (page - 1) * LISTING_PAGE_SIZE,
-      page * LISTING_PAGE_SIZE
-    );
-    entries.push({
-      loc: absoluteUrl(listingPath(pathname, page)),
+  const slice = items.slice(0, LISTING_PAGE_SIZE);
+  return [
+    {
+      loc: absoluteUrl(listingPath(pathname, 1)),
       lastmod: maxDate(slice.map((item) => item.lastmod)),
       changefreq,
-      priority: page === 1 ? priority : "0.5",
-    });
-  }
-  return entries;
+      priority,
+    },
+  ];
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
@@ -270,7 +268,6 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     "hourly",
     "0.9"
   );
-  const articlePageUrls = articleListing.slice(1);
   const hindiListing = listingEntries(
     "/hindi",
     hindiArticles,
@@ -369,12 +366,10 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 
   const entries = [
     ...staticPages,
-    ...articleListing.slice(0, 1),
-    ...hindiListing.slice(0, 1),
+    ...articleListing,
+    ...hindiListing,
     ...categoryUrls,
     ...priceHubEntries,
-    ...articlePageUrls,
-    ...hindiListing.slice(1),
     ...authorUrls,
     ...storyUrls,
     ...episodeUrls,
