@@ -41,10 +41,20 @@ const DATED_CITY_TOKEN =
 // pattern, so a result page that also says "how to check" stays in the
 // news sitemap, as do price hikes, cuts and recalls.
 const TIMELY_NEWS_SLUG =
-  /(?:^|-)(?:final-result|merit-list|time-table|timetable|exam-dates|recruitment-\d{4}|ruling|arrest|tenders?|hearing-dates|chargesheets?|acquittal|price-hike|prices-hiked|price-cut|price-cuts|price-increase|price-drop|price-revision|price-rise|hikes-price|cuts-price|recall|recalled)(?:-|$)/;
+  /(?:^|-)(?:final-result|merit-list|time-table|timetable|exam-dates?|last-date|deadline|recruitment-\d{4}|ruling|arrest|tenders?|hearing-dates|chargesheets?|acquittal|price-hike|prices-hiked|price-cut|price-cuts|price-increase|price-drop|price-revision|price-rise|hikes-price|cuts-price|recall|recalled)(?:-|$)/;
 
 const TIMELY_PRICE_NEWS_TITLE =
   /\b(price hike|prices hiked|price cut|price increase|price drop|price revision|recall(?:ed)?)\b/i;
+
+// Premiere / dated-release announcements (e.g. 2026-release-cast), but not
+// evergreen release-date guides.
+const TIMELY_YEAR_RELEASE_SLUG =
+  /(?:^|-)\d{4}-release(?!-date)(?:-|$)/;
+
+// Timely "X replaces Y" announcements. Applied before evergreen eligibility
+// patterns so a replaces story that also mentions eligibility stays news.
+const TIMELY_REPLACES_SLUG = /(?:^|-)replaces?(?:-|$)/;
+const TIMELY_REPLACES_TITLE = /\breplaces?\b/i;
 
 const LAUNCH_NEWS_SLUG =
   /(?:^|-)(?:launches?|launched|unveils?|unveiled|india-launch)(?:-|$)/;
@@ -95,6 +105,25 @@ const EVERGREEN_SLUG_PATTERNS: RegExp[] = [
   /credit-utilisation-ratio/,
   /waist-hip-ratio/,
   /slow-over-rate/,
+  // Hyphen-bounded guide tokens (no bare global "rules").
+  /(?:^|-)eligibility(?:-|$)/,
+  /(?:^|-)meaning(?:-|$)/,
+  /(?:^|-)cast(?:-|$)/,
+  /(?:^|-)episodes?(?:-|$)/,
+  /(?:^|-)runtime(?:-|$)/,
+  /(?:^|-)ott(?:-|$)/,
+  /(?:^|-)kitne-episode(?:-|$)/,
+  /(?:^|-)kahan-dekhen(?:-|$)/,
+  /(?:^|-)release-date(?:-|$)/,
+  /(?:^|-)yojana(?:-|$)/,
+  /(?:^|-)apply(?:-|$)/,
+  /(?:^|-)application-steps(?:-|$)/,
+  /(?:^|-)activation(?:-|$)/,
+  /(?:^|-)e-nomination(?:-|$)/,
+  /(?:^|-)due-dates?(?:-|$)/,
+  /(?:^|-)instalment(?:-|$)/,
+  /(?:^|-)recharge(?:-|$)/,
+  /(?:^|-)audiobooks?(?:-|$)/,
 ];
 
 const EVERGREEN_TITLE_PATTERNS: RegExp[] = [
@@ -103,8 +132,22 @@ const EVERGREEN_TITLE_PATTERNS: RegExp[] = [
   /\bwhat are\b/i,
   /\bstep[- ]by[- ]step\b/i,
   /\bexplained\b/i,
+  /\beligibility\b/i,
+  /\bmeaning\b|\bmeans\b/i,
+  /\bcast\b/i,
+  /\bepisodes?\b/i,
+  /\bruntime\b/i,
+  /\bott\b/i,
+  /\brelease date\b/i,
+  /\bhow to check\b/i,
+  /\bapplication steps\b/i,
+  /\bcontribution chart\b/i,
+  /\brecharge\b/i,
+  /\brules\b/i,
   /कैसे/,
   /क्या है/,
+  /कितने एपिसोड/,
+  /कहां देखें|कहाँ देखें/,
 ];
 
 const PRICE_LIST_SLUG =
@@ -119,8 +162,14 @@ const PRICE_TITLE =
 
 const RUPEE_TITLE = /(?:rs\.?|₹)\s*[\d,]/i;
 
+const PRODUCT_SETUP_TITLE = /\bset up\b|\bcompatibility\b/i;
+
 function isTimelyNews(slug: string, title: string): boolean {
   if (TIMELY_NEWS_SLUG.test(slug) || TIMELY_PRICE_NEWS_TITLE.test(title)) {
+    return true;
+  }
+  if (TIMELY_YEAR_RELEASE_SLUG.test(slug)) return true;
+  if (TIMELY_REPLACES_SLUG.test(slug) || TIMELY_REPLACES_TITLE.test(title)) {
     return true;
   }
   if (CITY_SLUG_PREFIX.test(slug) && DATED_CITY_TOKEN.test(slug)) return true;
@@ -187,6 +236,11 @@ function isLaunchNewsWithoutPriceList(slug: string, title: string): boolean {
   return true;
 }
 
+function isProductSetupPricePage(slug: string, title: string): boolean {
+  if (!PRODUCT_SETUP_TITLE.test(title)) return false;
+  return RUPEE_TITLE.test(title) || TRAILING_PRICE.test(slug) || /-\d{4,9}$/.test(slug);
+}
+
 function isProductPricePage(
   slug: string,
   title: string,
@@ -200,6 +254,7 @@ function isProductPricePage(
   if (TRAILING_PRICE.test(slug) && RUPEE_TITLE.test(title)) {
     return true;
   }
+  if (isProductSetupPricePage(slug, title)) return true;
   return false;
 }
 

@@ -114,6 +114,121 @@ const EVERGREEN_FROM_SITE = [
     title: "मंईयां सम्मान योजना स्टेटस: पात्रता, पावती और भुगतान की जांच",
     category: "भारत",
   },
+  {
+    slug: "epfo-auto-claim-settlement-limit-five-lakh-eligibility",
+    title: "EPFO auto claim settlement limit: Rs 5 lakh and eligibility checks",
+    category: "India",
+  },
+  {
+    slug: "murder-mubarak-cast-netflix-director-book-languages",
+    title: "Murder Mubarak cast: Netflix, director, book and languages",
+    category: "Entertainment",
+  },
+  {
+    slug: "cricket-appeal-rules-timing-umpires-withdrawal",
+    title: "Cricket appeal rules: timing, umpire decisions and withdrawal",
+    category: "Sports",
+  },
+  {
+    slug: "atal-pension-yojana-eligibility-contribution-chart-exit",
+    title: "Atal Pension Yojana eligibility: contribution chart and exit",
+    category: "India",
+  },
+  {
+    slug: "rpsc-ras-eligibility-2026-degree-age-relaxation-notification",
+    title: "RPSC RAS eligibility 2026: degree, age relaxation and notification",
+    category: "Education",
+  },
+  {
+    slug: "silver-futures-meaning-lot-size-margin-daily-settlement",
+    title: "Silver futures meaning: lot size, margin and daily settlement",
+    category: "Business",
+  },
+  {
+    slug: "bsda-account-charges-eligibility-limits-quarterly-review",
+    title: "BSDA account charges: eligibility, limits and quarterly review",
+    category: "Business",
+  },
+  {
+    slug: "lek-ladki-yojana-eligibility-form-documents",
+    title: "Lek Ladki Yojana eligibility: form and documents",
+    category: "India",
+  },
+  {
+    slug: "panchayat-season-4-kitne-episode-names-runtime",
+    title: "Panchayat season 4: कितने एपिसोड, names and runtime",
+    category: "Entertainment",
+  },
+  {
+    slug: "dronacharya-award-eligibility-regular-lifetime-criteria",
+    title: "Dronacharya Award eligibility: regular and lifetime criteria",
+    category: "Sports",
+  },
+  {
+    slug: "instant-e-pan-students-aadhaar-digilocker-apply",
+    title: "Instant e-PAN for students: Aadhaar, DigiLocker and application steps",
+    category: "India",
+  },
+  {
+    slug: "uan-activation-umang-aadhaar-face-verification",
+    title: "UAN activation on UMANG: Aadhaar and face verification",
+    category: "India",
+  },
+  {
+    slug: "advance-tax-due-dates-fy-2026-27-instalment-calculation",
+    title: "Advance tax due dates FY 2026-27: instalment calculation",
+    category: "Business",
+  },
+  {
+    slug: "epfo-e-nomination-process-documents-shares-esign",
+    title: "EPFO e-nomination process: documents, shares and e-sign",
+    category: "India",
+  },
+  {
+    slug: "vi-prime-lite-996-84-days",
+    title: "Vi Rs 996 recharge pairs 84-day service with 90-day Prime Lite",
+    category: "Technology",
+  },
+  {
+    slug: "vi-netflix-prepaid-1198-70-days",
+    title: "Vi Netflix prepaid recharge: Rs 1,198 for 70 days",
+    category: "Technology",
+  },
+  {
+    slug: "kantara-chapter-1-ott-prime-video-hindi-runtime",
+    title: "Kantara Chapter 1 OTT: Prime Video, Hindi and runtime",
+    category: "Entertainment",
+  },
+  {
+    slug: "the-altruists-netflix-release-date-cast-episodes",
+    title: "The Altruists Netflix release date, cast and episodes",
+    category: "Entertainment",
+  },
+  {
+    slug: "ncert-audiobooks-chapter-audio-daisy-books-guide",
+    title: "NCERT audiobooks: chapter audio and DAISY books guide",
+    category: "Education",
+  },
+  {
+    slug: "ev-battery-return-2022-waste-rules",
+    title: "EV battery return: 2022 waste rules",
+    category: "Automotive",
+  },
+  {
+    slug: "ev-highway-charging-20-km-spacing",
+    title: "EV highway charging: what the 20 km spacing guideline means",
+    category: "Automotive",
+  },
+  {
+    slug: "crompton-instaserve-1200w-3600",
+    title: "Set up Crompton Instaserve 1200W at its Rs 3,600 MRP",
+    category: "Technology",
+  },
+  {
+    slug: "zeb-pex01-1899",
+    title: "Check Zeb PEX01 compatibility before spending Rs 1,899",
+    category: "Technology",
+  },
 ] as const;
 
 const NEWS_FROM_SITE = [
@@ -158,14 +273,49 @@ const NEWS_FROM_SITE = [
     category: "India",
   },
   {
-    slug: "epfo-auto-claim-settlement-limit-five-lakh-eligibility",
-    title: "EPFO auto claim settlement limit: Rs 5 lakh and eligibility checks",
-    category: "India",
-  },
-  {
     slug: "heartland-netflix-2026-release-cast-hindi-audio",
     title: "Heartland on Netflix: November 13 release, cast and Hindi audio",
     category: "Entertainment",
+  },
+  {
+    slug: "gurugram-mini-food-park-grant-rules-november-16",
+    title: "Gurugram food park applicants get land and funding rules in new scheme",
+    category: "India, Gurugram, Business",
+  },
+  {
+    slug: "varanasi-minimum-132c-nov20-saturday-storm-warning-2026",
+    title: "Varanasi minimum 13.2C on Nov 20 with Saturday storm warning",
+    category: "Varanasi",
+  },
+  {
+    slug: "bharatbenz-parking-brake-recall-january-2024-july-2025",
+    title: "BharatBenz parking brake recall: January 2024 to July 2025 models",
+    category: "Automotive",
+  },
+  {
+    slug: "volkswagen-recall-3-2007-2014",
+    title: "Volkswagen recall covers three models from 2007 to 2014",
+    category: "Automotive",
+  },
+  {
+    slug: "renault-recall-17",
+    title: "Renault recall covers 17 models in India",
+    category: "Automotive",
+  },
+  {
+    slug: "shreshta-2027-exam-date-january-schedule-admit-card",
+    title: "SHRESHTA 2027 exam date: 10 January, admit card on 3 January",
+    category: "Education",
+  },
+  {
+    slug: "upsc-recruitment-2026-advertisement-13-vacancies-last-date",
+    title: "UPSC recruitment 2026 advertisement 13: vacancies and last date",
+    category: "Education",
+  },
+  {
+    slug: "form-121-replaces-15g-15h-eligibility-submission",
+    title: "Form 121 replaces 15G 15H: eligibility and submission",
+    category: "Business",
   },
   {
     slug: "bihar-vidhan-sabha-recruitment-2026-junior-secretariat-assistant",

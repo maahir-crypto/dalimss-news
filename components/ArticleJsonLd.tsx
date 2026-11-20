@@ -45,6 +45,8 @@ interface ArticleJsonLdProps {
   authorUrl?: string;
   authorProfile?: AuthorBoxProfile | null;
   description?: string;
+  /** Resolved display headline (e.g. stale relative-day title). */
+  headline?: string;
 }
 
 export function ArticleJsonLd({
@@ -52,6 +54,7 @@ export function ArticleJsonLd({
   authorUrl,
   authorProfile,
   description: descriptionOverride,
+  headline: headlineOverride,
 }: ArticleJsonLdProps) {
   const url = `${SITE_URL}${articlePath(article.slug)}`;
   const imageUrl = absoluteImageUrl(article.mediaUrl);
@@ -116,7 +119,10 @@ export function ArticleJsonLd({
       "@type": "WebPage",
       "@id": url,
     },
-    headline: stripForMeta(article.title || article.metaTitle || "", 110),
+    headline: stripForMeta(
+      headlineOverride || article.title || article.metaTitle || "",
+      110
+    ),
     description,
     image,
     datePublished: toISOWithTZ(publishedAt),

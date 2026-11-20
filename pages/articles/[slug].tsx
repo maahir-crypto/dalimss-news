@@ -186,6 +186,7 @@ import {
 } from "@/lib/authorStats";
 import { decodeEntities } from "@/lib/decodeEntities";
 import { hreflangLinks, translationCandidateSlugs } from "@/lib/hreflang";
+import { resolveStaleRelativeTitle } from "@/lib/staleRelativeTitle";
 import Image from "next/image";
 import ArticleLeadImage from "@/components/ArticleLeadImage";
 import { isOptimizableImageSrc } from "@/lib/optimizableImage";
@@ -266,17 +267,24 @@ const ArticlePage: React.FC<Props> = ({
   const canonicalUrl = `${SITE_URL}${articlePath(
     duplicateCanonicalSlug(article.slug)
   )}`;
-  const plainTitle = decodeEntities(article.title);
+  const rawTitle = decodeEntities(article.title);
+  // Stale relative-day words ("today", "this weekend", Hindi आज/कल, …) are
+  // resolved on the server at render time so H1, og:title, document title and
+  // JSON-LD headline stay in sync without a hydration mismatch.
+  const plainTitle = resolveStaleRelativeTitle(rawTitle, publishedAt);
   const plainAlt = decodeEntities(article.imageAltText || article.title);
   const breadcrumbTitle = articleBreadcrumbName(article.metaTitle, plainTitle);
+  const rawMetaTitle = article.metaTitle
+    ? resolveStaleRelativeTitle(decodeEntities(article.metaTitle), publishedAt)
+    : null;
   // A CMS meta title that is only a cut-down copy of the headline must not
   // replace it: the Open Graph title should match the H1.
-  const seoTitle = metaTitleIsTruncatedHeadline(article.metaTitle, plainTitle)
+  const seoTitle = metaTitleIsTruncatedHeadline(article.metaTitle, rawTitle)
     ? stripForMeta(plainTitle, 110)
-    : stripForMeta(article.metaTitle || plainTitle, 110);
+    : stripForMeta(rawMetaTitle || plainTitle, 110);
   // Only the document title is shortened. H1, og:title, and the headline stay full.
   const documentTitle = trimTitleAtWordBoundary(
-    article.metaTitle ? seoTitle : `${plainTitle} | Dalimss News`
+    rawMetaTitle ? seoTitle : `${plainTitle} | Dalimss News`
   );
   const readMinutes = article.content
     ? readTimeMinutes(article.content)
@@ -429,6 +437,7 @@ const ArticlePage: React.FC<Props> = ({
         authorUrl={authorUrl}
         authorProfile={curatedAuthor}
         description={seoDescription}
+        headline={plainTitle}
       />
 
       {/* Breadcrumbs */}
