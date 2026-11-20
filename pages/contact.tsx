@@ -202,7 +202,7 @@ const ContactPage: React.FC = () => {
             })}
           </div>
           <p className="max-w-5xl mx-auto mt-8 text-center text-gray-700">
-            Newsroom: Gurugram, Haryana (headquarters). Bureau: Varanasi, Uttar Pradesh.
+            Headquarters: Gurugram, Haryana and Varanasi, Uttar Pradesh.
           </p>
         </div>
       </section>
