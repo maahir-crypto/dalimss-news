@@ -7,6 +7,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import { useEffect, useCallback } from "react";
+import { sanitizeInstagramPasteHtml } from "@/lib/instagramEmbed";
 
 interface Props {
   value: string;
@@ -49,7 +50,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
       Color,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: placeholder || "Write your article content here..." }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-blue-600 underline" } }),
+      Link.configure({
+        openOnClick: false,
+        // Keep Instagram reel/post URLs as real links (CMS used to drop embed markup).
+        validate: (href) => /^https?:\/\//i.test(href) || href.startsWith("mailto:"),
+        HTMLAttributes: { class: "text-blue-600 underline" },
+      }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
@@ -58,6 +64,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: Props) 
     editorProps: {
       attributes: {
         class: "prose max-w-none min-h-[400px] p-4 focus:outline-none text-gray-900",
+      },
+      // TipTap's schema strips Instagram blockquote data-* attrs and embed.js.
+      // Collapse those pastes to a paragraph with the canonical permalink so
+      // the article renderer can show the click-to-load facade.
+      transformPastedHTML(html) {
+        return sanitizeInstagramPasteHtml(html);
       },
     },
   });
