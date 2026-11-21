@@ -24,6 +24,7 @@ import {
   nextUpcomingVrat,
   UPCOMING_VRAT_CTAS,
   slugHash,
+  timingToolPageForSlug,
   sponsoredEndModeForStory,
   sponsoredEndWindowsForStory,
   pendingVratStartsForStory,
@@ -659,18 +660,27 @@ describe("new guide rotation and Sponsored end windows", () => {
           lang, slug, tone: "general", placement: "before-related", mode: expected,
         }));
         const links = hrefs(markup);
+        const timing = expected === "b" ? timingToolPageForSlug(slug) : null;
         assert.equal(links.length, 3);
         assert.deepEqual(links.map((h) => new URL(h).pathname), expected === "a"
-          ? ["/chat/", "/kundli/", "/rashifal/"] : ["/choghadiya/", "/rahu-kaal/", "/kundli/"]);
+          ? ["/chat/", "/kundli/", "/rashifal/"] : [timing!.path, "/rahu-kaal/", "/kundli/"]);
         for (const [i, href] of Array.from(links.entries())) {
           assert.deepEqual(params(href), {
             utm_source: "dalimss_news", utm_medium: "ad", utm_content: slug,
-            utm_campaign: expected === "b" && i < 2 ? ["choghadiya", "rahukaal"][i] : "evergreen",
+            utm_campaign: expected === "b" && i === 0 ? timing!.campaign : expected === "b" && i === 1 ? "rahukaal" : "evergreen",
           });
         }
         assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
         assert.match(markup, /-webkit-line-clamp:3/);
-        if (expected === "b") {
+        if (expected === "b" && timing!.path === "/hora/") {
+          assert.ok(markup.includes(lang === "hi"
+            ? "आज का होरा और राहु काल अपने शहर के लिए देखें, Pocket Jyotish पर"
+            : "See today&#x27;s Hora and Rahu Kaal for your city on Pocket Jyotish"));
+          assert.ok(markup.includes(lang === "hi" ? "आज का होरा" : "Today&#x27;s Hora"));
+          assert.equal(/\bfree\b|मुफ़्त|मुफ्त/i.test(lang === "hi"
+            ? "आज का होरा और राहु काल अपने शहर के लिए देखें, Pocket Jyotish पर"
+            : "See today's Hora and Rahu Kaal for your city on Pocket Jyotish"), false);
+        } else if (expected === "b") {
           assert.ok(markup.includes(lang === "hi"
             ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
             : "See today&#x27;s Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"));
@@ -691,6 +701,43 @@ describe("new guide rotation and Sponsored end windows", () => {
       assert.equal(isHardNewsStory(story), true, JSON.stringify(story));
       assert.equal(sponsoredEndModeForStory(story, NOV14), null, JSON.stringify(story));
     }
+  });
+
+  it("rotates Hora with Choghadiya inside the timing-tools arm", () => {
+    const pages = new Set<string>();
+    let horaSlug = "";
+    for (let n = 0; n < 80; n += 1) {
+      const slug = `timing-tools-${n}`;
+      if (slugHash(slug) % 2 !== 1) continue;
+      const page = timingToolPageForSlug(slug);
+      assert.equal(timingToolPageForSlug(slug).path, page.path);
+      assert.ok(page.path === "/choghadiya/" || page.path === "/hora/", page.path);
+      assert.equal(page.campaign, page.path === "/hora/" ? "hora" : "choghadiya");
+      pages.add(page.path);
+      if (page.path === "/hora/" && !horaSlug) horaSlug = slug;
+    }
+    assert.ok(pages.has("/hora/"));
+    assert.ok(pages.has("/choghadiya/"));
+    assert.ok(horaSlug);
+    for (const lang of ["en", "hi"] as const) {
+      const markup = html(React.createElement(PartnerSponsoredUnit, {
+        lang, slug: horaSlug, tone: "general", placement: "after-body", mode: "b",
+      }));
+      const links = hrefs(markup);
+      assert.equal(new URL(links[0]).pathname, "/hora/");
+      assert.deepEqual(params(links[0]), {
+        utm_source: "dalimss_news", utm_medium: "ad", utm_campaign: "hora", utm_content: horaSlug,
+      });
+      assert.match(markup, /rel="sponsored noopener"/);
+      assert.ok(markup.includes("Sponsored"));
+      assert.ok(markup.includes(lang === "hi" ? "आज का होरा" : "Today&#x27;s Hora"));
+      assert.match(markup, /height:220px;min-height:220px;max-height:220px/);
+      assert.equal(links.length, 3);
+    }
+    const chat = html(React.createElement(PartnerSponsoredUnit, {
+      lang: "en", slug: "city-brief", tone: "general", placement: "after-body", mode: "a",
+    }));
+    assert.equal(hrefs(chat).some((href) => href.includes("/hora/")), false);
   });
 
   it("gives every new guide full partner UTMs", () => {
@@ -1400,8 +1447,10 @@ describe("story-matched Kaal Bhairav, Guru Nanak, Akshaya Navami and Griha Prave
     assert.equal(upcomingVratForStory(SINGH, NOV18), null);
     assert.equal(upcomingVratForStory(SINGH, DEC1_LAST), null);
     const temple = { slug: "bhairav-temple-varanasi", title: "Bhairav temple Varanasi", category: "Varanasi" };
-    assert.equal(isPartnerEligibleStory(temple), false);
-    assert.equal(upcomingVratForStory(temple, NOV18), null);
+    assert.equal(isKaalBhairavStory(temple), false);
+    assert.equal(isPartnerEligibleStory(temple), true);
+    assert.notEqual(upcomingVratForStory(temple, NOV18)?.id, "kaal_bhairav_2026");
+    assert.equal(upcomingVratForStory(temple, new Date("2027-06-15T06:30:00Z"))?.id, "aaj_ka_panchang");
   });
 
   it("gives a Guru Nanak gurpurab story guru_nanak_2026 through 24 Nov IST, not on 25 Nov", () => {

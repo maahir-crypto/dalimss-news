@@ -502,7 +502,8 @@ export type UpcomingVratId =
   | "lohri_sankranti_2027"
   | "rashifal_2027"
   | "griha_pravesh_2027"
-  | "kashi_vishwanath_darshan";
+  | "kashi_vishwanath_darshan"
+  | "aaj_ka_panchang";
 
 export type UpcomingVratCta = {
   id: UpcomingVratId;
@@ -1145,9 +1146,37 @@ export const KASHI_VISHWANATH_DARSHAN: UpcomingVratCta = {
   },
 };
 
+/**
+ * Evergreen Aaj ka Panchang for Varanasi. Not part of UPCOMING_VRAT_CTAS, so it
+ * never takes a general-queue slot. A story gets it only when no named festival
+ * guide is open and the Kashi Vishwanath darshan guide does not match.
+ * untilIst is a sentinel so ISR expiry math stays hourly; the guide does not expire.
+ */
+export const AAJ_KA_PANCHANG: UpcomingVratCta = {
+  id: "aaj_ka_panchang",
+  path: "/aaj-ka-panchang/varanasi/",
+  campaign: "aaj_ka_panchang",
+  untilIst: "9999-12-31",
+  text: {
+    en: {
+      endCard: "Aaj ka Panchang for Varanasi: tithi, nakshatra and today's muhurat timings",
+      sidebarTitle: "Aaj ka Panchang for Varanasi",
+      sidebarBody: "Aaj ka Panchang for Varanasi: tithi, nakshatra and today's muhurat timings",
+      sidebarLink: "Aaj ka Panchang for Varanasi: tithi, nakshatra and today's muhurat timings",
+    },
+    hi: {
+      endCard: "वाराणसी का आज का पंचांग: तिथि, नक्षत्र और शुभ मुहूर्त",
+      sidebarTitle: "वाराणसी का आज का पंचांग",
+      sidebarBody: "वाराणसी का आज का पंचांग: तिथि, नक्षत्र और शुभ मुहूर्त",
+      sidebarLink: "वाराणसी का आज का पंचांग: तिथि, नक्षत्र और शुभ मुहूर्त",
+    },
+  },
+};
+
 export function getUpcomingVrat(id: string | null | undefined): UpcomingVratCta | null {
   if (!id) return null;
   if (id === KASHI_VISHWANATH_DARSHAN.id) return KASHI_VISHWANATH_DARSHAN;
+  if (id === AAJ_KA_PANCHANG.id) return AAJ_KA_PANCHANG;
   return UPCOMING_VRAT_CTAS.find((c) => c.id === id) ?? null;
 }
 
@@ -1242,6 +1271,21 @@ export function slugHash(slug: string): number {
 /** 50/50 split by slug hash: even = a (end card only), odd = b (adds inline card). */
 export function partnerInlineVariant(slug: string): PartnerVariant {
   return slugHash(slug) % 2 === 0 ? "a" : "b";
+}
+
+/**
+ * Timing-tools arm pages. Choghadiya stays. Hora rotates with it.
+ * slugHash % 2 is still the chat versus timing-tools split and is not used here.
+ */
+export const TIMING_TOOL_PAGES = [
+  { path: "/choghadiya/", campaign: "choghadiya" },
+  { path: "/hora/", campaign: "hora" },
+] as const;
+
+/** Next bit of slugHash. A story keeps one timing-tools page. */
+export function timingToolPageForSlug(slug: string): (typeof TIMING_TOOL_PAGES)[number] {
+  const index = Math.floor(slugHash(slug) / 2) % TIMING_TOOL_PAGES.length;
+  return TIMING_TOOL_PAGES[index];
 }
 
 // ---------------------------------------------------------------------------
@@ -1342,6 +1386,31 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
   return VARANASI_PLACE.test(hay) && VARANASI_SPIRITUAL.test(hay) && SERVICE_GUIDE.test(hay);
 }
 
+/** Religious topic words for the Varanasi panchang guide. Title and slug only. */
+const AAJ_KA_PANCHANG_RITUAL_EN =
+  /\b(?:aartis?|mandirs?|temples?|mahotsavs?|snans?|pujas?|poojas?|darshans?)\b/i;
+const AAJ_KA_PANCHANG_RITUAL_HI = /आरती|मंदिर|मन्दिर|महोत्सव|स्नान|पूजा|दर्शन/;
+const AAJ_KA_PANCHANG_GHAT_EN = /\bghats?\b/i;
+const AAJ_KA_PANCHANG_GHAT_HI = /घाट/;
+
+/**
+ * Varanasi, Kashi or Banaras story about a ghat, aarti, temple, mahotsav,
+ * snan, puja or darshan. Topic words are title and slug only. Place may also
+ * be the category or tags. A bare ghat mention, such as ghats being cleaned,
+ * is not enough unless the story is already a Varanasi spiritual service guide.
+ * Sensitive and hard news never match.
+ */
+export function isAajKaPanchangStory(a: StoryFields): boolean {
+  if (isSensitiveStory(a) || isHardNewsStory(a)) return false;
+  if (!VARANASI_PLACE.test(partnerHay(a))) return false;
+  const slugText = (a.slug || "").replace(/-/g, " ");
+  const titleSlug = `${a.title || ""} ${slugText}`;
+  const ritual = AAJ_KA_PANCHANG_RITUAL_EN.test(titleSlug) || AAJ_KA_PANCHANG_RITUAL_HI.test(titleSlug);
+  if (ritual) return true;
+  const ghat = AAJ_KA_PANCHANG_GHAT_EN.test(titleSlug) || AAJ_KA_PANCHANG_GHAT_HI.test(titleSlug);
+  return ghat && isVaranasiSpiritualGuide(a);
+}
+
 /**
  * Partner widget eligibility: astrology, rashifal, festival, vrat and
  * puja-guide stories, plus Varanasi festival / ghat service guides.
@@ -1352,6 +1421,8 @@ export function isVaranasiSpiritualGuide(a: StoryFields): boolean {
  * Bhishma Panchak, Dev Uthani, Prabodhini Ekadashi, Kartik snan,
  * Margashirsha month, and a December 2026 vrat or tyohar list.
  * Kashi Vishwanath is title or slug only, not a general temple or Varanasi story.
+ * Aaj ka Panchang is a Varanasi ghat, temple, aarti, puja, snan, darshan or mahotsav
+ * in the title or slug.
  * Hard news is always excluded, and exclusion wins over inclusion.
  */
 export function isPartnerEligibleStory(a: StoryFields): boolean {
@@ -1368,7 +1439,8 @@ export function isPartnerEligibleStory(a: StoryFields): boolean {
     mentionsBhishmaPanchak(a) ||
     mentionsMargashirshaMonth(a) ||
     mentionsDecemberVratTyohar(a) ||
-    isKashiVishwanathStory(a)
+    isKashiVishwanathStory(a) ||
+    isAajKaPanchangStory(a)
   ) {
     return true;
   }
@@ -1470,6 +1542,9 @@ function namedGuideAheadOfKashiDarshan(
  * still win on those days because they are the sooner guide.
  * A Kashi Vishwanath story uses the evergreen darshan guide only when no
  * named festival or vrat guide matches. Named guides keep their own windows.
+ * A Varanasi ghat, temple, aarti, puja or mahotsav story uses Aaj ka Panchang
+ * only when that rotation has no open guide left. Kundli and rashifal stay
+ * the fallback for every other story.
  */
 export function upcomingVratForStory(a: StoryFields, now: Date = new Date()): UpcomingVratCta | null {
   if (isSensitiveStory(a) || !isPartnerEligibleStory(a)) return null;
@@ -1480,8 +1555,11 @@ export function upcomingVratForStory(a: StoryFields, now: Date = new Date()): Up
     next && next.id === "pradosh_2026" && devDeepawaliOverridesPradosh(a, now)
       ? getUpcomingVrat("dev_deepawali_2026")
       : next;
-  if (!isKashiVishwanathStory(a)) return chosen;
-  return namedGuideAheadOfKashiDarshan(a, now, chosen) ?? KASHI_VISHWANATH_DARSHAN;
+  if (isKashiVishwanathStory(a)) {
+    return namedGuideAheadOfKashiDarshan(a, now, chosen) ?? KASHI_VISHWANATH_DARSHAN;
+  }
+  if (!chosen && isAajKaPanchangStory(a)) return AAJ_KA_PANCHANG;
+  return chosen;
 }
 
 const FESTIVAL_STORY_EN =
@@ -1858,7 +1936,7 @@ export type SponsoredEndMode = "a" | "b" | "chhath" | "kharmas" | "rashifal";
 
 /**
  * Chhath, then Kharmas, then Rashifal 2027. Other stories keep the slug A/B
- * through 20 Nov IST, then chat (A).
+ * through 20 Nov IST, then chat (A). Mode b rotates Choghadiya and Hora.
  */
 export function sponsoredEndModeForStory(a: StoryFields, now: Date = new Date()): SponsoredEndMode | null {
   if (!canShowSponsoredEndUnit(a, { now })) return null;

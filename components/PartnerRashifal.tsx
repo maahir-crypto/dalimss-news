@@ -6,6 +6,7 @@ import {
   getFestivalPartnerCta,
   getUpcomingVrat,
   partnerHref,
+  timingToolPageForSlug,
   PARTNER_CAMPAIGN_EVERGREEN,
   PARTNER_CAMPAIGN_SPONSORED_EVERGREEN,
   PARTNER_CAMPAIGN_TECH_AUTO,
@@ -538,11 +539,14 @@ export function PartnerSponsoredUnit({
   const guide =
     mode === "kharmas" ? getUpcomingVrat("kharmas_2026") : mode === "rashifal" ? getUpcomingVrat("rashifal_2027") : null;
   const guideText = guide ? (hi ? guide.text.hi.endCard : guide.text.en.endCard) : null;
+  // Timing-tools arm only. Same Sponsored label, rel and UTM shape as Choghadiya.
+  const timingTool = timingToolPageForSlug(slug);
+  const hora = mode === "b" && timingTool.campaign === "hora";
   const primary = mode === "chhath"
     ? link("/chhath-puja-2026/", "chhath2026")
     : guide
       ? link(guide.path, guide.campaign)
-      : mode === "b" ? link("/choghadiya/", "choghadiya") : link("/chat/");
+      : mode === "b" ? link(timingTool.path, timingTool.campaign) : link("/chat/");
   const rahuKaal = link("/rahu-kaal/", "rahukaal");
   const kundli = link("/kundli/");
   const rashifal = link("/rashifal/");
@@ -552,9 +556,13 @@ export function PartnerSponsoredUnit({
       : guideText
         ? guideText
         : mode === "b"
-          ? hi
-            ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
-            : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
+          ? hora
+            ? hi
+              ? "आज का होरा और राहु काल अपने शहर के लिए देखें, Pocket Jyotish पर"
+              : "See today's Hora and Rahu Kaal for your city on Pocket Jyotish"
+            : hi
+              ? "आज का शुभ चौघड़िया और राहु काल अपने शहर के लिए देखें, Pocket Jyotish (मुफ़्त)"
+              : "See today's Choghadiya and Rahu Kaal for your city on Pocket Jyotish (free tools)"
           : tone === "hard-news"
             ? SPONSORED_HARD_NEWS_COPY
             : hi
@@ -563,7 +571,11 @@ export function PartnerSponsoredUnit({
   const chatLabel = tone === "hard-news" || !hi ? "AI Astrologer" : "AI ज्योतिषी";
   const primaryLabel = mode === "chhath" || guide
     ? copy
-    : mode === "b" ? hi ? "आज का चौघड़िया" : "Today's Choghadiya" : chatLabel;
+    : mode === "b"
+      ? hora
+        ? hi ? "आज का होरा" : "Today's Hora"
+        : hi ? "आज का चौघड़िया" : "Today's Choghadiya"
+      : chatLabel;
   const kundliLabel = tone === "hard-news" || !hi ? "Free kundli" : "मुफ्त कुंडली";
   const rashifalLabel = tone === "hard-news" || !hi ? "Free daily rashifal" : "मुफ्त दैनिक राशिफल";
   const row = (href: string, label: string, primary: boolean, marginTop: number) => (
