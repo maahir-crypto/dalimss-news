@@ -492,6 +492,7 @@ export function newsMediaOrganizationSchema() {
     sameAs: [
       "https://www.instagram.com/dalimss.news.banaras/",
       "https://www.youtube.com/@dalimss_news",
+      "https://x.com/Dalimss_News",
     ],
     founder: {
       "@type": "Person",

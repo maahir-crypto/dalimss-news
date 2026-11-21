@@ -88,6 +88,11 @@ const ContactPage: React.FC = () => {
       telephone: "+91-6392752976",
       availableLanguage: ORGANIZATION_LANGUAGES,
     },
+    sameAs: [
+      "https://www.instagram.com/dalimss.news.banaras/",
+      "https://www.youtube.com/@dalimss_news",
+      "https://x.com/Dalimss_News",
+    ],
   };
   const [formData, setFormData] = useState({
     name: "",

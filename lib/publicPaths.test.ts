@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   CATEGORY_HUB_PATHS,
   articlePath,
@@ -40,6 +41,16 @@ assert.equal(org.contactPoint.telephone, "+91-6392752976");
 assert.equal(org.contactPoint.email, "editor@dalimss.news");
 assert.ok(org.sameAs.includes("https://www.instagram.com/dalimss.news.banaras/"));
 assert.ok(org.sameAs.includes("https://www.youtube.com/@dalimss_news"));
+assert.ok(org.sameAs.includes("https://x.com/Dalimss_News"));
+assert.deepEqual(org.sameAs, [
+  "https://www.instagram.com/dalimss.news.banaras/",
+  "https://www.youtube.com/@dalimss_news",
+  "https://x.com/Dalimss_News",
+]);
+const contactSchema = readFileSync(new URL("../pages/contact.tsx", import.meta.url), "utf8");
+const homeSchema = readFileSync(new URL("../pages/index.tsx", import.meta.url), "utf8");
+assert.ok(contactSchema.includes('"https://x.com/Dalimss_News"'));
+assert.ok(homeSchema.includes('"https://x.com/Dalimss_News"'));
 assert.equal(org.publishingPrinciples, "https://dalimss.news/editorial-policy");
 assert.equal(org.correctionsPolicy, "https://dalimss.news/corrections-policy");
 assert.equal(org.ownershipFundingInfo, "https://dalimss.news/ownership");

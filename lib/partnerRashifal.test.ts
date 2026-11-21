@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   DIWALI_PARTNER_CTA_UNTIL_IST,
   diwaliPartnerHref,
@@ -13,6 +15,8 @@ import {
   isKashiVishwanathStory,
   isPartnerEligibleStory,
   isSensitiveStory,
+  AAJ_KA_PANCHANG,
+  isAajKaPanchangStory,
   KASHI_VISHWANATH_DARSHAN,
   UPCOMING_VRAT_CTAS,
   getUpcomingVrat,
@@ -30,7 +34,11 @@ import {
   showTechAutoPartnerLine,
   slugHash,
 } from "./partnerRashifal";
+import { PartnerEndCard, PartnerRashifal, PartnerSidebar } from "../components/PartnerRashifal";
 import { rehypeAdSlots } from "./rehypeAdSlots";
+
+const renderHtml = (el: React.ReactElement) => renderToStaticMarkup(el);
+const renderHrefs = (s: string) => Array.from(s.matchAll(/href="([^"]+)"/g)).map((m) => m[1].replace(/&amp;/g, "&"));
 
 describe("Diwali partner CTA window", () => {
   it("keeps the until-date constant at 11 Nov 2026 IST", () => {
@@ -418,5 +426,125 @@ describe("Kashi Vishwanath darshan guide", () => {
       assert.notEqual(upcomingVratForStory(story, JUN2027)?.id, "kashi_vishwanath_darshan", JSON.stringify(story));
     }
     assert.equal(upcomingVratForStory(ghat, NOV20)?.id, "tulsi_vivah_2026");
+  });
+});
+
+describe("Aaj ka Panchang for Varanasi", () => {
+  const NOV22 = new Date("2026-11-22T06:30:00Z");
+  const DEC10 = new Date("2026-12-10T06:30:00Z");
+  const DEC26 = new Date("2026-12-26T06:30:00Z");
+  const JUN2027 = new Date("2027-06-15T06:30:00Z");
+  const GHAT = {
+    slug: "dashashwamedh-ghat-aarti-timings",
+    title: "Dashashwamedh Ghat aarti timings in Varanasi",
+    category: "Varanasi",
+  };
+
+  it("matches a Varanasi ghat aarti story and not a crime story", () => {
+    assert.equal(AAJ_KA_PANCHANG.id, "aaj_ka_panchang");
+    assert.equal(AAJ_KA_PANCHANG.path, "/aaj-ka-panchang/varanasi/");
+    assert.equal(AAJ_KA_PANCHANG.campaign, "aaj_ka_panchang");
+    assert.equal(UPCOMING_VRAT_CTAS.some((c) => c.id === "aaj_ka_panchang"), false);
+    assert.equal(getUpcomingVrat("aaj_ka_panchang")?.path, "/aaj-ka-panchang/varanasi/");
+    assert.equal(isAajKaPanchangStory(GHAT), true);
+    assert.equal(isPartnerEligibleStory(GHAT), true);
+    assert.equal(upcomingVratForStory(GHAT, JUN2027)?.id, "aaj_ka_panchang");
+    assert.equal(upcomingVratForStory(GHAT, DEC26)?.id, "aaj_ka_panchang");
+    assert.equal(upcomingVratForStory(GHAT, DEC26)?.path, "/aaj-ka-panchang/varanasi/");
+    const hindi = { slug: "kashi-ghat-aarti", title: "वाराणसी के घाट पर आरती", category: "Varanasi" };
+    assert.equal(isAajKaPanchangStory(hindi), true);
+    assert.equal(upcomingVratForStory(hindi, JUN2027)?.id, "aaj_ka_panchang");
+    assert.equal(isAajKaPanchangStory({ slug: "banaras-mahotsav-2026", title: "Banaras mahotsav opens", category: "Varanasi" }), true);
+    assert.equal(isAajKaPanchangStory({ title: "Haridwar ghat aarti timings", category: "India" }), false);
+    assert.equal(isAajKaPanchangStory({ title: "Varanasi traffic plan", slug: "varanasi-traffic-plan", category: "Varanasi" }), false);
+    assert.equal(isAajKaPanchangStory({
+      slug: "city-notes",
+      title: "Old city notes",
+      category: "India",
+      tags: "Varanasi, ghat, aarti",
+    }), false);
+    const crime = {
+      slug: "varanasi-ghat-murder",
+      title: "Murder at Dashashwamedh Ghat in Varanasi",
+      category: "Crime",
+    };
+    assert.equal(isSensitiveStory(crime), true);
+    assert.equal(isAajKaPanchangStory(crime), false);
+    assert.equal(isPartnerEligibleStory(crime), false);
+    assert.equal(upcomingVratForStory(crime, JUN2027), null);
+    assert.equal(upcomingVratForStory(crime, NOV22), null);
+  });
+
+  it("loses to named festival guides and to Kashi Vishwanath darshan", () => {
+    assert.equal(upcomingVratForStory(GHAT, NOV22)?.id, "dev_deepawali_2026");
+    const namedDev = {
+      slug: "dev-deepawali-dashashwamedh-ghat",
+      title: "Dev Deepawali at Dashashwamedh Ghat in Varanasi",
+      category: "Varanasi",
+    };
+    assert.equal(upcomingVratForStory(namedDev, NOV22)?.id, "dev_deepawali_2026");
+    const vishwanath = {
+      slug: "kashi-vishwanath-ghat-aarti",
+      title: "Kashi Vishwanath ghat aarti in Varanasi",
+      category: "Varanasi",
+    };
+    assert.equal(isAajKaPanchangStory(vishwanath), true);
+    assert.equal(isKashiVishwanathStory(vishwanath), true);
+    assert.equal(upcomingVratForStory(vishwanath, JUN2027)?.id, "kashi_vishwanath_darshan");
+    assert.notEqual(upcomingVratForStory(vishwanath, JUN2027)?.id, "aaj_ka_panchang");
+    assert.equal(upcomingVratForStory({
+      slug: "guru-nanak-varanasi-ghat",
+      title: "Guru Nanak Jayanti gathering at a Varanasi ghat",
+      category: "Varanasi",
+    }, new Date("2026-11-20T06:30:00Z"))?.id, "guru_nanak_jayanti_2026");
+    assert.equal(upcomingVratForStory({
+      slug: "kaal-bhairav-varanasi-temple",
+      title: "Kaal Bhairav Jayanti at a Varanasi temple",
+      category: "Varanasi",
+    }, new Date("2026-11-30T06:30:00Z"))?.id, "kaal_bhairav_2026");
+    assert.equal(upcomingVratForStory({
+      slug: "margashirsha-varanasi-temple",
+      title: "Margashirsha month rituals at a Varanasi temple",
+      category: "Varanasi",
+    }, DEC10)?.id, "margashirsha_month_2026");
+    assert.equal(upcomingVratForStory({
+      slug: "december-vrat-varanasi-ghat",
+      title: "December vrat list and Varanasi ghat aarti",
+      category: "Varanasi",
+    }, DEC26)?.id, "december_vrat_2026");
+  });
+
+  it("uses the approved copy and the slot medium on each partner unit", () => {
+    assert.equal(AAJ_KA_PANCHANG.text.en.endCard, "Aaj ka Panchang for Varanasi: tithi, nakshatra and today's muhurat timings");
+    assert.equal(AAJ_KA_PANCHANG.text.hi.endCard, "वाराणसी का आज का पंचांग: तिथि, नक्षत्र और शुभ मुहूर्त");
+    for (const lang of ["en", "hi"] as const) {
+      const blob = Object.values(AAJ_KA_PANCHANG.text[lang]).join("\n");
+      assert.equal(blob.includes("—"), false, lang);
+      assert.equal(blob.includes("–"), false, lang);
+      assert.equal(/\bfree\b|मुफ्त|मुफ़्त|click now|click here/i.test(blob), false, lang);
+    }
+    const slots = [
+      ["ad", renderHtml(React.createElement(PartnerEndCard, { lang: "en", slug: GHAT.slug, upcomingVratId: "aaj_ka_panchang" }))],
+      ["sidebar", renderHtml(React.createElement(PartnerSidebar, { lang: "en", slug: GHAT.slug, upcomingVratId: "aaj_ka_panchang" }))],
+      ["widget", renderHtml(React.createElement(PartnerRashifal, { sign: "mesh", lang: "hi", slug: GHAT.slug, upcomingVratId: "aaj_ka_panchang" }))],
+    ] as const;
+    for (const [medium, markup] of slots) {
+      const links = renderHrefs(markup).filter((href) => href.includes("/aaj-ka-panchang/varanasi/"));
+      assert.equal(links.length, 1, medium);
+      const url = new URL(links[0]);
+      assert.equal(url.pathname, "/aaj-ka-panchang/varanasi/");
+      assert.equal(url.searchParams.get("utm_source"), "dalimss_news");
+      assert.equal(url.searchParams.get("utm_medium"), medium);
+      assert.equal(url.searchParams.get("utm_campaign"), "aaj_ka_panchang");
+      assert.equal(url.searchParams.get("utm_content"), GHAT.slug);
+      assert.match(markup, /rel="sponsored noopener"/);
+      assert.ok(markup.includes("Sponsored"));
+    }
+    const end = slots[0][1];
+    const widget = slots[2][1];
+    assert.match(end, /height:148px;min-height:148px;max-height:148px/);
+    assert.match(widget, /height:64px;min-height:64px;max-height:64px/);
+    assert.ok(end.includes("Aaj ka Panchang for Varanasi: tithi, nakshatra and today&#x27;s muhurat timings"));
+    assert.ok(widget.includes("वाराणसी का आज का पंचांग: तिथि, नक्षत्र और शुभ मुहूर्त"));
   });
 });
