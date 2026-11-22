@@ -200,6 +200,18 @@ const nextConfig = {
         destination: "/articles/varanasi-dham-security-land-lease-nov18-2026",
         permanent: true,
       },
+      {
+        source: "/articles/varanasi-svanidhi-vendor-welfare-award-nov20-2026",
+        destination:
+          "/articles/varanasi-vendor-welfare-award-scheme-linkages-nov20-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/varanasi-kashi-security-land-lease-approved-nov18-2026",
+        destination: "/articles/varanasi-dham-security-land-lease-nov18-2026",
+        permanent: true,
+      },
     ];
   },
 
