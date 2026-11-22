@@ -27,7 +27,7 @@ import {
 }
 
 {
-  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 13);
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 15);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);
     assert.equal(isDuplicateArticleCopy(copy), true);
@@ -45,6 +45,18 @@ import {
       "varanasi-ganga-mahotsav-artist-programme-nov18-2026"
     ),
     "varanasi-ganga-mahotsav-artists-namo-ghat-nov18-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-svanidhi-vendor-welfare-award-nov20-2026"
+    ),
+    "varanasi-vendor-welfare-award-scheme-linkages-nov20-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-kashi-security-land-lease-approved-nov18-2026"
+    ),
+    "varanasi-dham-security-land-lease-nov18-2026"
   );
 }
 

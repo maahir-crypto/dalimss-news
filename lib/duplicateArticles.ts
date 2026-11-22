@@ -58,6 +58,11 @@ export const MERGED_ARTICLE_REDIRECTS: Record<string, string> = {
     "varanasi-ganga-mahotsav-artists-namo-ghat-nov18-2026",
   "varanasi-central-forces-land-lease-419-acres-nov19-2026":
     "varanasi-dham-security-land-lease-nov18-2026",
+  // 22 Nov 2026 Varanasi desk same-event merges
+  "varanasi-svanidhi-vendor-welfare-award-nov20-2026":
+    "varanasi-vendor-welfare-award-scheme-linkages-nov20-2026",
+  "varanasi-kashi-security-land-lease-approved-nov18-2026":
+    "varanasi-dham-security-land-lease-nov18-2026",
 };
 
 /** Slug whose URL should be the canonical for this article. */
