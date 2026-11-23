@@ -1,3 +1,8 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import { rehypeFigureGallery } from "./rehypeFigureGallery";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
@@ -213,6 +218,30 @@ import { rehypeAdSlots } from "./rehypeAdSlots";
   );
   assert.ok(editor.includes("sanitizeInstagramPasteHtml"));
   assert.ok(editor.includes("transformPastedHTML"));
+}
+
+
+{
+  // End-to-end ReactMarkdown + rehypePlugins render check: body text, inline
+  // Instagram links, and standalone Instagram embeds must all render non-empty.
+  const html = renderToStaticMarkup(
+    React.createElement(
+      ReactMarkdown,
+      {
+        rehypePlugins: [
+          rehypeRaw as any,
+          rehypeFigureGallery,
+          rehypeAdSlots({ after: [3, 7] }),
+          rehypeInstagramEmbed(),
+        ],
+      },
+      `<p>VARANASI: Lead paragraph.</p><p><a href="https://www.instagram.com/dalimss.news.banaras/reel/Df6pF4FSLzX/">Watch the video on Instagram</a> | Field reporting.</p><p>https://www.instagram.com/reel/DQaBcDeFgHi/</p><p>Closing paragraph.</p>`
+    )
+  );
+  assert.ok(html.includes("VARANASI: Lead paragraph."), "lead paragraph missing");
+  assert.ok(html.includes("https://www.instagram.com/dalimss.news.banaras/reel/Df6pF4FSLzX/"), "inline reel link missing");
+  assert.ok(html.includes("Closing paragraph."), "closing paragraph missing");
+  assert.ok(html.includes("instagram-embed"), "standalone embed marker missing");
 }
 
 console.log("instagramEmbed.test.ts ok");

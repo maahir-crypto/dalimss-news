@@ -705,7 +705,7 @@ const ArticlePage: React.FC<Props> = ({
               rehypeDecodeEntities,
               rehypeFigureGallery,
               rehypeAdSlots({ after: [3, 7] }),
-              rehypeInstagramEmbed,
+              rehypeInstagramEmbed(),
               rehypePartnerSlot({ enabled: showPartnerPlacements, after: 2 }),
               rehypePartnerInlineCard({ enabled: showInlineCard, after: 3 }),
             ]}
