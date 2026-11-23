@@ -1,6 +1,8 @@
 // lib/categories.ts
 // Central category definitions for national news structure
 
+import { sectionPath } from "@/lib/publicPaths";
+
 export interface Category {
   slug: string;
   name: string;
@@ -202,7 +204,8 @@ export function getCategoryBySlug(slug: string): Category | undefined {
 
 /**
  * Destination for a legacy `/?category=` query.
- * Known categories go to `/category/<slug>`. Anything else goes home.
+ * City categories go straight to their topic hubs. Other known categories
+ * go to `/category/<slug>`. Anything else goes home.
  */
 export function categoryQueryDestination(value: string): string {
   const trimmed = value.trim();
@@ -217,7 +220,7 @@ export function categoryQueryDestination(value: string): string {
     getCategoryBySlug(trimmed) ||
     getCategoryBySlug(trimmed.toLowerCase()) ||
     getCategoryByDbValue(trimmed);
-  return category ? `/category/${category.slug}` : "/";
+  return category ? sectionPath(category.slug) : "/";
 }
 
 /**

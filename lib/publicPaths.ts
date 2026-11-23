@@ -19,13 +19,13 @@ export const CATEGORY_HUB_PATHS: Record<string, string> = {
   gurgaon: "/gurugram-news",
 };
 
-/** Public category archive URL. Unknown or template slugs go to the homepage. */
+/**
+ * Public category URL. City categories resolve to their topic hubs, same
+ * as sectionPath, so a link never points at a redirected archive.
+ * Unknown or template slugs go to the homepage.
+ */
 export function categoryPath(slug: string | null | undefined): string {
-  if (isPlaceholderSegment(slug)) return "/";
-  const category =
-    getCategoryBySlug(slug as string) ||
-    getCategoryBySlug((slug as string).toLowerCase());
-  return category ? `/category/${category.slug}` : "/";
+  return sectionPath(slug);
 }
 
 /**
