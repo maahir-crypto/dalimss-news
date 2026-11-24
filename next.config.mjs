@@ -59,6 +59,24 @@ const nextConfig = {
         destination: "/gurugram-news",
         permanent: true,
       },
+      // City category archives fold onto the topic hubs. Next.js forwards
+      // the request query, so ?page=N is preserved. Trailing slashes follow
+      // the same default strip as the other permanent redirects.
+      {
+        source: "/category/varanasi",
+        destination: "/varanasi-news",
+        permanent: true,
+      },
+      {
+        source: "/category/gurugram",
+        destination: "/gurugram-news",
+        permanent: true,
+      },
+      {
+        source: "/category/gurgaon",
+        destination: "/gurugram-news",
+        permanent: true,
+      },
       {
         source: "/technology",
         destination: "/category/technology",

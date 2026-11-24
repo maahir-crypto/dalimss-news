@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  categoryQueryDestination,
   getCategoriesByDbValue,
   pickBreadcrumbCategory,
   type Category,
@@ -62,4 +63,15 @@ function pick(dbValue: string | null | undefined): Category | undefined {
   assert.equal(pick(undefined), undefined);
   assert.equal(pick(""), undefined);
   assert.equal(pickBreadcrumbCategory([]), undefined);
+}
+
+{
+  assert.equal(categoryQueryDestination("varanasi"), "/varanasi-news");
+  assert.equal(categoryQueryDestination("Varanasi"), "/varanasi-news");
+  assert.equal(categoryQueryDestination("gurgaon"), "/gurugram-news");
+  assert.equal(categoryQueryDestination("Gurugram"), "/gurugram-news");
+  assert.equal(categoryQueryDestination("Gurgaon News"), "/gurugram-news");
+  assert.equal(categoryQueryDestination("technology"), "/category/technology");
+  assert.equal(categoryQueryDestination("not-a-section"), "/");
+  assert.equal(categoryQueryDestination("[slug]"), "/");
 }

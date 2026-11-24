@@ -397,6 +397,19 @@ async function main() {
   assert.ok(education);
   assert.equal(education.destination, "/category/education");
   assert.equal(education.permanent, true);
+
+  const cityArchives: Array<[string, string]> = [
+    ["/category/varanasi", "/varanasi-news"],
+    ["/category/gurugram", "/gurugram-news"],
+    ["/category/gurgaon", "/gurugram-news"],
+  ];
+  for (const [source, destination] of cityArchives) {
+    const rule = redirects.find((item) => item.source === source);
+    assert.ok(rule, source);
+    assert.equal(rule.destination, destination);
+    assert.equal(rule.permanent, true);
+    assert.equal(rule.destination.includes("?"), false);
+  }
 }
 
 {

@@ -13,9 +13,11 @@ assert.equal(sectionPath("gurgaon"), "/gurugram-news");
 assert.equal(sectionPath("technology"), "/category/technology");
 assert.equal(sectionPath("automotive"), "/category/automotive");
 assert.equal(sectionPath("[slug]"), "/");
-assert.equal(categoryPath("varanasi"), "/category/varanasi");
-assert.equal(categoryPath("gurgaon"), "/category/gurgaon");
+assert.equal(categoryPath("varanasi"), "/varanasi-news");
+assert.equal(categoryPath("gurgaon"), "/gurugram-news");
+assert.equal(categoryPath("technology"), "/category/technology");
 assert.equal(CATEGORY_HUB_PATHS.varanasi, "/varanasi-news");
+assert.equal(CATEGORY_HUB_PATHS.gurgaon, "/gurugram-news");
 assert.equal(articlePath("honor-x9b-battery-80-percent-1000-cycles"), "/articles/honor-x9b-battery-80-percent-1000-cycles");
 
 const items = itemListSchema([
