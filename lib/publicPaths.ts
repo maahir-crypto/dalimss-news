@@ -20,6 +20,24 @@ export const CATEGORY_HUB_PATHS: Record<string, string> = {
 };
 
 /**
+ * Server-rendered "More {City} news" link for article pages when the
+ * breadcrumb/category maps to a city topic hub. Hindi pages use the same
+ * English anchor text.
+ */
+export function cityHubMoreNewsLink(
+  categorySlug: string | null | undefined
+): { href: string; label: string } | null {
+  if (!categorySlug) return null;
+  if (categorySlug === "varanasi") {
+    return { href: CATEGORY_HUB_PATHS.varanasi, label: "More Varanasi news" };
+  }
+  if (categorySlug === "gurgaon") {
+    return { href: CATEGORY_HUB_PATHS.gurgaon, label: "More Gurugram news" };
+  }
+  return null;
+}
+
+/**
  * Public category URL. City categories resolve to their topic hubs, same
  * as sectionPath, so a link never points at a redirected archive.
  * Unknown or template slugs go to the homepage.

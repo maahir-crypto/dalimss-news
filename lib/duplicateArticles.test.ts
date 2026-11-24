@@ -27,7 +27,7 @@ import {
 }
 
 {
-  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 15);
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 18);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);
     assert.equal(isDuplicateArticleCopy(copy), true);
@@ -57,6 +57,24 @@ import {
       "varanasi-kashi-security-land-lease-approved-nov18-2026"
     ),
     "varanasi-dham-security-land-lease-nov18-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "gurugram-public-places-smoking-signboards-november23"
+    ),
+    "gurugram-smoking-ban-parks-markets-signs-november-23"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "gurugram-local-government-water-revenue-meet-november-23"
+    ),
+    "gurugram-local-body-water-grants-upkeep-conference-nov23"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "gurugram-panchayat-assets-caretakers-conference-nov23"
+    ),
+    "gurugram-local-body-water-grants-upkeep-conference-nov23"
   );
 }
 

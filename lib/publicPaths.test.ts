@@ -4,6 +4,7 @@ import {
   CATEGORY_HUB_PATHS,
   articlePath,
   categoryPath,
+  cityHubMoreNewsLink,
   sectionPath,
 } from "./publicPaths";
 import { itemListSchema, newsMediaOrganizationSchema } from "./seo";
@@ -19,6 +20,18 @@ assert.equal(categoryPath("technology"), "/category/technology");
 assert.equal(CATEGORY_HUB_PATHS.varanasi, "/varanasi-news");
 assert.equal(CATEGORY_HUB_PATHS.gurgaon, "/gurugram-news");
 assert.equal(articlePath("honor-x9b-battery-80-percent-1000-cycles"), "/articles/honor-x9b-battery-80-percent-1000-cycles");
+
+assert.deepEqual(cityHubMoreNewsLink("varanasi"), {
+  href: "/varanasi-news",
+  label: "More Varanasi news",
+});
+assert.deepEqual(cityHubMoreNewsLink("gurgaon"), {
+  href: "/gurugram-news",
+  label: "More Gurugram news",
+});
+assert.equal(cityHubMoreNewsLink("business"), null);
+assert.equal(cityHubMoreNewsLink(null), null);
+assert.equal(cityHubMoreNewsLink(undefined), null);
 
 const items = itemListSchema([
   { name: "One", url: "https://dalimss.news/articles/one" },

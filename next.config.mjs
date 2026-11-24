@@ -230,6 +230,28 @@ const nextConfig = {
         destination: "/articles/varanasi-dham-security-land-lease-nov18-2026",
         permanent: true,
       },
+      // 24 Nov 2026 Gurugram desk same-event merges.
+      {
+        source:
+          "/articles/gurugram-public-places-smoking-signboards-november23",
+        destination:
+          "/articles/gurugram-smoking-ban-parks-markets-signs-november-23",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/gurugram-local-government-water-revenue-meet-november-23",
+        destination:
+          "/articles/gurugram-local-body-water-grants-upkeep-conference-nov23",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/gurugram-panchayat-assets-caretakers-conference-nov23",
+        destination:
+          "/articles/gurugram-local-body-water-grants-upkeep-conference-nov23",
+        permanent: true,
+      },
     ];
   },
 
