@@ -15,6 +15,7 @@ import {
   absoluteImageUrl,
   formatDateIST,
   itemListSchema,
+  toISOWithTZ,
 } from "@/lib/seo";
 import { TopicHubProps } from "@/lib/topicHubs";
 
@@ -38,11 +39,15 @@ export default function TopicHubPage({
   const ogImage = heroArticle
     ? absoluteImageUrl(heroArticle.mediaUrl)
     : `${SITE_URL}/logo.png`;
+  const latestUpdateIso = latestUpdate ? toISOWithTZ(latestUpdate) : null;
   const latestUpdateLabel = latestUpdate
     ? formatDateIST(latestUpdate, {
         day: "numeric",
         month: "long",
         year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       })
     : "Updates automatically";
 
@@ -63,6 +68,7 @@ export default function TopicHubPage({
       "@id": WEBSITE_ID,
     },
     mainEntity: itemList,
+    ...(latestUpdateIso ? { dateModified: latestUpdateIso } : {}),
     publisher: {
       "@type": "NewsMediaOrganization",
       "@id": ORGANIZATION_ID,
@@ -144,7 +150,14 @@ export default function TopicHubPage({
           </h1>
           <p className="text-gray-600 mt-3 max-w-3xl">{hub.description}</p>
           <p className="text-xs text-gray-500 mt-3">
-            Latest update: {latestUpdateLabel}
+            Last updated:{" "}
+            {latestUpdateIso ? (
+              <time dateTime={latestUpdateIso}>
+                {latestUpdateLabel} IST
+              </time>
+            ) : (
+              latestUpdateLabel
+            )}
           </p>
         </header>
 

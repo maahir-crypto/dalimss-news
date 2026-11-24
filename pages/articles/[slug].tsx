@@ -120,7 +120,11 @@ import { DealDisclosure } from "@/components/DealDisclosure";
 import { AuthorBox } from "@/components/AuthorBox";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { findArticleRedirectSlug } from "@/lib/legacySlug";
-import { articlePath, sectionPath } from "@/lib/publicPaths";
+import {
+  articlePath,
+  cityHubMoreNewsLink,
+  sectionPath,
+} from "@/lib/publicPaths";
 import { RelatedArticles } from "@/components/RelatedArticles";
 import AdSlot from "@/components/AdSlot";
 import {
@@ -245,6 +249,7 @@ const ArticlePage: React.FC<Props> = ({
 
   const categories = getCategoriesByDbValue(article.category);
   const breadcrumbCategory = pickBreadcrumbCategory(categories);
+  const moreCityNews = cityHubMoreNewsLink(breadcrumbCategory?.slug);
   const isOpinion = categories.some((category) => category.slug === "opinion");
   const sources = normalizeArticleSources(article.sourceUrls);
   const visibleSources = [
@@ -840,6 +845,17 @@ const ArticlePage: React.FC<Props> = ({
           </pre>
         )}
       </div>
+
+      {moreCityNews && (
+        <p className="mt-6 mb-4 leading-[1.75] md:text-[1.125rem] text-gray-800">
+          <a
+            href={moreCityNews.href}
+            className="text-blue-700 underline underline-offset-2 decoration-1 hover:decoration-2"
+          >
+            {moreCityNews.label}
+          </a>
+        </p>
+      )}
 
       {devDeepawaliSlot === "after-body" && (
         <PartnerDevDeepawaliLine lang={partnerLang} slug={article.slug} />

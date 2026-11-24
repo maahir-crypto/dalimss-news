@@ -63,6 +63,13 @@ export const MERGED_ARTICLE_REDIRECTS: Record<string, string> = {
     "varanasi-vendor-welfare-award-scheme-linkages-nov20-2026",
   "varanasi-kashi-security-land-lease-approved-nov18-2026":
     "varanasi-dham-security-land-lease-nov18-2026",
+  // 24 Nov 2026 Gurugram desk same-event merges
+  "gurugram-public-places-smoking-signboards-november23":
+    "gurugram-smoking-ban-parks-markets-signs-november-23",
+  "gurugram-local-government-water-revenue-meet-november-23":
+    "gurugram-local-body-water-grants-upkeep-conference-nov23",
+  "gurugram-panchayat-assets-caretakers-conference-nov23":
+    "gurugram-local-body-water-grants-upkeep-conference-nov23",
 };
 
 /** Slug whose URL should be the canonical for this article. */
