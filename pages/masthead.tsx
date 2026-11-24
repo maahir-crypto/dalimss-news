@@ -102,7 +102,16 @@ export default function MastheadPage() {
               </li>
             </ul>
             <p className="mt-6 max-w-3xl text-gray-700 leading-relaxed">
-              {founder.bio}
+              {founder.bio}{" "}
+              More at{" "}
+              <a
+                href="https://maahirmadhok.in"
+                rel="me"
+                className="font-medium text-red-700 hover:underline"
+              >
+                maahirmadhok.in
+              </a>
+              .
             </p>
           </div>
         </section>
