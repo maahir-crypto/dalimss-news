@@ -70,6 +70,13 @@ export const MERGED_ARTICLE_REDIRECTS: Record<string, string> = {
     "gurugram-local-body-water-grants-upkeep-conference-nov23",
   "gurugram-panchayat-assets-caretakers-conference-nov23":
     "gurugram-local-body-water-grants-upkeep-conference-nov23",
+  // 25 Nov 2026 Varanasi and Gurugram desk same-event merges
+  "varanasi-ignca-accounts-post-karaundi-nov23-2026":
+    "varanasi-ignca-accounts-post-dec8-notice-nov23-2026",
+  "apeda-varanasi-meeting-farrukhabad-qatar-nov20-2026":
+    "varanasi-apeda-export-meeting-support-nov24-2026",
+  "gurugram-ten-debris-sites-500-acre-search-november-24":
+    "gurugram-ten-waste-sites-network-review-november-24",
 };
 
 /** Slug whose URL should be the canonical for this article. */
