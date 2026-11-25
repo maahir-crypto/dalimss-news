@@ -32,6 +32,14 @@ const EDITOR_EMAILS = new Set([
   "dalimsssushant@gmail.com",
 ]);
 
+const LETS_NOT_PRETEND_SHOW = "Let's Not Pretend";
+const CGP_SPOTLIGHT_SERIES_URL =
+  "https://www.cgpspotlight.com/series/let-s-not-pretend";
+
+function isLetsNotPretendShow(showName?: string | null): boolean {
+  return (showName || "").trim().toLowerCase() === "let's not pretend";
+}
+
 export default function PodcastIndex({ episodes }: PodcastIndexProps) {
   const { data: session } = useSession();
   const [activeCategory, setActiveCategory] = useState("All");
@@ -48,6 +56,9 @@ export default function PodcastIndex({ episodes }: PodcastIndexProps) {
   }, [activeCategory, episodes]);
   const availableCategories = PODCAST_CATEGORIES.filter((category) =>
     episodes.some((episode) => episode.category === category)
+  );
+  const hasLetsNotPretend = episodes.some((episode) =>
+    isLetsNotPretendShow(episode.showName)
   );
 
   return (
@@ -92,6 +103,28 @@ export default function PodcastIndex({ episodes }: PodcastIndexProps) {
             }),
           }}
         />
+        {hasLetsNotPretend && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "TVSeries",
+                name: LETS_NOT_PRETEND_SHOW,
+                url: `${SITE_URL}/ott`,
+                description:
+                  "A parenting series from Dalimss News Education, with honest conversations about raising children.",
+                sameAs: [CGP_SPOTLIGHT_SERIES_URL],
+                inLanguage: "en-IN",
+                creator: {
+                  "@type": "Organization",
+                  name: "Dalimss News Education",
+                  url: SITE_URL,
+                },
+              }),
+            }}
+          />
+        )}
       </Head>
 
       <section className="relative overflow-hidden bg-[#070b14] text-white">
@@ -221,6 +254,33 @@ export default function PodcastIndex({ episodes }: PodcastIndexProps) {
           )}
         </div>
       </section>
+
+      {hasLetsNotPretend && (
+        <section className="border-t border-white/5 bg-[#10151f] py-10 text-white sm:py-12">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:flex-row sm:items-end sm:justify-between sm:px-6 lg:px-8">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#ff6a5e]">
+                {LETS_NOT_PRETEND_SHOW}
+              </p>
+              <h2 className="mt-2 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
+                Now streaming on CGP Spotlight
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-white/65 sm:text-base">
+                Our parenting series is on CGP Spotlight, and you can still
+                watch the episodes here on Dalimss OTT.
+              </p>
+            </div>
+            <a
+              href={CGP_SPOTLIGHT_SERIES_URL}
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-slate-950 transition hover:bg-[#ff5a4c] hover:text-white"
+            >
+              Watch on CGP Spotlight
+            </a>
+          </div>
+        </section>
+      )}
 
       <section className="bg-[#f7f6f2] py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
