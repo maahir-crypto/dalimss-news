@@ -27,7 +27,7 @@ import {
 }
 
 {
-  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 18);
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 21);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);
     assert.equal(isDuplicateArticleCopy(copy), true);
@@ -75,6 +75,24 @@ import {
       "gurugram-panchayat-assets-caretakers-conference-nov23"
     ),
     "gurugram-local-body-water-grants-upkeep-conference-nov23"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-ignca-accounts-post-karaundi-nov23-2026"
+    ),
+    "varanasi-ignca-accounts-post-dec8-notice-nov23-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "apeda-varanasi-meeting-farrukhabad-qatar-nov20-2026"
+    ),
+    "varanasi-apeda-export-meeting-support-nov24-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "gurugram-ten-debris-sites-500-acre-search-november-24"
+    ),
+    "gurugram-ten-waste-sites-network-review-november-24"
   );
 }
 

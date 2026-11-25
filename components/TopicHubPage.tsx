@@ -148,7 +148,7 @@ export default function TopicHubPage({
             {heading}
             {hub.titleHi && <span className="text-red-600"> | {hub.titleHi}</span>}
           </h1>
-          <p className="text-gray-600 mt-3 max-w-3xl">{hub.description}</p>
+          <p className="text-gray-600 mt-3 max-w-3xl">{hub.intro || hub.description}</p>
           <p className="text-xs text-gray-500 mt-3">
             Last updated:{" "}
             {latestUpdateIso ? (

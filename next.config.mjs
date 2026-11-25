@@ -252,6 +252,28 @@ const nextConfig = {
           "/articles/gurugram-local-body-water-grants-upkeep-conference-nov23",
         permanent: true,
       },
+      // 25 Nov 2026 Varanasi and Gurugram desk same-event merges.
+      {
+        source:
+          "/articles/varanasi-ignca-accounts-post-karaundi-nov23-2026",
+        destination:
+          "/articles/varanasi-ignca-accounts-post-dec8-notice-nov23-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/apeda-varanasi-meeting-farrukhabad-qatar-nov20-2026",
+        destination:
+          "/articles/varanasi-apeda-export-meeting-support-nov24-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/gurugram-ten-debris-sites-500-acre-search-november-24",
+        destination:
+          "/articles/gurugram-ten-waste-sites-network-review-november-24",
+        permanent: true,
+      },
     ];
   },
 

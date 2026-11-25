@@ -24,6 +24,8 @@ export type TopicHubConfig = {
   /** English H1. Falls back to title. */
   h1?: string;
   description: string;
+  /** Visible intro under the H1. Falls back to description (the meta description). */
+  intro?: string;
   canonicalPath: string;
   feedPath?: string;
   keywords: string[];
@@ -49,6 +51,8 @@ export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
     h1: "Varanasi News Today: Latest Varanasi News",
     description:
       "Latest Varanasi news today from Dalimss News: verified civic, culture, education, governance, tourism and infrastructure reporting from Banaras.",
+    intro:
+      "Dalimss News reports on Varanasi from its newsroom office in Sigra, covering the city and the wider district. The desk follows civic bodies, police, schools, colleges and BHU, along with the temples, ghats and tourism that shape daily life in Banaras. Hindi reports appear in our Hindi section, and this page lists the newest English stories first.",
     canonicalPath: "/varanasi-news",
     feedPath: "/varanasi/feed.xml",
     keywords: ["Varanasi", "Banaras", "Kashi", "वाराणसी", "बनारस"],
@@ -84,6 +88,8 @@ export const TOPIC_HUBS: Record<string, TopicHubConfig> = {
     h1: "Gurugram News Today: Latest Gurugram (Gurgaon) News",
     description:
       "Latest Gurugram (Gurgaon) news today from Dalimss News: verified civic, traffic, real estate, corporate, neighbourhood and Haryana reporting.",
+    intro:
+      "Dalimss News is headquartered in Gurugram and Varanasi, and its Gurugram desk covers the city and the wider district. Coverage follows the Municipal Corporation of Gurugram (MCG), the Gurugram Metropolitan Development Authority (GMDA), traffic, real estate and neighbourhood civic issues. Stories that use Gurgaon, the city's former name, appear here too, newest first.",
     canonicalPath: "/gurugram-news",
     feedPath: "/gurugram/feed.xml",
     keywords: ["Gurugram", "Gurgaon", "Cyber City", "Haryana", "गुरुग्राम"],
