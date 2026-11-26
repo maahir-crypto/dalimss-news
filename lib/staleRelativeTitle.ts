@@ -6,9 +6,11 @@
 import { formatDateIST } from "./seo";
 
 // Longer phrases first so "this weekend" wins over a bare "this", and
-// "आज रात" wins over "आज". Fresh RegExp per call avoids /g lastIndex races.
+// "आज रात" wins over "आज". JS \b is ASCII-only, so the Hindi alternatives
+// are guarded by Devanagari lookaround (U+0900-U+097F) and match only as
+// standalone words. Fresh RegExp per call avoids /g lastIndex races.
 const RELATIVE_DAY_SOURCE =
-  String.raw`\bthis morning\b|\bthis afternoon\b|\bthis evening\b|\bthis weekend\b|\btoday\b|\btonight\b|\byesterday\b|आज रात|इस सप्ताहांत|आज|कल`;
+  String.raw`\bthis morning\b|\bthis afternoon\b|\bthis evening\b|\bthis weekend\b|\btoday\b|\btonight\b|\byesterday\b|(?<![\u0900-\u097F])(?:आज रात|इस सप्ताहांत|आज|कल)(?![\u0900-\u097F])`;
 
 function relativeDayPattern(): RegExp {
   return new RegExp(RELATIVE_DAY_SOURCE, "gi");
