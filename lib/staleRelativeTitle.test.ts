@@ -64,4 +64,55 @@ describe("resolveStaleRelativeTitle", () => {
       "वाराणसी मौसम, 28 October 2026: सुबह कोहरा"
     );
   });
+
+  it("does not rewrite कल inside कलर्स in a stale Hindi title", () => {
+    const title = "बिग बॉस 20 कहां देखें: जियोहॉटस्टार और कलर्स का समय";
+    assert.equal(
+      resolveStaleRelativeTitle(title, PUBLISHED_28_OCT, NOW_29_OCT),
+      title
+    );
+  });
+
+  it("does not rewrite Hindi relative syllables inside ordinary words", () => {
+    const titles = [
+      "कलेक्टर पहुंचे दफ्तर",
+      "यह एक विकल्प है",
+      "नतीजा निकलेगा शाम तक",
+      "आजमगढ़ में बैठक हुई",
+      "आजादी का अमृत महोत्सव",
+    ];
+    for (const title of titles) {
+      assert.equal(
+        resolveStaleRelativeTitle(title, PUBLISHED_28_OCT, NOW_29_OCT),
+        title
+      );
+    }
+  });
+
+  it("replaces standalone Hindi आज, कल, and आज रात when the story is stale", () => {
+    assert.equal(
+      resolveStaleRelativeTitle(
+        "वाराणसी में आज बारिश",
+        PUBLISHED_28_OCT,
+        NOW_29_OCT
+      ),
+      "वाराणसी में, 28 October 2026 बारिश"
+    );
+    assert.equal(
+      resolveStaleRelativeTitle(
+        "कल का मौसम अपडेट",
+        PUBLISHED_28_OCT,
+        NOW_29_OCT
+      ),
+      "28 October 2026 का मौसम अपडेट"
+    );
+    assert.equal(
+      resolveStaleRelativeTitle(
+        "लखनऊ में आज रात बारिश",
+        PUBLISHED_28_OCT,
+        NOW_29_OCT
+      ),
+      "लखनऊ में, 28 October 2026 बारिश"
+    );
+  });
 });
