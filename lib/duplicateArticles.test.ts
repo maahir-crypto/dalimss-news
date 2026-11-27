@@ -27,7 +27,7 @@ import {
 }
 
 {
-  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 21);
+  assert.equal(Object.keys(MERGED_ARTICLE_REDIRECTS).length, 25);
   for (const [copy, main] of Object.entries(MERGED_ARTICLE_REDIRECTS)) {
     assert.notEqual(copy, main);
     assert.equal(isDuplicateArticleCopy(copy), true);
@@ -93,6 +93,28 @@ import {
       "gurugram-ten-debris-sites-500-acre-search-november-24"
     ),
     "gurugram-ten-waste-sites-network-review-november-24"
+  );
+  assert.equal(
+    duplicateCanonicalSlug("varanasi-dengue-176-cases-nov26-2026"),
+    "varanasi-dengue-176-cases-urban-rural-nov26-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-sangamam-first-207-delegates-depart-nov26-2026"
+    ),
+    "varanasi-sangamam-first-207-delegates-train-nov26-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "varanasi-nov28-cantt-bhu-traffic-restrictions-2026"
+    ),
+    "varanasi-nov28-traffic-bus-diversions-bhu-timings-2026"
+  );
+  assert.equal(
+    duplicateCanonicalSlug(
+      "gurugram-university-event-agencies-december-3-bid-november-26"
+    ),
+    "gurugram-university-event-contract-bids-december-3-nov26"
   );
 }
 
