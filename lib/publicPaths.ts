@@ -21,18 +21,27 @@ export const CATEGORY_HUB_PATHS: Record<string, string> = {
 
 /**
  * Server-rendered "More {City} news" link for article pages when the
- * breadcrumb/category maps to a city topic hub. Hindi pages use the same
- * English anchor text.
+ * breadcrumb/category maps to a city topic hub. Hindi articles (language
+ * "hi", the same signal as the Hindi breadcrumb) use a Hindi anchor for
+ * the Varanasi and Gurugram hubs only. Other languages keep the English text.
  */
 export function cityHubMoreNewsLink(
-  categorySlug: string | null | undefined
+  categorySlug: string | null | undefined,
+  language?: string | null
 ): { href: string; label: string } | null {
   if (!categorySlug) return null;
+  const hindi = language === "hi";
   if (categorySlug === "varanasi") {
-    return { href: CATEGORY_HUB_PATHS.varanasi, label: "More Varanasi news" };
+    return {
+      href: CATEGORY_HUB_PATHS.varanasi,
+      label: hindi ? "और वाराणसी समाचार" : "More Varanasi news",
+    };
   }
   if (categorySlug === "gurgaon") {
-    return { href: CATEGORY_HUB_PATHS.gurgaon, label: "More Gurugram news" };
+    return {
+      href: CATEGORY_HUB_PATHS.gurgaon,
+      label: hindi ? "और गुरुग्राम समाचार" : "More Gurugram news",
+    };
   }
   return null;
 }

@@ -29,7 +29,25 @@ assert.deepEqual(cityHubMoreNewsLink("gurgaon"), {
   href: "/gurugram-news",
   label: "More Gurugram news",
 });
+assert.deepEqual(cityHubMoreNewsLink("varanasi", "en"), {
+  href: "/varanasi-news",
+  label: "More Varanasi news",
+});
+assert.deepEqual(cityHubMoreNewsLink("gurgaon", "en"), {
+  href: "/gurugram-news",
+  label: "More Gurugram news",
+});
+assert.deepEqual(cityHubMoreNewsLink("varanasi", "hi"), {
+  href: "/varanasi-news",
+  label: "और वाराणसी समाचार",
+});
+assert.deepEqual(cityHubMoreNewsLink("gurgaon", "hi"), {
+  href: "/gurugram-news",
+  label: "और गुरुग्राम समाचार",
+});
 assert.equal(cityHubMoreNewsLink("business"), null);
+assert.equal(cityHubMoreNewsLink("business", "hi"), null);
+assert.equal(cityHubMoreNewsLink(null, "hi"), null);
 assert.equal(cityHubMoreNewsLink(null), null);
 assert.equal(cityHubMoreNewsLink(undefined), null);
 

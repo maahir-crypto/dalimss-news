@@ -249,7 +249,10 @@ const ArticlePage: React.FC<Props> = ({
 
   const categories = getCategoriesByDbValue(article.category);
   const breadcrumbCategory = pickBreadcrumbCategory(categories);
-  const moreCityNews = cityHubMoreNewsLink(breadcrumbCategory?.slug);
+  const moreCityNews = cityHubMoreNewsLink(
+    breadcrumbCategory?.slug,
+    article.language
+  );
   const isOpinion = categories.some((category) => category.slug === "opinion");
   const sources = normalizeArticleSources(article.sourceUrls);
   const visibleSources = [
