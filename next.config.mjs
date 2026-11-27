@@ -274,6 +274,34 @@ const nextConfig = {
           "/articles/gurugram-ten-waste-sites-network-review-november-24",
         permanent: true,
       },
+      // 27 Nov 2026 Varanasi and Gurugram desk same-event merges.
+      {
+        source: "/articles/varanasi-dengue-176-cases-nov26-2026",
+        destination:
+          "/articles/varanasi-dengue-176-cases-urban-rural-nov26-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/varanasi-sangamam-first-207-delegates-depart-nov26-2026",
+        destination:
+          "/articles/varanasi-sangamam-first-207-delegates-train-nov26-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/varanasi-nov28-cantt-bhu-traffic-restrictions-2026",
+        destination:
+          "/articles/varanasi-nov28-traffic-bus-diversions-bhu-timings-2026",
+        permanent: true,
+      },
+      {
+        source:
+          "/articles/gurugram-university-event-agencies-december-3-bid-november-26",
+        destination:
+          "/articles/gurugram-university-event-contract-bids-december-3-nov26",
+        permanent: true,
+      },
     ];
   },
 
