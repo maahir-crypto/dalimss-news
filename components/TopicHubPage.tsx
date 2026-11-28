@@ -149,6 +149,16 @@ export default function TopicHubPage({
             {hub.titleHi && <span className="text-red-600"> | {hub.titleHi}</span>}
           </h1>
           <p className="text-gray-600 mt-3 max-w-3xl">{hub.intro || hub.description}</p>
+          {hub.introLink ? (
+            <p className="mt-3">
+              <Link
+                href={hub.introLink.href}
+                className="text-sm font-semibold text-red-600 hover:text-red-700"
+              >
+                {hub.introLink.label}
+              </Link>
+            </p>
+          ) : null}
           <p className="text-xs text-gray-500 mt-3">
             Last updated:{" "}
             {latestUpdateIso ? (

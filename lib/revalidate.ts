@@ -6,6 +6,7 @@ import {
   listingHtmlCacheTag,
 } from "@/lib/publicCache";
 import { canonicalArticleSlug } from "@/lib/seo";
+import { civicUpdatesPathForArticle } from "@/lib/civicUpdates";
 import { topicHubPathsForArticle } from "@/lib/topicHubs";
 
 /**
@@ -72,10 +73,33 @@ function paginatedListingPaths(article: {
   return paths;
 }
 
+function civicListingPaths(article: {
+  slug?: string | null;
+  title?: string | null;
+  content?: string | null;
+  category?: string | null;
+  tags?: string | null;
+  focusKeyword?: string | null;
+}): string[] {
+  const path = civicUpdatesPathForArticle(article);
+  return path ? [path] : [];
+}
+
 /** Cache tags for the category archives and topic hubs this article appears on. */
 export function listingHtmlCacheTags(article: ArticleRevalidateInput): string[] {
-  const paths = paginatedListingPaths(article);
-  if (article.previous) paths.push(...paginatedListingPaths(article.previous));
+  const paths = [
+    ...paginatedListingPaths(article),
+    ...civicListingPaths(article),
+  ];
+  if (article.previous) {
+    paths.push(...paginatedListingPaths(article.previous));
+    paths.push(
+      ...civicListingPaths({
+        ...article.previous,
+        slug: article.previousSlug || article.slug,
+      })
+    );
+  }
   return Array.from(new Set(paths.map((path) => listingHtmlCacheTag(path))));
 }
 

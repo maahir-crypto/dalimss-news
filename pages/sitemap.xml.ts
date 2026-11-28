@@ -28,6 +28,8 @@ import {
   laterDate,
   maxDate,
 } from "@/lib/sitemapDates";
+import { loadCivicUpdates } from "@/lib/civicUpdatesData";
+import { CIVIC_UPDATES_PATH } from "@/lib/civicUpdatesCopy";
 
 const BASE_URL = "https://dalimss.news";
 
@@ -121,7 +123,7 @@ function listingEntries(
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const [articles, stories, podcastEpisodes] = await Promise.all([
+  const [articles, stories, podcastEpisodes, civicUpdates] = await Promise.all([
     prisma.article.findMany({
       select: {
         slug: true,
@@ -156,7 +158,12 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       },
       orderBy: { publishedAt: "desc" },
     }),
+    loadCivicUpdates(new Date()),
   ]);
+
+  const civicLastMod = civicUpdates.newestPublishedAt
+    ? new Date(civicUpdates.newestPublishedAt)
+    : null;
 
   const bulkUpdatedAt = bulkUpdatedAtMillis(
     articles.map((article) => article.updatedAt)
@@ -244,6 +251,12 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       priority: "0.9",
       freq: "hourly",
       lastmod: categoryLastMod.get("varanasi") || null,
+    },
+    {
+      path: CIVIC_UPDATES_PATH,
+      priority: "0.8",
+      freq: "hourly",
+      lastmod: civicLastMod,
     },
     {
       path: "/gurugram-news",

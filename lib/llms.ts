@@ -6,6 +6,7 @@ import {
   renderPriceGuideSection,
   selectPriceGuides,
 } from "@/lib/llmsPriceGuides";
+import { CIVIC_UPDATES_LLMS_BULLET } from "@/lib/civicUpdatesCopy";
 import {
   SITE_URL,
   articleMetaDescription,
@@ -32,6 +33,7 @@ Dalimss News is an Indian digital news publication specialising in Varanasi, Eas
 ## Sections
 
 - Varanasi News: ${SITE_URL}/varanasi-news. Latest verified Varanasi and Banaras news.
+${CIVIC_UPDATES_LLMS_BULLET}
 - Gurugram News: ${SITE_URL}/gurugram-news. Latest verified Gurugram (Gurgaon) news.
 - BHU News: ${SITE_URL}/bhu-news
 - Varanasi Infrastructure: ${SITE_URL}/varanasi-infrastructure

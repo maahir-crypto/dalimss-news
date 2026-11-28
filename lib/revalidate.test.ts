@@ -25,6 +25,7 @@ const article = {
   assert.equal(tags.includes("listing-varanasi-news"), true);
   assert.equal(tags.includes("listing-gurugram-news"), true);
   assert.equal(tags.includes("listing-varanasi-airport-news"), true);
+  assert.equal(tags.includes("listing-varanasi-news-civic-updates"), false);
   assert.equal(tags.includes("listing-category-automotive"), false);
 }
 
@@ -53,6 +54,40 @@ const article = {
   };
   assert.deepEqual(articleRevalidatePaths(hindi), ["/articles/hindi-story"]);
   assert.deepEqual(listingHtmlCacheTags(hindi), []);
+}
+
+{
+  const traffic = listingHtmlCacheTags({
+    slug: "varanasi-traffic-diversion",
+    language: "en",
+    title: "Varanasi traffic diversion near Cantt",
+    category: "Varanasi",
+  });
+  assert.equal(traffic.includes("listing-varanasi-news"), true);
+  assert.equal(traffic.includes("listing-varanasi-news-civic-updates"), true);
+}
+
+{
+  const hindiCivic = listingHtmlCacheTags({
+    slug: "varanasi-school-chhutti",
+    language: "hi",
+    title: "वाराणसी में स्कूल की छुट्टी",
+    category: "Varanasi",
+  });
+  assert.deepEqual(hindiCivic, ["listing-varanasi-news-civic-updates"]);
+}
+
+{
+  const edited = listingHtmlCacheTags({
+    slug: "city-note",
+    language: "en",
+    title: "Varanasi market hours",
+    previous: {
+      language: "en",
+      title: "Varanasi traffic diversion",
+    },
+  });
+  assert.equal(edited.includes("listing-varanasi-news-civic-updates"), true);
 }
 
 console.log("revalidate.test.ts ok");
