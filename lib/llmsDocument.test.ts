@@ -77,6 +77,17 @@ assert.ok(
   body.includes("Varanasi News: https://dalimss.news/varanasi-news. Latest verified Varanasi and Banaras news covering civic updates, culture, education, governance, tourism and infrastructure.")
 );
 assert.ok(
+  body.includes(
+    "Varanasi civic updates: traffic diversions, police transfers, school notices, power and water updates, collected from official orders."
+  )
+);
+{
+  const hub = body.indexOf("https://dalimss.news/varanasi-news.");
+  const civic = body.indexOf("https://dalimss.news/varanasi-news/civic-updates");
+  const gurugram = body.indexOf("https://dalimss.news/gurugram-news");
+  assert.ok(hub !== -1 && hub < civic && civic < gurugram);
+}
+assert.ok(
   body.includes("Gurugram News: https://dalimss.news/gurugram-news. Latest verified Gurugram (Gurgaon) news covering civic agencies, traffic, real estate, corporate hubs, neighbourhood issues and Haryana updates.")
 );
 assert.equal(body.includes("\u2014"), false);

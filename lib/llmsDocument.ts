@@ -3,6 +3,8 @@
  * /llms-full.txt has its own intro in lib/llms.ts and is not built here.
  */
 
+import { CIVIC_UPDATES_LLMS_BULLET } from "@/lib/civicUpdatesCopy";
+
 const LLMS_TXT_BYTE_LIMIT = 60 * 1024;
 
 const LLMS_TXT_MAIN = `# Dalimss News
@@ -14,6 +16,7 @@ Dalimss News is published by PAMF Digimedia Private Limited, Gurugram, Haryana, 
 ## Primary Sections
 
 - Varanasi News: https://dalimss.news/varanasi-news. Latest verified Varanasi and Banaras news covering civic updates, culture, education, governance, tourism and infrastructure.
+${CIVIC_UPDATES_LLMS_BULLET}
 - Gurugram News: https://dalimss.news/gurugram-news. Latest verified Gurugram (Gurgaon) news covering civic agencies, traffic, real estate, corporate hubs, neighbourhood issues and Haryana updates.
 - BHU News: https://dalimss.news/bhu-news
 - Varanasi Infrastructure: https://dalimss.news/varanasi-infrastructure
